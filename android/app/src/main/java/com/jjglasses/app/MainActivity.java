@@ -88,8 +88,9 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
+        CrashReport.install(this);      // se o app fechar sozinho, guarda o erro e manda para o Supabase
+        CrashReport.sendPending(this);
         prefs = getSharedPreferences("shell", MODE_PRIVATE);
-        fullScreen();
 
         FrameLayout root = new FrameLayout(this);
         root.setBackgroundColor(Color.BLACK);
@@ -104,11 +105,11 @@ public class MainActivity extends Activity {
         splash.setBackgroundColor(Color.parseColor("#0F1218"));
         root.addView(splash, new FrameLayout.LayoutParams(-1, -1));
         setContentView(root);
+        try { fullScreen(); } catch (Throwable e) { CrashReport.note(this, e); }
 
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);                    // localStorage: conversas e login ficam salvos
-        s.setDatabaseEnabled(true);
         s.setMediaPlaybackRequiresUserGesture(false);    // áudio toca sem precisar de toque
         s.setSupportMultipleWindows(false);              // links "_blank" passam pelo filtro abaixo
         s.setGeolocationEnabled(true);
@@ -117,10 +118,15 @@ public class MainActivity extends Activity {
         web.setWebViewClient(new ShellClient());
         web.setWebChromeClient(new ShellChrome());
 
-        tts = new TextToSpeech(this, status -> {
-            ttsReady = status == TextToSpeech.SUCCESS;
-            if (ttsReady) tts.setLanguage(new Locale("pt", "BR"));
-        }, googleTts());
+        try {
+            tts = new TextToSpeech(this, status -> {
+                ttsReady = status == TextToSpeech.SUCCESS;
+                try { if (ttsReady && tts != null) tts.setLanguage(new Locale("pt", "BR")); }
+                catch (Throwable e) { ttsReady = false; }
+            }, googleTts());
+        } catch (Throwable e) {
+            CrashReport.note(this, e);
+        }
 
         // Ao abrir: confere o version.json com tempo curto. Depois de no máximo 4 s, abre de qualquer jeito.
         new Thread(() -> {
@@ -160,7 +166,7 @@ public class MainActivity extends Activity {
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) fullScreen();
+        if (hasFocus) { try { fullScreen(); } catch (Throwable ignored) { } }
     }
 
     private final Runnable periodic = new Runnable() {
@@ -323,6 +329,13 @@ public class MainActivity extends Activity {
             return true;
         }
 
+        // Se o "motor" do navegador embutido cair, recarrega em vez de fechar o app.
+        @Override public boolean onRenderProcessGone(WebView view, android.webkit.RenderProcessGoneDetail detail) {
+            CrashReport.note(MainActivity.this, new RuntimeException("WebView caiu (crash=" + detail.didCrash() + ")"));
+            recreate();
+            return true;
+        }
+
         @Override public void onPageFinished(WebView view, String url) {
             splash.setVisibility(View.GONE);
             if (notesToShow != null && !"null".equals(notesToShow)) {
@@ -451,7 +464,7 @@ public class MainActivity extends Activity {
     }
 
     /** Ponte: funções do Android que o index.html pode chamar como window.JJ.algumaCoisa(). */
-    private class Bridge {
+    public class Bridge {
         @JavascriptInterface public String version() { return String.valueOf(savedVersion()); }
 
         @JavascriptInterface public String shellVersion() {
