@@ -63,7 +63,9 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || vars.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS || vars.KEY_ALIAS || 'jjglasses' }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || vars.KEY_PASSWORD || secrets.KEYSTORE_PASSWORD || vars.KEYSTORE_PASSWORD }}
-        run: gradle -p android assembleRelease --no-daemon --stacktrace
+        run: |
+          set -o pipefail
+          gradle -p android assembleRelease --no-daemon --stacktrace 2>&1 | tee "$RUNNER_TEMP/build.log"
 
       - name: Guardar o APK no repositório e no site
         run: |
@@ -82,3 +84,15 @@ jobs:
           path: web
       - id: deploy
         uses: actions/deploy-pages@v4
+
+      - name: Guardar o relatório de erro (para o Claude ler)
+        if: failure()
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/rel" && cd "$RUNNER_TEMP/rel"
+          git init -q && git checkout -q -b relatorio-build
+          if [ -f "$RUNNER_TEMP/build.log" ]; then tail -c 80000 "$RUNNER_TEMP/build.log" > build.log; else echo "Falhou antes de montar o APK (veja a aba Actions)." > build.log; fi
+          echo "run ${GITHUB_RUN_NUMBER} commit ${GITHUB_SHA}" > info.txt
+          git add . && git -c user.name=bot -c user.email=bot@users.noreply.github.com commit -qm "relatório do build ${GITHUB_RUN_NUMBER}"
+          git push -f "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}" relatorio-build
