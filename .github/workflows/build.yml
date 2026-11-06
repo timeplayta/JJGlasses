@@ -55,7 +55,8 @@ jobs:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 || vars.KEYSTORE_BASE64 }}
         run: |
           if [ -z "$KEYSTORE_BASE64" ]; then echo "::error::Falta o segredo KEYSTORE_BASE64. Coloque em Settings > Secrets and variables > Actions > aba Secrets > New repository secret"; exit 1; fi
-          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/jjglasses.jks"
+          # tira espaços e quebras de linha que vêm junto quando se copia e cola
+          printf '%s' "$KEYSTORE_BASE64" | tr -d ' \r\n\t' | base64 -d > "$RUNNER_TEMP/jjglasses.jks"
           echo "KEYSTORE_FILE=$RUNNER_TEMP/jjglasses.jks" >> "$GITHUB_ENV"
 
       - name: Montar o APK assinado
@@ -89,10 +90,21 @@ jobs:
         if: failure()
         env:
           TOKEN: ${{ github.token }}
+          KB: ${{ secrets.KEYSTORE_BASE64 || vars.KEYSTORE_BASE64 }}
+          KP: ${{ secrets.KEYSTORE_PASSWORD || vars.KEYSTORE_PASSWORD }}
         run: |
           mkdir -p "$RUNNER_TEMP/rel" && cd "$RUNNER_TEMP/rel"
+          {
+            echo "tamanho KEYSTORE_BASE64 (sem espacos): $(printf '%s' "$KB" | tr -d ' \r\n\t' | wc -c) (esperado 3520)"
+            echo "tamanho KEYSTORE_PASSWORD: $(printf '%s' "$KP" | wc -c) (esperado 24)"
+            printf '%s' "$KB" | tr -d ' \r\n\t' | base64 -d > k.jks 2>/dev/null && echo "base64 ok, $(wc -c < k.jks) bytes (esperado 2638)" || echo "base64 INVALIDO"
+            keytool -list -keystore k.jks -storepass "$KP" >/dev/null 2>&1 && echo "senha confere com a chave" || echo "senha NAO confere"
+            rm -f k.jks
+            ls -la "$GITHUB_WORKSPACE"/android/app/build/outputs/apk/release 2>/dev/null || true
+          } > diagnostico.txt 2>&1 || true
           git init -q && git checkout -q -b relatorio-build
           if [ -f "$RUNNER_TEMP/build.log" ]; then tail -c 80000 "$RUNNER_TEMP/build.log" > build.log; else echo "Falhou antes de montar o APK (veja a aba Actions)." > build.log; fi
           echo "run ${GITHUB_RUN_NUMBER} commit ${GITHUB_SHA}" > info.txt
+          cat "$GITHUB_WORKSPACE/web/version.json" >> diagnostico.txt 2>/dev/null || true
           git add . && git -c user.name=bot -c user.email=bot@users.noreply.github.com commit -qm "relatório do build ${GITHUB_RUN_NUMBER}"
           git push -f "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}" relatorio-build
