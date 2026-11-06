@@ -1,12 +1,13 @@
 {
-  "v": 202611062037,
+  "v": 202611062054,
   "notes": {
-    "t": "Novidades em voz alta",
+    "t": "Microfone igual ao WhatsApp",
     "b": [
-      "Quando o app atualiza, ele fala as novidades assim que abre",
-      "Toque em Legal para parar a fala"
+      "O microfone grava até você tocar em Parar, sem cortar sozinho",
+      "Dá para cancelar a gravação",
+      "O áudio vira texto com mais precisão"
     ]
   },
-  "bytes": 44120,
-  "sha256": "0e069d8667a26efb38979693c0249456e119d32c6e3a3fee83097e294c02b7db"
+  "bytes": 48286,
+  "sha256": "bfee0e42690ec26fb0fdccff6018378e6841b1e31911606f11751384ce504dd3"
 }
