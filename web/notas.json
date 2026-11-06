@@ -1,7 +1,8 @@
 {
-  "t": "Novidades em voz alta",
+  "t": "Microfone igual ao WhatsApp",
   "b": [
-    "Quando o app atualiza, ele fala as novidades assim que abre",
-    "Toque em Legal para parar a fala"
+    "O microfone grava até você tocar em Parar, sem cortar sozinho",
+    "Dá para cancelar a gravação",
+    "O áudio vira texto com mais precisão"
   ]
 }
