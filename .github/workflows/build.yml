@@ -61,8 +61,8 @@ jobs:
       - name: Montar o APK assinado
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || vars.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS || vars.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || vars.KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS || vars.KEY_ALIAS || 'jjglasses' }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || vars.KEY_PASSWORD || secrets.KEYSTORE_PASSWORD || vars.KEYSTORE_PASSWORD }}
         run: gradle -p android assembleRelease --no-daemon --stacktrace
 
       - name: Guardar o APK no repositório e no site
