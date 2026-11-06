@@ -569,7 +569,13 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 
   /* ---------- avisos de atualização (chamados pela casca) ---------- */
   function notes(n){n=n||{};return {t:n.t||'Novidades',b:Array.isArray(n.b)?n.b:[]}}
-  window.jjShowUpdated=function(n){n=notes(n);$('nTitle').textContent='App atualizado!';$('nSub').textContent=n.t;$('nList').innerHTML=n.b.map(function(x){return '<li>'+esc(x)+'</li>'}).join('');$('notice').hidden=false};
+  window.jjShowUpdated=function(n){
+    n=notes(n);$('nTitle').textContent='App atualizado!';$('nSub').textContent=n.t;$('nList').innerHTML=n.b.map(function(x){return '<li>'+esc(x)+'</li>'}).join('');$('notice').hidden=false;
+    // Fala em voz alta o que mudou, assim que o app abre atualizado.
+    var fala='O JJGlasses foi atualizado. '+n.t+'. '+n.b.map(function(x){return String(x).replace(/[.!]+$/,'')}).join('. ')+'.';
+    setTimeout(function(){speak(fala)},600);
+  };
+  $('nOk').addEventListener('click',function(){stopSpeak()});
   window.jjUpdateReady=function(n){n=notes(n);$('bText').textContent='Nova versão: '+n.t;$('banner').hidden=false};
   $('nOk').onclick=function(){$('notice').hidden=true};
   $('bGo').onclick=function(){$('banner').hidden=true;persist();if(NATIVE&&NATIVE.applyUpdate)NATIVE.applyUpdate();else location.reload()};
