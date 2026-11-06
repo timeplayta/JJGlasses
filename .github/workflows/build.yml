@@ -1,0 +1,84 @@
+# Robô do GitHub: a cada push na main, monta o APK assinado, atualiza o version.json
+# e publica o app (index.html) no site do GitHub Pages.
+name: Gerar APK e publicar o app
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write   # salvar o APK no repositório
+  pages: write      # publicar o site
+  id-token: write
+
+concurrency:
+  group: build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Número da versão (data e hora)
+        run: |
+          echo "V=$(TZ=America/Sao_Paulo date +%Y%m%d%H%M)" >> "$GITHUB_ENV"
+          echo "VERSION_CODE=$((1000 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
+          echo "VERSION_NAME=1.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
+
+      - name: Atualizar version.json
+        run: python3 .github/scripts/version.py
+
+      - name: Colocar a cópia offline do app dentro do APK
+        run: |
+          mkdir -p android/app/src/main/assets
+          cp web/index.html android/app/src/main/assets/index.html
+          cp web/version.json android/app/src/main/assets/version.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+
+      - name: Chave de assinatura (vem dos segredos do GitHub)
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then echo "::error::Falta o segredo KEYSTORE_BASE64"; exit 1; fi
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/jjglasses.jks"
+          echo "KEYSTORE_FILE=$RUNNER_TEMP/jjglasses.jks" >> "$GITHUB_ENV"
+
+      - name: Montar o APK assinado
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: gradle -p android assembleRelease --no-daemon --stacktrace
+
+      - name: Guardar o APK no repositório e no site
+        run: |
+          mkdir -p apk
+          cp android/app/build/outputs/apk/release/app-release.apk apk/JJGlasses.apk
+          cp apk/JJGlasses.apk web/JJGlasses.apk
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add apk/JJGlasses.apk web/version.json
+          git commit -m "APK ${VERSION_NAME} e versão ${V} [skip ci]" || echo "nada novo"
+          git push
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+      - id: deploy
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,14 @@
+{
+  "v": 202611061900,
+  "notes": {
+    "t": "JJGlasses novo",
+    "b": [
+      "O app agora se atualiza sozinho, sem reinstalar",
+      "Ligação por voz e vídeo com a IA",
+      "12 vozes humanas",
+      "IA com internet: clima, notícias e preços"
+    ]
+  },
+  "bytes": 43805,
+  "sha256": "14b7f675691e43a3670649295a49c77eeb053da83b9d89eda21f5f57d338ff9a"
+}

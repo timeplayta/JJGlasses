@@ -1,0 +1,56 @@
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+
+// Voz humana do JJGlasses: recebe o texto da resposta da IA e devolve a fala em MP3.
+// A chave da OpenAI fica guardada como segredo no Supabase (OPENAI_API_KEY), nunca no app.
+// Só aceita pedidos de quem está logado no app.
+
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), { status, headers: { ...CORS, "Content-Type": "application/json" } });
+
+const VOICES = new Set(["alloy", "ash", "ballad", "coral", "echo", "fable", "nova", "onyx", "sage", "shimmer", "verse", "marin", "cedar"]);
+
+async function loggedIn(req: Request): Promise<boolean> {
+  const auth = req.headers.get("authorization") ?? "";
+  const url = Deno.env.get("SUPABASE_URL");
+  const anon = Deno.env.get("SUPABASE_ANON_KEY") ?? req.headers.get("apikey") ?? "";
+  if (!auth.startsWith("Bearer ") || !url) return false;
+  const res = await fetch(`${url}/auth/v1/user`, { headers: { Authorization: auth, apikey: anon } });
+  return res.ok;
+}
+
+Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
+  if (req.method !== "POST") return json({ error: "use_post" }, 405);
+  if (!(await loggedIn(req))) return json({ error: "precisa_login" }, 401);
+  const key = Deno.env.get("OPENAI_API_KEY");
+  if (!key) return json({ error: "sem_chave" }, 503);
+
+  let body: { text?: string; voice?: string; style?: string };
+  try { body = await req.json(); } catch { return json({ error: "json_invalido" }, 400); }
+  const text = String(body.text ?? "").trim().slice(0, 1500);
+  if (!text) return json({ error: "texto_vazio" }, 400);
+  const voice = VOICES.has(String(body.voice)) ? String(body.voice) : "coral";
+  const style = String(body.style ?? "").slice(0, 200);
+
+  const upstream = await fetch("https://api.openai.com/v1/audio/speech", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "gpt-4o-mini-tts",
+      voice,
+      input: text,
+      instructions: `Fale em português do Brasil, com sotaque brasileiro natural, como uma pessoa conversando. ${style}`,
+      response_format: "mp3",
+    }),
+  });
+  if (!upstream.ok || !upstream.body) {
+    console.error("openai tts", upstream.status, (await upstream.text().catch(() => "")).slice(0, 300));
+    return json({ error: "tts_falhou", status: upstream.status }, 502);
+  }
+  return new Response(upstream.body, { headers: { ...CORS, "Content-Type": "audio/mpeg", "Cache-Control": "no-store" } });
+});

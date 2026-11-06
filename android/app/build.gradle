@@ -1,0 +1,45 @@
+plugins {
+    id 'com.android.application'
+}
+
+// Número da casca (o APK). O GitHub Actions passa VERSION_CODE e VERSION_NAME; no PC usa 1 / "1.0".
+def shellCode = (System.getenv("VERSION_CODE") ?: "1").toInteger()
+def shellName = System.getenv("VERSION_NAME") ?: "1.0"
+
+android {
+    namespace 'com.jjglasses.app'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.jjglasses.app'
+        minSdk 26
+        targetSdk 35
+        versionCode shellCode
+        versionName shellName
+    }
+
+    signingConfigs {
+        release {
+            // A chave de assinatura vem dos segredos do GitHub (nunca fica no repositório).
+            def ks = System.getenv("KEYSTORE_FILE")
+            if (ks != null && new File(ks).exists()) {
+                storeFile file(ks)
+                storePassword System.getenv("KEYSTORE_PASSWORD")
+                keyAlias System.getenv("KEY_ALIAS")
+                keyPassword System.getenv("KEY_PASSWORD")
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
