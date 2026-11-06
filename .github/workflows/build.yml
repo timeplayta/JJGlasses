@@ -52,17 +52,17 @@ jobs:
 
       - name: Chave de assinatura (vem dos segredos do GitHub)
         env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 || vars.KEYSTORE_BASE64 }}
         run: |
-          if [ -z "$KEYSTORE_BASE64" ]; then echo "::error::Falta o segredo KEYSTORE_BASE64"; exit 1; fi
+          if [ -z "$KEYSTORE_BASE64" ]; then echo "::error::Falta o segredo KEYSTORE_BASE64. Coloque em Settings > Secrets and variables > Actions > aba Secrets > New repository secret"; exit 1; fi
           echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/jjglasses.jks"
           echo "KEYSTORE_FILE=$RUNNER_TEMP/jjglasses.jks" >> "$GITHUB_ENV"
 
       - name: Montar o APK assinado
         env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || vars.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS || vars.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || vars.KEY_PASSWORD }}
         run: gradle -p android assembleRelease --no-daemon --stacktrace
 
       - name: Guardar o APK no repositório e no site
