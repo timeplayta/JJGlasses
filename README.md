@@ -15,7 +15,7 @@ O JJGlasses agora tem duas partes:
    - cria o número da versão com a data e a hora (ex.: `202611061830`);
    - escreve o `web/version.json` com a versão, as novidades de `web/notas.json`, o tamanho e a "impressão digital" (SHA-256) do `index.html`;
    - monta o **APK assinado** e guarda em `apk/JJGlasses.apk`;
-   - publica o `index.html`, o `version.json` e o APK no site: `https://timeplayta.github.io/jjglasses-app/`.
+   - publica o `index.html`, o `version.json` e o APK no site: `https://timeplayta.github.io/JJGlasses/`.
 3. No celular, ao abrir, a casca lê o `version.json` (espera no máximo uns 3 segundos).
    - Versão do site maior que a do celular → baixa o `index.html` novo, confere se veio inteiro, salva e abre. Mostra **"App atualizado!"** com as novidades.
    - Sem internet ou com erro → abre a última versão salva (ou a cópia que veio dentro do APK).

@@ -57,7 +57,7 @@ import java.util.Locale;
 public class MainActivity extends Activity {
 
     // Site (GitHub Pages) de onde vêm o app e o version.json.
-    static final String BASE = "https://timeplayta.github.io/jjglasses-app/";
+    static final String BASE = "https://timeplayta.github.io/JJGlasses/";
     static final String VERSION_URL = BASE + "version.json";
     static final String INDEX_URL = BASE + "index.html";
 
