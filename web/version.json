@@ -1,13 +1,12 @@
 {
-  "v": 202611071831,
+  "v": 202611071855,
   "notes": {
-    "t": "Ouvir quase na hora",
+    "t": "Nomes das línguas na sua língua",
     "b": [
-      "O áudio agora começa a tocar enquanto ainda está chegando do servidor, sem esperar o arquivo inteiro.",
-      "A primeira parte falada ficou bem curtinha, então a voz sai mais cedo.",
-      "O aviso de novidades já deixa o começo da fala pronto, então o Ouvir dele sai na hora."
+      "Na escolha de língua, os nomes agora aparecem escritos na sua língua (por exemplo Inglês, Espanhol, Francês), com o nome original em letra menor embaixo.",
+      "Se você trocar de língua, a lista muda na hora para a nova língua."
     ]
   },
-  "bytes": 128011,
-  "sha256": "840e5d48f4f342a86dd2c1afbd1321549f4ee450111342326b957b1c8e7d448f"
+  "bytes": 128599,
+  "sha256": "cf1ddf9644f3602c8fe1301e7cf6c85deaafcddf87b222b952b7bb988abfd85b"
 }
