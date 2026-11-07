@@ -1,13 +1,35 @@
 {
-  "v": 202611062349,
+  "v": 202611070000,
   "notes": {
-    "t": "Aviso de novidades consertado",
+    "t": "Novidades com fotos e vídeos",
     "b": [
-      "O aviso de atualização mostra as novidades em frases inteiras, não mais letra por letra",
-      "Se a lista for grande, dá para rolar para baixo",
-      "Continuam valendo: conversa em tempo real, interromper falando e escolher a voz pelas bolinhas"
+      {
+        "txt": "O aviso de atualização agora mostra fotos e vídeos curtos de cada novidade, dizendo onde ela fica. Toque na imagem para ver maior. Se tiver muita coisa, aparece 'Role para ver mais'.",
+        "area": "Aparece sozinho quando o app atualiza"
+      },
+      {
+        "txt": "Conversa em tempo real com a IA: é só falar. Se ela estiver falando e você começar a falar, ela para e te escuta.",
+        "area": "Tela do chat → botão de ondas (em cima, à direita)",
+        "img": "novidades/2026-11-07/1-ligacao.jpg"
+      },
+      {
+        "txt": "Escolher a voz deslizando as bolinhas: puxe para o lado ou toque nos lados. Cada voz se apresenta.",
+        "area": "Ligação → engrenagem",
+        "video": "novidades/2026-11-07/5-escolher-voz.mp4",
+        "img": "novidades/2026-11-07/5-escolher-voz.jpg"
+      },
+      {
+        "txt": "Durante a conversa dá para tirar foto, ligar a câmera ao vivo ou mandar da galeria, e a IA responde falando.",
+        "area": "Ligação → botão +",
+        "img": "novidades/2026-11-07/3-foto-na-ligacao.jpg"
+      },
+      {
+        "txt": "Nos Ajustes, a voz também é trocada pelas bolinhas.",
+        "area": "Menu → Configurações → Voz da IA",
+        "img": "novidades/2026-11-07/4-ajustes-voz.jpg"
+      }
     ]
   },
-  "bytes": 96764,
-  "sha256": "00b1efb982b53cc54527bcc3aea193fd4a94e5c45cb5dde3752c2274c2051d36"
+  "bytes": 99762,
+  "sha256": "ef6ecaea29e0d5d5475823dfbfe9e4283bb4ec16bf0e5b299ff1da82ce0d3931"
 }
