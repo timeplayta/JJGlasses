@@ -1,12 +1,11 @@
 {
-  "v": 202611071855,
+  "v": 202611072046,
   "notes": {
-    "t": "Nomes das línguas na sua língua",
+    "t": "Cores mais vivas no tema escuro",
     "b": [
-      "Na escolha de língua, os nomes agora aparecem escritos na sua língua (por exemplo Inglês, Espanhol, Francês), com o nome original em letra menor embaixo.",
-      "Se você trocar de língua, a lista muda na hora para a nova língua."
+      "No tema escuro, o primeiro toque no círculo de cores já dá uma cor viva, em vez de uma cor quase preta. A barra de intensidade continua deixando mais escuro ou mais claro."
     ]
   },
-  "bytes": 128599,
-  "sha256": "cf1ddf9644f3602c8fe1301e7cf6c85deaafcddf87b222b952b7bb988abfd85b"
+  "bytes": 128737,
+  "sha256": "369dfe1379ad9bcc06695d8c22dce893c88dc67f2a2742e9a59228d279a92113"
 }
