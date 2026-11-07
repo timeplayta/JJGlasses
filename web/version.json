@@ -1,15 +1,16 @@
 {
-  "v": 202611071620,
+  "v": 202611071640,
   "notes": {
-    "t": "Botão Ouvir nas novidades",
+    "t": "Óculos 3D com cara de foto",
     "b": [
       {
-        "txt": "O aviso de atualização não fala mais sozinho. Toque em Ouvir para escutar as novidades; toque de novo (Parar) para calar.",
-        "area": "Aviso de atualização → embaixo, ao lado de Legal!",
-        "img": "novidades/2026-11-07e/1-botao-ouvir.jpg"
+        "txt": "Os três óculos foram refeitos com mais detalhes: reflexo de estúdio no metal e no acetato, lentes com reflexo de vidro, dobradiças e parafusos, plaquetas no nariz, ponteiras de tartaruga, câmera com anel de metal e o óculos refletido na mesa. E em resolução maior, para não ficar borrado.",
+        "area": "Óculos → imagem que gira",
+        "video": "novidades/2026-11-07f/1-oculos-realistas.mp4",
+        "img": "novidades/2026-11-07f/1-oculos-realistas.jpg"
       }
     ]
   },
-  "bytes": 119473,
-  "sha256": "e57355c9063197e2a74ec5a92bf8f7f11dddf8547bda689b00f2c5350fb62f70"
+  "bytes": 119480,
+  "sha256": "6e1535a1dda02007cd0ab4510f0a1b72e274e5c05090977ddb25f958ffdb60b2"
 }
