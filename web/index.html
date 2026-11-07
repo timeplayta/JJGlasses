@@ -1133,8 +1133,12 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     $('nameIn').value=prefs.name||'';
     $('accountInfo').textContent=session?('Conectado como '+session.email):'Não conectado';
     var app=NATIVE&&NATIVE.version?NATIVE.version():'',shell=NATIVE&&NATIVE.shellVersion?NATIVE.shellVersion():'';
-    $('verInfo').textContent='JJGlasses · versão do app '+(app||'web')+(shell?' · casca '+shell:'');
+    var v=String(app&&app.length>=12?app:(webVer||''));
+    var nice=v.length>=12?v.slice(6,8)+'/'+v.slice(4,6)+'/'+v.slice(0,4)+' '+v.slice(8,10)+':'+v.slice(10,12):'';
+    $('verInfo').textContent='JJGlasses · versão '+(nice||'web')+(shell?' · app Android '+shell:' · navegador');
+    if(!webVer&&!(app&&app.length>=12))fetch('version.json?'+Date.now()).then(function(r){return r.json()}).then(function(j){webVer=String(j.v||'');if(webVer)paintSettings()}).catch(function(){});
   }
+  var webVer='';
 
   /* ---------- avisos de atualização (chamados pela casca) ---------- */
   function notes(n){n=n||{};var b=n.b;if(typeof b==='string')b=[b];if(!Array.isArray(b))b=[];if(b.length>3&&b.every(function(x){return typeof x==='string'&&x.length<=1}))b=[b.join('')];return {t:n.t||'Novidades',b:b}} // aceita texto solto e conserta lista de letras
