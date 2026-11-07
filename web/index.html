@@ -147,19 +147,53 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 .banner span{flex:1;font-size:14px}
 .banner button{border:0;border-radius:10px;padding:9px 12px;font-weight:700;background:var(--accent);color:var(--on-accent)}
 .banner .close{background:transparent;color:var(--bg);padding:6px}
-/* ligação */
-.call{position:fixed;inset:0;z-index:50;background:linear-gradient(180deg,#0B0F1A,#151B2E 55%,#0B0F1A);color:#fff;display:flex;flex-direction:column;align-items:center;padding:calc(40px + env(safe-area-inset-top,0px)) 24px calc(30px + env(safe-area-inset-bottom,0px))}
+/* ligação em tempo real (fundo preto, bola no meio, barra embaixo) */
+.call{position:fixed;inset:0;z-index:50;background:#000;color:#fff;display:flex;flex-direction:column;align-items:center;padding:calc(14px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px))}
 .call video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
 .call>*:not(video){position:relative;z-index:1}
-.call h2{margin:0;font-size:20px;text-shadow:0 2px 8px #000}
-.call .cs{color:#B8C2DA;margin-top:6px;text-shadow:0 2px 8px #000}
+.ctop{width:100%;display:flex;justify-content:flex-end}
+.cround{width:52px;height:52px;border-radius:50%;border:0;background:#2B2B2E;color:#fff;display:grid;place-items:center}
+.call .cs{color:#B9BCC6;margin-top:4px;font-size:14px;text-shadow:0 2px 8px #000;min-height:20px}
 .orbw{flex:1;display:grid;place-items:center;width:100%}
-.orb{width:170px;height:170px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#22D3EE,#7C5CFF 55%,#2F62FF);box-shadow:0 0 60px rgba(124,92,255,.55);transition:transform .09s linear;border:0}
-.call .sub2{min-height:60px;text-align:center;font-size:16px;line-height:1.35;max-width:560px;text-shadow:0 2px 10px #000;margin-bottom:22px}
-.cbtns{display:flex;gap:24px}
-.cb{width:68px;height:68px;border-radius:50%;border:0;display:grid;place-items:center;background:#2A3350;color:#fff}
-.cb.on{background:#fff;color:#0B0F1A}
-.cb.end{background:#E5484D}
+.orb{width:min(62vw,250px);height:min(62vw,250px);transition:transform .09s linear;border:0;padding:0}
+.call .sub2{min-height:44px;text-align:center;font-size:15.5px;line-height:1.35;max-width:560px;text-shadow:0 2px 10px #000;margin-bottom:14px;color:#E7E9EF;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.cbar{display:flex;align-items:center;gap:10px;width:100%;max-width:620px}
+.cin{flex:1;min-width:0;display:flex;align-items:center;gap:6px;background:#2B2B2E;border-radius:999px;padding:4px 6px 4px 4px;height:56px}
+.cin input{flex:1;min-width:0;border:0;background:transparent;color:#fff;font:inherit;font-size:16px;outline:none;padding:0 8px}
+.cin input::placeholder{color:#A6A9B3}
+.cin .cplus{width:46px;height:46px;border-radius:50%;border:0;background:transparent;color:#fff;display:grid;place-items:center;flex:none}
+.cb{width:56px;height:56px;border-radius:50%;border:0;display:grid;place-items:center;background:#2B2B2E;color:#fff;flex:none}
+.cb.on{background:#fff;color:#000}
+.cb.end{background:#fff;color:#000}
+.call>.cmenu{position:absolute;left:16px;bottom:calc(84px + env(safe-area-inset-bottom,0px));background:#1F1F22;border:1px solid #333;border-radius:18px;padding:6px;display:flex;flex-direction:column;min-width:220px;z-index:3}
+.cmenu button{border:0;background:none;color:#fff;display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;font-size:15px;text-align:left}
+.cmenu button:active{background:#2B2B2E}
+.call>.cthumb{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));left:16px;width:58px;height:58px;border-radius:12px;object-fit:cover;border:2px solid #fff;z-index:2}
+/* bolinha de cada voz (original do JJGlasses: núcleo de luz girando) */
+.vorb{border-radius:50%;position:relative;overflow:hidden;isolation:isolate;background:radial-gradient(circle at 50% 115%,var(--o1) 0,transparent 58%),linear-gradient(165deg,var(--o2),var(--o3));box-shadow:0 0 50px rgba(255,255,255,.08)}
+.vorb::before{content:'';position:absolute;inset:-35%;background:conic-gradient(from 0deg,transparent 0 12%,var(--o1) 22%,transparent 38%,var(--o2) 55%,transparent 70%,var(--o1) 86%,transparent 100%);filter:blur(22px);opacity:.75;animation:vspin 10s linear infinite}
+.vorb::after{content:'';position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 32% 26%,rgba(255,255,255,.5),transparent 34%),radial-gradient(circle at 70% 80%,rgba(255,255,255,.18),transparent 40%)}
+@keyframes vspin{to{transform:rotate(360deg)}}
+/* escolher voz deslizando */
+.vp{position:fixed;inset:0;z-index:60;background:#000;color:#fff;display:flex;flex-direction:column;padding:calc(12px + env(safe-area-inset-top,0px)) 0 calc(18px + env(safe-area-inset-bottom,0px))}
+.vptop{display:flex;align-items:center;gap:12px;padding:0 16px}
+.vptop b{flex:1;text-align:center;font-size:18px;margin-right:52px}
+.vpstage{position:relative;height:min(64vw,270px);margin-top:24px;touch-action:pan-y;user-select:none;-webkit-user-select:none;overflow:hidden}
+.vpstage .vorb{position:absolute;left:50%;top:50%;width:min(56vw,230px);height:min(56vw,230px);margin:calc(min(56vw,230px)/-2) 0 0 calc(min(56vw,230px)/-2);transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .35s;cursor:pointer}
+.vpstage.drag .vorb{transition:none}
+.vpname{text-align:center;font-size:24px;font-weight:700;margin-top:22px}
+.vpdesc{text-align:center;color:#C9CCD6;font-size:15.5px;line-height:1.4;max-width:420px;margin:8px auto 0;padding:0 24px;min-height:66px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.vpdots{display:flex;justify-content:center;gap:7px;margin-top:14px}
+.vpdots i{width:7px;height:7px;border-radius:50%;background:#3A3A40;transition:all .2s}
+.vpdots i.seen{background:#8A8F9C}
+.vpdots i.on{background:#fff;width:20px;border-radius:4px}
+.vphint{text-align:center;color:#8A8F9C;font-size:13px;margin-top:12px}
+.vpgo{margin:auto 16px 0;border:0;border-radius:999px;padding:16px;font-weight:700;font-size:16px;background:#fff;color:#000}
+.vpgo[disabled]{background:#2B2B2E;color:#9A9DA6}
+.vcur{display:flex;align-items:center;gap:12px}
+.vcur .vorb{width:52px;height:52px;flex:none}
+.vcur div{flex:1;min-width:0}
+.vcur small{display:block;color:var(--mute);font-size:13px}
 /* apresentação e escolhas iniciais */
 .ob{position:fixed;inset:0;z-index:45;background:var(--bg);display:flex;flex-direction:column;padding:calc(16px + env(safe-area-inset-top,0px)) max(18px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px))}
 .obtop{display:flex;align-items:center;gap:10px}
@@ -277,8 +311,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     <div class="card">
       <p class="label">Voz da IA</p>
       <p class="sub">12 vozes humanas. Sem internet, usa a voz do celular.</p>
-      <div class="pills" id="voices"></div>
-      <div><button class="chip" id="sampleBtn">Ouvir amostra</button></div>
+      <div class="vcur"><span class="vorb" id="setOrb"></span><div><b id="setVoiceName"></b><small id="setVoiceDesc"></small></div><button class="chip" id="setVoiceBtn">Trocar voz</button></div>
     </div>
     <div class="card">
       <p class="label">Aparência</p>
@@ -301,15 +334,32 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 <!-- ligação por voz e vídeo -->
 <div class="call" id="call" hidden>
   <video id="camView" playsinline muted autoplay hidden></video>
-  <h2>JJGlasses</h2>
+  <img class="cthumb" id="callThumb" alt="" hidden>
+  <div class="ctop"><button class="cround" id="callGear" aria-label="Configurações da voz"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div>
   <div class="cs" id="callStatus">Ouvindo...</div>
-  <div class="orbw"><button class="orb" id="orb" aria-label="Interromper a IA"></button></div>
+  <div class="orbw"><button class="orb vorb" id="orb" aria-label="Interromper a IA"></button></div>
   <div class="sub2" id="callSub">Pode falar. Eu respondo em voz alta.</div>
-  <div class="cbtns">
-    <button class="cb" id="camBtn" aria-label="Vídeo"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="7" width="13" height="10" rx="2"/><path d="M16 11l5-3v8l-5-3z"/></svg></button>
+  <div class="cbar">
+    <form class="cin" id="callForm" autocomplete="off"><button type="button" class="cplus" id="callPlus" aria-label="Foto e câmera"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button><input id="callIn" placeholder="Perguntar ao JJGlasses" enterkeyhint="send"></form>
     <button class="cb" id="muteBtn" aria-label="Mudo"><svg class="i" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
-    <button class="cb end" id="hangBtn" aria-label="Desligar"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <button class="cb end" id="hangBtn" aria-label="Encerrar"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   </div>
+  <div class="cmenu" id="cmenu" hidden>
+    <button id="cmPhoto"><svg class="i" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Tirar foto</button>
+    <button id="camBtn"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="7" width="13" height="10" rx="2"/><path d="M16 11l5-3v8l-5-3z"/></svg><span id="camLbl">Câmera ao vivo</span></button>
+    <button id="cmGal"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>Galeria</button>
+  </div>
+</div>
+
+<!-- escolher a voz deslizando as bolinhas -->
+<div class="vp" id="vp" hidden>
+  <div class="vptop"><button class="cround" id="vpBack" aria-label="Voltar"><svg class="i" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><b>Escolha uma voz</b></div>
+  <div class="vpstage" id="vpStage"></div>
+  <div class="vpname" id="vpName"></div>
+  <div class="vpdesc" id="vpDesc"></div>
+  <div class="vpdots" id="vpDots"></div>
+  <div class="vphint" id="vpHint">Arraste para o lado ou toque nas bolinhas dos lados</div>
+  <button class="vpgo" id="vpGo">Escolher esta voz</button>
 </div>
 
 <div class="pmenu" id="pmenu" hidden role="menu">
@@ -510,7 +560,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   $('pmDoc').onclick=function(){closeMenu();$('docIn').click()};
   $('pmGen').onclick=function(){closeMenu();var b=$('msgIn');b.value='Crie uma imagem de ';grow();b.focus();try{b.setSelectionRange(b.value.length,b.value.length)}catch(e){}};
   $('pmCam').onclick=function(){closeMenu();openSnap()};
-  $('fileIn').onchange=function(){var f=this.files&&this.files[0];this.value='';if(!f)return;shrink(f,1024,function(d){draft=d;showDraft()})};
+  $('fileIn').onchange=function(){var f=this.files&&this.files[0];this.value='';if(!f)return;shrink(f,1024,function(d){if(inCall){callPhoto(d);return}draft=d;showDraft()})};
   var TEXTY=/\.(txt|md|csv|json|xml|html?|css|js|ts|kt|java|py|c|cpp|h|cs|php|rb|go|rs|sql|yaml|yml|ini|log|bat|ps1|sh|srt)$/i;
   $('docIn').onchange=function(){
     var f=this.files&&this.files[0];this.value='';if(!f)return;
@@ -530,13 +580,13 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
       snapStream=s;$('snapView').srcObject=s;$('snap').hidden=false;
     },function(){toast('Libere a câmera para tirar foto.')});
   }
-  function closeSnap(){if(snapStream){snapStream.getTracks().forEach(function(t){t.stop()});snapStream=null}$('snap').hidden=true;$('snapView').srcObject=null}
+  function closeSnap(){var was=!$('snap').hidden;if(snapStream){snapStream.getTracks().forEach(function(t){t.stop()});snapStream=null}$('snap').hidden=true;$('snapView').srcObject=null;if(was&&inCall&&callState==='ouvindo')setTimeout(hearTurn,200)}
   $('snapClose').onclick=closeSnap;
   $('snapFlip').onclick=function(){snapFacing=snapFacing==='environment'?'user':'environment';closeSnap();openSnap()};
   $('snapShot').onclick=function(){
     var v=$('snapView');if(!v.videoWidth)return;
     var s=Math.min(1,1024/Math.max(v.videoWidth,v.videoHeight)),cv=document.createElement('canvas');cv.width=Math.round(v.videoWidth*s);cv.height=Math.round(v.videoHeight*s);
-    cv.getContext('2d').drawImage(v,0,0,cv.width,cv.height);draft=cv.toDataURL('image/jpeg',.82);closeSnap();showDraft();$('msgIn').focus();
+    cv.getContext('2d').drawImage(v,0,0,cv.width,cv.height);var shot=cv.toDataURL('image/jpeg',.82);closeSnap();if(inCall){callPhoto(shot);return}draft=shot;showDraft();$('msgIn').focus();
   };
 
   /* ---------- onde a pessoa está (clima) ---------- */
@@ -712,62 +762,145 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     else if(callState==='falando')s=1.05+Math.abs(Math.sin(t*5))*.16;else s=.85;
     $('orb').style.transform='scale('+s.toFixed(3)+')';callLevel*=.8;requestAnimationFrame(animOrb);
   }
+  /* A IA fala; se você começar a falar por cima, ela para e te escuta (igual ChatGPT e Gemini). */
+  var barge=null;
+  function startBarge(){
+    stopBarge();if(muted||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)return;
+    var me={on:true};barge=me;
+    navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:false}}).then(function(st){
+      if(!me.on||barge!==me){st.getTracks().forEach(function(t){t.stop()});return}
+      var AC=window.AudioContext||window.webkitAudioContext,ctx=new AC(),src=ctx.createMediaStreamSource(st),an=ctx.createAnalyser();an.fftSize=1024;src.connect(an);
+      me.st=st;me.ctx=ctx;var buf=new Float32Array(an.fftSize),loud=0,floor=0.01,t0=Date.now();
+      (function tick(){
+        if(!me.on)return;an.getFloatTimeDomainData(buf);var sum=0;for(var k=0;k<buf.length;k++)sum+=buf[k]*buf[k];var rms=Math.sqrt(sum/buf.length);
+        callLevel=Math.max(callLevel,rms*6);
+        if(Date.now()-t0<500){floor=Math.max(floor,rms);requestAnimationFrame(tick);return} // primeiro meio segundo: mede o barulho do ambiente
+        if(rms>Math.max(0.045,floor*2.6))loud++;else loud=Math.max(0,loud-1);
+        if(loud>14){stopBarge();stopSpeak();setCall('ouvindo','Pode falar, estou ouvindo.');setTimeout(hearTurn,120);return}
+        requestAnimationFrame(tick);
+      })();
+    },function(){});
+  }
+  function stopBarge(){var b=barge;barge=null;if(!b)return;b.on=false;try{b.st&&b.st.getTracks().forEach(function(t){t.stop()})}catch(e){}try{b.ctx&&b.ctx.close()}catch(e){}}
+  function sayCall(answer){
+    if(!inCall)return;
+    if(!answer){setCall('ouvindo','Não consegui responder. Pode repetir?');hearTurn();return}
+    setCall('falando',spoken(answer).slice(0,260));
+    speak(answer,function(){stopBarge();if(inCall)hearTurn()});
+    setTimeout(function(){if(inCall&&callState==='falando')startBarge()},700);
+  }
+  function callAsk(text,img){
+    if(!inCall)return;stopListen();stopBarge();stopSpeak();
+    setCall('pensando',img&&!camStream?'Olhando a foto...':'Você: '+text);
+    send(text,img||null,true).then(sayCall);
+  }
   function hearTurn(){
-    if(!inCall||muted)return;
+    if(!inCall||muted||!$('vp').hidden)return;
     setCall('ouvindo');
     listen(function(t,err){
       if(!inCall)return;
       if(!t){setTimeout(hearTurn,err==='sem_fala'||err==='no-speech'?100:800);return}
-      setCall('pensando','Você: '+t);
-      var frame=grabFrame();
-      send(t,frame,true).then(function(answer){
-        if(!inCall)return;
-        if(!answer){setCall('ouvindo','Não consegui responder. Pode repetir?');hearTurn();return}
-        setCall('falando',spoken(answer).slice(0,260));
-        speak(answer,function(){if(inCall)hearTurn()});
-      });
+      callAsk(t,grabFrame());
     },true);
   }
   function openCall(video){
     if(!session){showGate();return}
-    inCall=true;muted=false;$('call').hidden=false;$('muteBtn').classList.remove('on');
+    inCall=true;muted=false;$('call').hidden=false;$('muteBtn').classList.remove('on');$('callThumb').hidden=true;
+    paintOrb($('orb'),prefs.voice);
     if(NATIVE&&NATIVE.keepScreenOn)NATIVE.keepScreenOn(true);
     setCall('ouvindo','Pode falar. Eu respondo em voz alta.');requestAnimationFrame(animOrb);
     if(video)startCam();hearTurn();
   }
-  function hangUp(){inCall=false;stopListen();stopSpeak();stopCam();$('call').hidden=true;if(NATIVE&&NATIVE.keepScreenOn)NATIVE.keepScreenOn(false)}
+  function hangUp(){inCall=false;stopBarge();stopListen();stopSpeak();stopCam();$('cmenu').hidden=true;$('call').hidden=true;if(NATIVE&&NATIVE.keepScreenOn)NATIVE.keepScreenOn(false)}
   function startCam(){
     if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){toast('Câmera indisponível aqui.');return}
     navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280}},audio:false}).then(function(s){
-      camStream=s;var v=$('camView');v.srcObject=s;v.hidden=false;$('camBtn').classList.add('on');setCall(callState,'Mostra o que quiser. Já vou dizer o que estou vendo.');
-      setTimeout(function(){if(inCall&&camStream&&callState==='ouvindo'&&!busy){stopListen();setCall('pensando');send('O que você está vendo agora? Responde curto.',grabFrame(),true).then(function(a){if(!inCall)return;if(a){setCall('falando',spoken(a).slice(0,260));speak(a,function(){if(inCall)hearTurn()})}else hearTurn()})}},1800);
+      camStream=s;var v=$('camView');v.srcObject=s;v.hidden=false;$('camBtn').classList.add('on');$('camLbl').textContent='Desligar câmera';setCall(callState,'Mostra o que quiser. Já vou dizer o que estou vendo.');
+      setTimeout(function(){if(inCall&&camStream&&callState==='ouvindo'&&!busy)callAsk('O que você está vendo agora? Responde curto.',grabFrame())},1800);
     },function(){toast('Sem permissão da câmera.')});
   }
-  function stopCam(){if(camStream){camStream.getTracks().forEach(function(t){t.stop()});camStream=null}var v=$('camView');v.hidden=true;v.srcObject=null;$('camBtn').classList.remove('on')}
+  function stopCam(){if(camStream){camStream.getTracks().forEach(function(t){t.stop()});camStream=null}var v=$('camView');v.hidden=true;v.srcObject=null;$('camBtn').classList.remove('on');$('camLbl').textContent='Câmera ao vivo'}
   function grabFrame(){
     if(!camStream)return null;var v=$('camView');if(!v.videoWidth)return null;
     var s=Math.min(1,1024/Math.max(v.videoWidth,v.videoHeight)),cv=document.createElement('canvas');cv.width=Math.round(v.videoWidth*s);cv.height=Math.round(v.videoHeight*s);
     cv.getContext('2d').drawImage(v,0,0,cv.width,cv.height);return cv.toDataURL('image/jpeg',.78);
   }
+  // foto tirada ou escolhida durante a ligação: a IA olha e responde falando
+  function callPhoto(img){$('callThumb').src=img;$('callThumb').hidden=false;callAsk('Olha essa foto que eu mandei agora. Me diz o que você vê, curto, em até 3 frases.',img)}
   $('callBtn').onclick=function(){openCall(false)};
   $('hangBtn').onclick=hangUp;
-  $('camBtn').onclick=function(){camStream?stopCam():startCam()};
-  $('muteBtn').onclick=function(){muted=!muted;$('muteBtn').classList.toggle('on',muted);if(muted){stopListen();setCall('mudo','Microfone desligado. Toque de novo pra falar.')}else if(callState!=='falando'&&callState!=='pensando')hearTurn()};
-  $('orb').onclick=function(){if(callState==='falando'){stopSpeak();hearTurn()}};
-  window.jjBack=function(){if(!$('ob').hidden){if(obStep>0){obStep--;renderOb()}else closeOnboarding();return true}if(!$('snap').hidden){closeSnap();return true}if(!$('pmenu').hidden){closeMenu();return true}if(!$('recBar').hidden){stopRec(true);return true}if(inCall){hangUp();return true}if(!$('sheet').hidden){$('sheet').hidden=true;return true}if($('app').classList.contains('open')){closeDrawer();return true}return false}; // botão voltar do Android
+  $('callPlus').onclick=function(e){e.stopPropagation();$('cmenu').hidden=!$('cmenu').hidden};
+  $('call').addEventListener('click',function(e){if(!$('cmenu').hidden&&!e.target.closest('#cmenu')&&!e.target.closest('#callPlus'))$('cmenu').hidden=true});
+  $('camBtn').onclick=function(){$('cmenu').hidden=true;camStream?stopCam():startCam()};
+  $('cmPhoto').onclick=function(){$('cmenu').hidden=true;stopListen();stopBarge();stopSpeak();openSnap()};
+  $('cmGal').onclick=function(){$('cmenu').hidden=true;$('fileIn').click()};
+  $('callForm').onsubmit=function(e){e.preventDefault();var t=$('callIn').value.trim();if(!t)return;$('callIn').value='';$('callIn').blur();callAsk(t,grabFrame())};
+  $('callIn').addEventListener('focus',function(){if(callState==='ouvindo')stopListen()});
+  $('callIn').addEventListener('blur',function(){setTimeout(function(){if(inCall&&callState==='ouvindo'&&!$('callIn').value)hearTurn()},250)});
+  $('callGear').onclick=function(){stopListen();stopBarge();stopSpeak();openVoicePicker(function(){if(inCall){paintOrb($('orb'),prefs.voice);hearTurn()}})};
+  $('muteBtn').onclick=function(){muted=!muted;$('muteBtn').classList.toggle('on',muted);if(muted){stopListen();stopBarge();setCall('mudo','Microfone desligado. Toque de novo pra falar.')}else if(callState!=='falando'&&callState!=='pensando')hearTurn()};
+  $('orb').onclick=function(){if(callState==='falando'){stopBarge();stopSpeak();hearTurn()}};
+
+  /* ---------- escolher voz: bolinhas que passam para o lado ---------- */
+  var ORBC={ana:['#7FE3FF','#3D6BFF','#0E1C5C'],lia:['#FFD6F2','#B48CFF','#3B2A7A'],nina:['#FFE27A','#FF7A59','#7A1F3D'],bia:['#B9FFDF','#5CE0B8','#11605A'],clara:['#C9D2FF','#6C7BD9','#1D2350'],rita:['#FFB3C7','#FF4F87','#5C0F33'],bruno:['#9FB8C9','#3D5A73','#0D1A26'],davi:['#C7A27C','#6B4A2E','#1E130A'],leo:['#A8F0A0','#3FAF6B','#0F3B2A'],caio:['#9EEBFF','#22A6F2','#0B3159'],theo:['#FFC98F','#F28C38','#5A2A0C'],rui:['#D6DBE3','#7E8896','#1B2027']};
+  function paintOrb(el,id){if(!el)return;var c=(ORBC||{})[id]||['#7FE3FF','#3D6BFF','#0E1C5C'];el.style.setProperty('--o1',c[0]);el.style.setProperty('--o2',c[1]);el.style.setProperty('--o3',c[2])}
+  function introText(id){
+    var v=VOICES.filter(function(x){return x.id===id})[0]||VOICES[0],p=v.label.split(' · '),n=p[0],k=(prefs.lang||'pt').slice(0,2);
+    if(k==='en')return 'Hi! I\'m '+n+'. This is how I sound when I talk with you. If you like my voice, just choose me.';
+    if(k==='es')return '¡Hola! Soy '+n+'. Así suena mi voz cuando converso contigo. Si te gusta, elígeme.';
+    return 'Oi! Eu sou '+(v.male?'o ':'a ')+n+'. Minha voz é '+(p[1]||'natural')+'. Se gostar de mim, é só me escolher.';
+  }
+  var vpIdx=0,vpSeen={},vpDone=null,vpDrag=null;
+  function openVoicePicker(done){
+    vpDone=done||null;vpSeen={};var cur=VOICES.map(function(v){return v.id}).indexOf(prefs.voice);vpIdx=cur<0?0:cur;
+    for(var k=0;k<=vpIdx;k++)vpSeen[k]=1;
+    $('vpStage').innerHTML=VOICES.map(function(v,i){return '<span class="vorb" data-vi="'+i+'"></span>'}).join('');
+    [].forEach.call($('vpStage').children,function(el){paintOrb(el,VOICES[+el.getAttribute('data-vi')].id)});
+    $('vp').hidden=false;vpShow(0,true);
+    samplePrefetch([VOICES[vpIdx].id,(VOICES[vpIdx+1]||{}).id,(VOICES[vpIdx-1]||{}).id].filter(Boolean));
+  }
+  function closeVoicePicker(){stopSpeak();sampleTok++;$('vp').hidden=true;paintSettings();var d=vpDone;vpDone=null;if(d)d()}
+  function vpShow(dx,speakIt){
+    var W=$('vpStage').clientWidth||360,gap=Math.min(W*.55,280);
+    [].forEach.call($('vpStage').children,function(el){
+      var off=+el.getAttribute('data-vi')-vpIdx,x=off*gap+dx,dist=Math.min(Math.abs(x)/gap,2),sc=1-dist*.42;
+      el.style.transform='translateX('+x.toFixed(1)+'px) scale('+sc.toFixed(3)+')';el.style.opacity=Math.abs(off)>2?0:(1-dist*.45).toFixed(2);el.style.zIndex=10-Math.abs(off);
+    });
+    if(dx)return;
+    var v=VOICES[vpIdx],p=v.label.split(' · ');vpSeen[vpIdx]=1;
+    $('vpName').textContent=p[0];$('vpDesc').textContent=introText(v.id);
+    $('vpDots').innerHTML=VOICES.map(function(_,i){return '<i class="'+(i===vpIdx?'on':vpSeen[i]?'seen':'')+'"></i>'}).join('');
+    var mine=v.id===prefs.voice;$('vpGo').textContent=mine?'Voz atual':'Escolher esta voz';$('vpGo').disabled=mine;
+    if(speakIt){clearTimeout(vpShow.t);vpShow.t=setTimeout(function(){if(!$('vp').hidden)playSample(v.id,null)},260)}
+    samplePrefetch([(VOICES[vpIdx+1]||{}).id,(VOICES[vpIdx-1]||{}).id].filter(Boolean));
+  }
+  function vpGo(step){var n=Math.max(0,Math.min(VOICES.length-1,vpIdx+step));if(n===vpIdx){vpShow(0,false);return}vpIdx=n;stopSpeak();vpShow(0,true)}
+  (function(){
+    var st=$('vpStage');
+    st.addEventListener('pointerdown',function(e){vpDrag={x:e.clientX,y:e.clientY,dx:0,id:e.pointerId,moved:false}});
+    st.addEventListener('pointermove',function(e){if(!vpDrag)return;vpDrag.dx=e.clientX-vpDrag.x;if(!vpDrag.moved&&Math.abs(vpDrag.dx)>8&&Math.abs(vpDrag.dx)>Math.abs(e.clientY-vpDrag.y)){vpDrag.moved=true;st.classList.add('drag');try{st.setPointerCapture(vpDrag.id)}catch(_){}}if(vpDrag.moved)vpShow(vpDrag.dx*.9,false)});
+    var end=function(e){if(!vpDrag)return;var d=vpDrag;vpDrag=null;st.classList.remove('drag');
+      if(d.moved){var W=st.clientWidth;if(d.dx<-W*.12)vpGo(1);else if(d.dx>W*.12)vpGo(-1);else vpShow(0,false);return}
+      // toque: lado direito = próxima voz (ainda não vista), lado esquerdo = voz anterior
+      var b=st.getBoundingClientRect(),x=(e.clientX||d.x)-b.left;if(x>b.width*.66)vpGo(1);else if(x<b.width*.34)vpGo(-1);else playSample(VOICES[vpIdx].id,null)};
+    st.addEventListener('pointerup',end);st.addEventListener('pointercancel',function(){if(vpDrag){vpDrag=null;st.classList.remove('drag');vpShow(0,false)}});
+    $('vpBack').onclick=closeVoicePicker;
+    $('vpGo').onclick=function(){prefs.voice=VOICES[vpIdx].id;persist();toast('Voz escolhida: '+VOICES[vpIdx].label.split(' · ')[0]);closeVoicePicker()};
+    window.addEventListener('resize',function(){if(!$('vp').hidden)vpShow(0,false)});
+  })();
+  window.jjBack=function(){if(!$('vp').hidden){closeVoicePicker();return true}if(inCall&&!$('cmenu').hidden){$('cmenu').hidden=true;return true}if(!$('ob').hidden){if(obStep>0){obStep--;renderOb()}else closeOnboarding();return true}if(!$('snap').hidden){closeSnap();return true}if(!$('pmenu').hidden){closeMenu();return true}if(!$('recBar').hidden){stopRec(true);return true}if(inCall){hangUp();return true}if(!$('sheet').hidden){$('sheet').hidden=true;return true}if($('app').classList.contains('open')){closeDrawer();return true}return false}; // botão voltar do Android
 
   /* ---------- ajustes ---------- */
   $('openSettings').onclick=function(){$('sheet').hidden=false;closeDrawer();paintSettings()};
   $('closeSettings').onclick=function(){$('sheet').hidden=true};
   $('sheet').addEventListener('click',function(e){if(e.target===$('sheet'))$('sheet').hidden=true});
-  $('voices').innerHTML=VOICES.map(function(v){return '<button class="pill" data-v="'+v.id+'">'+esc(v.label)+'</button>'}).join('');
-  $('voices').addEventListener('click',function(e){var b=e.target.closest('[data-v]');if(!b)return;prefs.voice=b.getAttribute('data-v');persist();paintSettings();speak('Oi! Eu sou a voz '+voice().label.split(' · ')[0]+'.')});
-  $('sampleBtn').onclick=function(){speak('Oi! Assim fica a minha voz respondendo no JJGlasses.')};
+  $('setVoiceBtn').onclick=function(){openVoicePicker()};
+  $('setOrb').onclick=function(){openVoicePicker()};
   $('nameIn').addEventListener('input',function(){prefs.name=this.value.trim();persist();renderList()});
   function applyTheme(){var r=document.documentElement;if(prefs.theme==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',prefs.theme)}
   ['Light','Dark','Auto'].forEach(function(n){$('th'+n).onclick=function(){prefs.theme=n.toLowerCase();applyTheme();persist();paintSettings()}});
   function paintSettings(){
-    [].forEach.call(document.querySelectorAll('#voices .pill'),function(b){b.setAttribute('aria-pressed',b.getAttribute('data-v')===prefs.voice?'true':'false')});
+    var cv=voice(),cp=cv.label.split(' · ');$('setVoiceName').textContent=cp[0];$('setVoiceDesc').textContent=cp[1]||'';paintOrb($('setOrb'),cv.id);
     ['Light','Dark','Auto'].forEach(function(n){$('th'+n).setAttribute('aria-pressed',prefs.theme===n.toLowerCase()?'true':'false')});
     $('nameIn').value=prefs.name||'';
     $('accountInfo').textContent=session?('Conectado como '+session.email):'Não conectado';
@@ -896,7 +1029,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     tune:function(t){return '<h2>'+esc(t.pt2)+'</h2><p class="lead">'+esc(t.pb)+'</p>'+slider('obPitch',t.pitch,-2,2,1,prefs.pitch,t.low,t.high)+slider('obRate',t.rate,0.8,1.25,0.05,prefs.rate,t.slow,t.fast)+slider('obVol',t.vol,20,100,5,prefs.vol,'20%','100%')+'<button class="btn main" id="obTest">▶ '+esc(t.test)+'</button><h3 class="subh">'+esc(XT().other)+'</h3><p class="lead">'+esc(t.vb)+'</p>'+voiceList()},
     done:function(t){return '<div class="hero" style="background:linear-gradient(135deg,#7C5CFF,#DB2777)"><div class="big">🎉</div><b>'+esc(t.dt)+'</b><span>'+esc(t.db)+'</span></div><div class="mock"><div class="m me">'+esc(t.mme)+'</div><div class="m ai">'+esc(t.mai)+'</div></div>'}
   };
-  function sampleText(id){var v=VOICES.filter(function(x){return x.id===id})[0]||VOICES[0];return T().sample.replace('{n}',v.label.split(' · ')[0])}
+  function sampleText(id){return introText(id)}
   function paintTune(){if(!$('obPitch'))return;var t=T();$('obPitchV').textContent=prefs.pitch>0?'+'+prefs.pitch:String(prefs.pitch);$('obRateV').textContent=Math.round(prefs.rate*100)+'%';$('obVolV').textContent=prefs.vol+'%'}
   function renderOb(){
     var t=T(),key=obSteps[obStep];
