@@ -1,20 +1,15 @@
 {
-  "v": 202611071514,
+  "v": 202611071620,
   "notes": {
-    "t": "Cores das conversas mais fáceis de achar",
+    "t": "Botão Ouvir nas novidades",
     "b": [
       {
-        "txt": "Segure o dedo em cima de um balão da conversa (seu ou da IA) e abre o círculo de cores com intensidade, já na cor daquele balão.",
-        "area": "Qualquer conversa → segure o dedo num balão",
-        "img": "novidades/2026-11-07d/1-segurar-balao.jpg"
-      },
-      {
-        "txt": "Nos Ajustes agora tem o cartão 'Cores das conversas', com a prévia e o botão 'Mudar cores'. Tem também 'Voltar ao padrão'.",
-        "area": "Menu → Ajustes → Cores das conversas",
-        "img": "novidades/2026-11-07d/2-ajustes-cores.jpg"
+        "txt": "O aviso de atualização não fala mais sozinho. Toque em Ouvir para escutar as novidades; toque de novo (Parar) para calar.",
+        "area": "Aviso de atualização → embaixo, ao lado de Legal!",
+        "img": "novidades/2026-11-07e/1-botao-ouvir.jpg"
       }
     ]
   },
-  "bytes": 118639,
-  "sha256": "bdde0aa64ec8d48d8bfa2538954d07db5794199ff39548c5292d71e02d041235"
+  "bytes": 119473,
+  "sha256": "e57355c9063197e2a74ec5a92bf8f7f11dddf8547bda689b00f2c5350fb62f70"
 }
