@@ -69,6 +69,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 .m .gen{width:100%;max-width:320px;aspect-ratio:1;object-fit:cover;background:var(--bg)}
 .m .acts{display:flex;gap:8px;margin-top:8px}
 .chip{appearance:none;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:7px 12px;font-size:13px;font-weight:500}
+.caret{display:inline-block;width:8px;height:1em;margin-left:2px;vertical-align:-2px;border-radius:2px;background:var(--mute);animation:b 1s infinite}
 .typing{display:inline-flex;gap:4px}.typing i{width:7px;height:7px;border-radius:50%;background:var(--mute);animation:b 1s infinite}
 .typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
 @keyframes b{50%{opacity:.25;transform:translateY(-2px)}}
@@ -613,7 +614,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     var h='<div class="date">Começou em '+when(c.at)+'</div>';
     c.msgs.forEach(function(m,idx){
       if(m.role==='me') h+='<div class="m me">'+(m.img?'<img src="'+m.img+'" alt="Foto enviada">':'')+(m.file?'<div class="fchip">📎 '+esc(m.file)+'</div><br>':'')+esc(m.text)+'</div>';
-      else if(m.pending) h+='<div class="m ai"><span class="typing" aria-label="Respondendo"><i></i><i></i><i></i></span></div>';
+      else if(m.pending) h+='<div class="m ai">'+(m.text?md(m.text)+'<span class="caret"></span>':'<span class="typing" aria-label="Respondendo"><i></i><i></i><i></i></span>')+'</div>';
       else h+='<div class="m ai">'+md(m.text)+'<div class="acts"><button class="chip" data-say="'+idx+'">Ouvir</button><button class="chip" data-copy="'+idx+'">Copiar</button></div></div>';
     });
     col.innerHTML=h;
@@ -700,16 +701,30 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   }
 
   /* ---------- IA ---------- */
-  function ask(turns,live){
-    return token().then(function(tk){
+  // Pede a resposta em tempo real: o texto chega aos pedacinhos (onDelta recebe tudo que já chegou).
+  function ask(turns,live,onDelta,noStream){
+    var p=token().then(function(tk){
       return fetch(SB_URL+'/functions/v1/chat',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+tk,'Content-Type':'application/json'},
-        body:JSON.stringify({turns:turns,name:prefs.name||'',live:!!live,place:place,lang:langName(prefs.lang)})});
-    }).then(function(r){return r.json().then(function(j){if(!r.ok)throw j;return j.text})});
+        body:JSON.stringify({turns:turns,name:prefs.name||'',live:!!live,stream:!noStream,place:place,lang:langName(prefs.lang)})});
+    }).then(function(r){
+      var ct=r.headers.get('content-type')||'';
+      if(!r.ok||ct.indexOf('ndjson')<0||!r.body||!r.body.getReader)return r.json().then(function(j){if(!r.ok||j.error)throw j;return j.text});
+      var rd=r.body.getReader(),dec=new TextDecoder(),buf='',acc='',err=null;
+      return (function pump(){return rd.read().then(function(x){
+        if(x.done){if(err&&!acc)throw err;return acc}
+        buf+=dec.decode(x.value,{stream:true});var k;
+        while((k=buf.indexOf('\n'))>=0){var line=buf.slice(0,k);buf=buf.slice(k+1);if(!line.trim())continue;var o;try{o=JSON.parse(line)}catch(e){continue}
+          if(o.d){acc+=o.d;if(onDelta)onDelta(acc)}else if(o.tool){setStatus(o.tool.indexOf('clima')>=0?'Vendo o clima...':'Pesquisando na internet...')}else if(o.error){err=o}}
+        return pump()})})();
+    });
+    // se o tempo real falhar antes de chegar qualquer texto, pede do jeito antigo (resposta inteira)
+    if(noStream)return p;
+    return p.catch(function(e){if(e&&(e.error==='precisa_login'||e.error==='sem_chave'))throw e;return ask(turns,live,onDelta,true)});
   }
   function turnsOf(c){return c.msgs.filter(function(m){return !m.pending}).slice(-20).map(function(m){
     var t=m.text;if(m.file)t+='\n\nArquivo anexado: '+m.file+(m.ftext?'\n'+m.ftext:'\n(não consegui ler o conteúdo, só o nome)');
     return {role:m.role==='me'?'user':'assistant',text:t,image:m.img||undefined}})}
-  function send(textArg,imgArg,live){
+  function send(textArg,imgArg,live,voiceOut){
     var text=(textArg!=null?textArg:$('msgIn').value).trim(),photo=imgArg!=null?imgArg:draft,file=textArg==null?attach:null;
     if(busy||(!text&&!photo&&!file))return Promise.resolve(null);
     if(/clima|tempo|previs|chuva|temperatura/i.test(text))locate();
@@ -720,12 +735,23 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     c.at=Date.now();if(textArg==null){$('msgIn').value='';grow()}
     var pending={role:'ai',text:'',pending:true};c.msgs.push(pending);
     busy=true;setStatus('Respondendo...');renderAll();
-    return ask(turnsOf(c),live).then(function(t){pending.text=t;setStatus('Pronto');return t},function(e){
+    // falar enquanto a resposta ainda está chegando (ligação, óculos ou leitura automática)
+    if(!voiceOut&&prefs.speak&&!live)voiceOut={};
+    var ss=null,lastR=0,rT=null;
+    function paint(){lastR=Date.now();rT=null;renderChat()}
+    return ask(turnsOf(c),live,function(acc){
+      pending.text=acc;setStatus('Respondendo...');
+      if(!rT){var w=Math.max(0,90-(Date.now()-lastR));rT=setTimeout(paint,w)}
+      if(voiceOut){if(!ss)ss=speakStream(voiceOut.done,voiceOut.onStart);ss.push(acc)}
+    }).then(function(t){clearTimeout(rT);pending.text=t;setStatus('Pronto');
+      if(voiceOut){if(!ss)ss=speakStream(voiceOut.done,voiceOut.onStart);ss.push(t||'');if(voiceOut.tail){var tl=voiceOut.tail(t||'');if(tl)ss.push((t||'')+'\n'+tl)}ss.end()}
+      return t},function(e){clearTimeout(rT);if(ss)ss.end();
       pending.text=(e&&e.error==='precisa_login')?'Sua sessão venceu. Entre de novo.':(e&&e.error==='sem_chave')?'A IA ainda não foi configurada no servidor.':(navigator.onLine===false?'Sem internet agora. Conecte e tente de novo.':'Não consegui responder agora. Tenta de novo.');
       setStatus('Sem resposta',false);return null;
     }).then(function(t){
       delete pending.pending;busy=false;persist();renderChat();
-      if(t&&prefs.speak&&!live)speak(t);else if(t&&!live)ttsWarm(t);
+      if(t&&!live&&!voiceOut)ttsWarm(t);
+      if(!t&&voiceOut&&voiceOut.done&&!ss)voiceOut.done();
       return t;
     });
   }
@@ -760,26 +786,46 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   }
   // prepara só o começo da resposta, para o "Ouvir" tocar na hora
   function ttsWarm(text){var c=ttsChunks(spoken(text||''));if(c[0])ttsUrl(c[0])}
-  function speak(text,done,onStart){
-    if(rec||dictLoop){if(done)done();return} // gravando: não fala por cima
-    stopSpeak();var mine=speakToken,v=voice(),clean=spoken(text).slice(0,6000);
+  /* Fala em fila: recebe o texto aos poucos (push) e vai falando frase por frase, sem esperar o resto.
+     O próximo áudio já fica carregado, então não tem pausa travada entre as frases. */
+  function speakStream(done,onStart){
+    var dummy={push:function(){},end:function(){if(done)done()}};
+    if(rec||dictLoop)return dummy;
+    stopSpeak();var mine=speakToken,v=voice(),used=0,chunks=[],ended=false,i=0,playing=false,started=false,pre={};
     var finish=function(){if(mine===speakToken){curAudio=null;if(done)done()}};
-    if(!clean){finish();return}
-    var chunks=ttsChunks(clean),started=false;
-    ttsUrl(chunks[0]);if(chunks[1])ttsUrl(chunks[1]);
-    (function play(i){
-      if(mine!==speakToken)return;
-      if(i>=chunks.length){finish();return}
-      if(chunks[i+1])ttsUrl(chunks[i+1]);if(chunks[i+2])ttsUrl(chunks[i+2]);
-      ttsUrl(chunks[i]).then(function(url){
+    function clean(t){return spoken(String(t).replace(/\[\[[^\]]*$/,'').replace(/\n\s*\|[^\n]*$/,''))}
+    function take(acc,final){
+      var all=clean(acc),rest=all.slice(used);
+      if(!final){var m=rest.match(/^[\s\S]*[.!?…:;](?=\s)|^[\s\S]*\n/);if(!m)return;
+        var piece=m[0];if(chunks.length>0&&piece.length<70&&!playingIdle())return;rest=piece}
+      used+=rest.length;
+      ttsChunks(rest).forEach(function(c){if(c.trim())chunks.push(c)});
+      prefetch();pump();
+    }
+    function playingIdle(){return !playing&&i>=chunks.length}
+    function prefetch(){for(var k=i;k<Math.min(chunks.length,i+3);k++){ (function(k){ if(pre[k])return; pre[k]=ttsUrl(chunks[k]).then(function(u){var a=new Audio(u);a.preload='auto';try{a.load()}catch(e){}return a}) })(k) }}
+    function pump(){
+      if(mine!==speakToken||playing)return;
+      if(i>=chunks.length){if(ended)finish();return}
+      playing=true;var k=i;prefetch();
+      pre[k].then(function(a){
         if(mine!==speakToken)return;
-        var a=new Audio(url);curAudio=a;a.volume=Math.max(0,Math.min(1,(prefs.vol||100)/100));
-        a.onended=function(){play(i+1)};
-        a.onerror=function(){phoneVoice(chunks.slice(i).join(' '),v,finish)};
+        curAudio=a;a.volume=Math.max(0,Math.min(1,(prefs.vol||100)/100));
+        a.onended=function(){playing=false;i=k+1;pump()};
+        a.onerror=function(){a.onended=null;phoneVoice(chunks[k],v,function(){playing=false;i=k+1;pump()})};
         if(!started){started=true;if(onStart)onStart()}
         return a.play();
-      }).catch(function(){if(mine===speakToken){if(!started){started=true;if(onStart)onStart()}phoneVoice(chunks.slice(i).join(' '),v,finish)}});
-    })(0);
+      }).catch(function(){if(mine!==speakToken)return;if(!started){started=true;if(onStart)onStart()}
+        phoneVoice(chunks[k],v,function(){playing=false;i=k+1;pump()})});
+    }
+    var last='';
+    return {push:function(acc){last=acc;if(mine===speakToken&&!ended)take(acc,false)},
+      end:function(){if(mine!==speakToken||ended)return;ended=true;if(last)take(last,true);pump()},
+      _final:function(acc){last=acc}};
+  }
+  function speak(text,done,onStart){
+    if(rec||dictLoop){if(done)done();return}
+    var s=speakStream(done,onStart);s._final(String(text||'').slice(0,6000));s.end();
   }
   function phoneVoice(clean,v,finish){
     var ph=v.pitch*(1+(prefs.pitch||0)*0.08),rt=v.rate*(prefs.rate||1);
@@ -927,7 +973,15 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   function callAsk(text,img){
     if(!inCall)return;stopListen();stopBarge();stopSpeak();
     setCall('pensando',img&&!camStream?'Olhando a foto...':'Você: '+text);
-    send(text,img||null,true).then(sayCall);
+    var spokeAny=false;
+    send(text,img||null,true,{
+      onStart:function(){spokeAny=true;if(!inCall)return;setCall('falando','');setTimeout(function(){if(inCall&&callState==='falando')startBarge()},700)},
+      done:function(){stopBarge();if(inCall&&spokeAny)hearTurn()}
+    }).then(function(a){
+      if(!inCall)return;
+      if(!a){stopSpeak();setCall('ouvindo','Não consegui responder. Pode repetir?');hearTurn();return}
+      $('callSub').textContent=spoken(a).slice(0,260);
+    });
   }
   function hearTurn(){
     if(!inCall||muted||!$('vp').hidden)return;
@@ -1098,7 +1152,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   function glassesHeard(text){
     glassesDone();
     if(!text){speak('Não entendi. Toque de novo e fale.');return}
-    send(text).then(function(a){if(a)speakGlasses(a)});
+    send(text,null,false,{tail:function(a){var why=prefs.glLook!==false?lookReason(a):'';if(why&&navigator.vibrate)navigator.vibrate([200,120,200]);return why}});
   }
   // Se a resposta tem algo que só dá pra ver na tela, o óculos avisa para olhar o celular.
   function lookReason(a){

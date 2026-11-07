@@ -39,10 +39,14 @@ Fotos que você cria:
 
 Não diga seu nome, não cite modelo e não diga quem te criou.`;
 
-const LIVE = `Você está numa LIGAÇÃO DE VOZ. Sua resposta vai ser falada em voz alta.
-- Responda curto e natural, como numa conversa por telefone: 1 a 3 frases.
-- Nada de listas, tabelas, emoji, markdown ou links.
-- Se tiver imagem da câmera, diga o que vê de forma direta.`;
+const LIVE = `Você está numa LIGAÇÃO DE VOZ. Sua resposta vai ser falada em voz alta, como um amigo no telefone.
+- Fale como gente de verdade: frases curtas, jeito brasileiro do dia a dia ("tá", "pra", "olha", "então"), sem soar como texto lido.
+- Vá direto ao ponto na primeira frase. Nada de "Ótima pergunta" nem "Como posso ajudar".
+- 1 a 3 frases. Se o assunto for grande, dê o principal e pergunte se a pessoa quer mais detalhes.
+- Reaja ao que a pessoa disse (se ela estiver animada, cansada ou brincando, acompanhe o tom).
+- Às vezes termine com uma pergunta curta para a conversa continuar, mas não sempre.
+- Nada de listas, tabelas, emoji, markdown ou links. Números e horários escritos do jeito que se fala.
+- Se tiver imagem da câmera, diga o que vê de forma direta, como quem está olhando junto.`;
 
 const TOOLS = [
   {
@@ -64,14 +68,19 @@ const TOOLS = [
 ];
 
 type Turn = { role: "user" | "assistant"; text: string; image?: string };
-type Body = { turns?: Turn[]; name?: string; live?: boolean; lang?: string; place?: { lat: number; lon: number; label?: string } };
+type Body = { turns?: Turn[]; name?: string; live?: boolean; stream?: boolean; lang?: string; place?: { lat: number; lon: number; label?: string } };
 
+// Login já conferido fica guardado por 5 min (a resposta começa mais rápido).
+const okTokens = new Map<string, number>();
 async function userFromToken(req: Request): Promise<boolean> {
   const auth = req.headers.get("authorization") ?? "";
   const url = Deno.env.get("SUPABASE_URL");
   const anon = Deno.env.get("SUPABASE_ANON_KEY") ?? req.headers.get("apikey") ?? "";
   if (!auth.startsWith("Bearer ") || !url) return false;
+  const until = okTokens.get(auth);
+  if (until && until > Date.now()) return true;
   const res = await fetch(`${url}/auth/v1/user`, { headers: { Authorization: auth, apikey: anon } });
+  if (res.ok) { okTokens.set(auth, Date.now() + 5 * 60 * 1000); if (okTokens.size > 500) okTokens.clear(); }
   return res.ok;
 }
 
@@ -121,6 +130,82 @@ async function weather(city: string, place?: Body["place"]): Promise<string> {
   return `Local: ${label}\n${body.slice(0, 4000)}\n(weather_code WMO: 0 céu limpo, 1-3 nuvens, 45/48 neblina, 51-67 chuva, 71-77 neve, 80-82 pancadas, 95-99 trovoadas)`;
 }
 
+async function runTool(key: string, name: string, rawArgs: string, place?: Body["place"]): Promise<string> {
+  let args: Record<string, string> = {};
+  try { args = JSON.parse(rawArgs || "{}"); } catch { /* sem argumentos */ }
+  try {
+    if (name === "buscar_na_internet") return await webSearch(key, String(args.consulta ?? ""));
+    if (name === "clima") return await weather(String(args.cidade ?? "").trim(), place);
+  } catch (e) { return `Erro ao usar ${name}: ${e}`; }
+  return "Ferramenta desconhecida.";
+}
+
+/* Resposta em tempo real: manda o texto para o app pedacinho por pedacinho (cada linha é um JSON).
+   Assim o app já mostra e já começa a falar a primeira frase enquanto a IA ainda escreve o resto. */
+function streamAnswer(key: string, messages: Record<string, unknown>[], models: string[], effort: string, place?: Body["place"]): Response {
+  const enc = new TextEncoder();
+  const stream = new ReadableStream({
+    async start(ctrl) {
+      const out = (o: unknown) => ctrl.enqueue(enc.encode(JSON.stringify(o) + "\n"));
+      try {
+        let modelIndex = 0, useTools = true;
+        for (let round = 0; round < 7; round++) {
+          const payload: Record<string, unknown> = { model: models[modelIndex], reasoning_effort: effort, messages, stream: true };
+          if (useTools) payload.tools = TOOLS;
+          const res = await fetch(ENDPOINT, { method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+          if (!res.ok || !res.body) {
+            console.error("kimi stream", res.status, (await res.text().catch(() => "")).slice(0, 300));
+            if (res.status >= 400 && res.status < 500 && modelIndex < models.length - 1) { modelIndex++; continue; }
+            if (res.status >= 400 && res.status < 500 && useTools) { useTools = false; continue; }
+            out({ error: "ia_falhou", status: res.status }); ctrl.close(); return;
+          }
+          const reader = res.body.getReader(), dec = new TextDecoder();
+          let buf = "", content = "", reasoning = "";
+          const calls: { id: string; type: string; function: { name: string; arguments: string } }[] = [];
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buf += dec.decode(value, { stream: true });
+            let k;
+            while ((k = buf.indexOf("\n")) >= 0) {
+              const line = buf.slice(0, k).trim(); buf = buf.slice(k + 1);
+              if (!line.startsWith("data:")) continue;
+              const d = line.slice(5).trim();
+              if (!d || d === "[DONE]") continue;
+              let j; try { j = JSON.parse(d); } catch { continue; }
+              const dl = j?.choices?.[0]?.delta ?? {};
+              if (dl.reasoning_content) reasoning += dl.reasoning_content;
+              if (dl.content) { content += dl.content; out({ d: dl.content }); }
+              for (const t of dl.tool_calls ?? []) {
+                const x = calls[t.index ?? 0] ??= { id: "", type: "function", function: { name: "", arguments: "" } };
+                if (t.id) x.id = t.id;
+                if (t.function?.name) x.function.name += t.function.name;
+                if (t.function?.arguments) x.function.arguments += t.function.arguments;
+              }
+            }
+          }
+          const tc = calls.filter(Boolean);
+          if (tc.length) {
+            const m: Record<string, unknown> = { role: "assistant", content: content, tool_calls: tc };
+            if (reasoning) m.reasoning_content = reasoning;
+            messages.push(m);
+            out({ tool: tc.map((t) => t.function.name).join(",") });
+            for (const call of tc) {
+              const result = await runTool(key, call.function.name, call.function.arguments, place);
+              messages.push({ role: "tool", tool_call_id: call.id, name: call.function.name, content: result.slice(0, 12000) });
+            }
+            continue;
+          }
+          if (!content.trim()) out({ d: "Não consegui responder agora. Tenta de novo." });
+          out({ done: true }); ctrl.close(); return;
+        }
+        out({ d: "Não consegui responder agora. Tenta de novo." }); out({ done: true }); ctrl.close();
+      } catch (e) { console.error("stream", e); try { out({ error: String(e) }); ctrl.close(); } catch { /* fechado */ } }
+    },
+  });
+  return new Response(stream, { headers: { ...CORS, "Content-Type": "application/x-ndjson", "Cache-Control": "no-store" } });
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") return json({ error: "use_post" }, 405);
@@ -153,6 +238,8 @@ Deno.serve(async (req: Request) => {
   });
 
   const models = seeing ? ["kimi-k3.1-pro", "kimi-k3"] : ["kimi-k3.1-pro-highspeed", "kimi-k3.1-pro", "kimi-k3"];
+  const effort = body.live ? "low" : seeing ? "high" : "low";
+  if (body.stream) return streamAnswer(key, messages, models, effort, body.place);
   let modelIndex = 0, useTools = true;
   for (let round = 0; round < 7; round++) {
     const payload: Record<string, unknown> = {

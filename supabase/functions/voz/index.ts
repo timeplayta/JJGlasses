@@ -47,7 +47,7 @@ Deno.serve(async (req: Request) => {
   const lang = String(body.lang ?? "Portuguese (Brazil)").slice(0, 40);
   const tone = pitch <= -2 ? "Voz bem mais grave que o normal." : pitch === -1 ? "Voz um pouco mais grave." : pitch === 1 ? "Voz um pouco mais aguda." : pitch >= 2 ? "Voz bem mais aguda que o normal." : "";
   const pace = speed < 0.95 ? "Fale mais devagar." : speed > 1.05 ? "Fale mais rápido." : "";
-  const instructions = `Fale em ${lang}, com sotaque nativo natural, como uma pessoa conversando, com pausas e entonação naturais. ${style} ${tone} ${pace}`.trim();
+  const instructions = `Fale em ${lang}, com sotaque nativo natural. Soe como uma pessoa real conversando com um amigo, não como alguém lendo um texto: tom caloroso e expressivo, ritmo solto, pausas curtas e naturais, entonação que sobe e desce com o sentido da frase. ${style} ${tone} ${pace}`.trim();
 
   const call = (withSpeed: boolean) => fetch("https://api.openai.com/v1/audio/speech", {
     method: "POST",
