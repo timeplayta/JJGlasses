@@ -1,14 +1,13 @@
 {
-  "v": 202611062330,
+  "v": 202611062349,
   "notes": {
-    "t": "Conversa em tempo real e novo jeito de escolher a voz",
+    "t": "Aviso de novidades consertado",
     "b": [
-      "A ligação com a IA ficou com tela nova: bola no meio, engrenagem em cima e foto, câmera ao vivo e galeria no botão de mais",
-      "Agora é só começar a falar que a IA para e te escuta",
-      "Na engrenagem, as vozes aparecem como bolinhas: arraste ou toque nos lados para ouvir cada uma se apresentar",
-      "Em Ajustes, a voz também é trocada pelas bolinhas"
+      "O aviso de atualização mostra as novidades em frases inteiras, não mais letra por letra",
+      "Se a lista for grande, dá para rolar para baixo",
+      "Continuam valendo: conversa em tempo real, interromper falando e escolher a voz pelas bolinhas"
     ]
   },
-  "bytes": 96401,
-  "sha256": "6fd486f963177dcd33b4ccfb54df2c3c6b96c6e5f4aac1df000919b4f3377e9b"
+  "bytes": 96764,
+  "sha256": "00b1efb982b53cc54527bcc3aea193fd4a94e5c45cb5dde3752c2274c2051d36"
 }
