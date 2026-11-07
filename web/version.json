@@ -1,12 +1,14 @@
 {
-  "v": 202611062138,
+  "v": 202611062204,
   "notes": {
-    "t": "A IA para de falar quando você grava",
+    "t": "Deixe o app do seu jeito",
     "b": [
-      "Tocou no microfone, a voz da IA para na hora",
-      "Enquanto você grava, ela não fala por cima"
+      "Apresentação com tudo que o app faz",
+      "Escolha a língua, tema claro ou escuro e as cores dos balões",
+      "Estilo de letra e voz da IA com amostra",
+      "Ajuste o tom, a velocidade e o volume da voz"
     ]
   },
-  "bytes": 55867,
-  "sha256": "f3125c4fed44a85fa10df22545b47175fa0a73987e0ea3bf49fd53788253ebbf"
+  "bytes": 75014,
+  "sha256": "8b6b8fc86bf40ef8d7051f1d4857d9201e43af12e137e8df4e706c1547ffd3b5"
 }
