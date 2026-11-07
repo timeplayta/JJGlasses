@@ -31,7 +31,7 @@ else:
     if not notes or not notes.get("t"):
         msg = subprocess.run(["git", "log", "-1", "--pretty=%s"], capture_output=True, text=True).stdout.strip()
         notes = {"t": "Novidades", "b": [msg or "Melhorias no app."]}
-    data = {"v": int(os.environ["V"]), "notes": {"t": notes["t"], "b": list(notes.get("b", []))}, "bytes": len(html), "sha256": sha}
+    data = {"v": int(os.environ["V"]), "notes": {"t": notes["t"], "b": ([notes["b"]] if isinstance(notes.get("b"), str) else list(notes.get("b") or []))}, "bytes": len(html), "sha256": sha}
     print("nova versão", data["v"])
 
 (web / "version.json").write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
