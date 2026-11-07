@@ -1,14 +1,12 @@
 {
-  "v": 202611062100,
+  "v": 202611062137,
   "notes": {
-    "t": "Menu do mais de volta",
+    "t": "Microfone mais confiável",
     "b": [
-      "Tirar foto direto pelo app",
-      "Escolher foto da galeria",
-      "Criar imagem com a IA",
-      "Adicionar arquivos para a IA ler"
+      "O áudio gravado agora sempre chega inteiro para virar texto",
+      "Avisa se a gravação ficou curta demais ou sem som"
     ]
   },
-  "bytes": 54026,
-  "sha256": "79c5b2f6fb652ced2090b38d150f7dfbe40661abbe45858b0450a3244e22a349"
+  "bytes": 55728,
+  "sha256": "ecbdcd4c401ab6c75e9d2ed4a844118e2440e5e7ececaac2c1d047162b7a9df2"
 }
