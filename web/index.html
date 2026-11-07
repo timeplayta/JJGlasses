@@ -161,6 +161,17 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 .banner span{flex:1;font-size:14px}
 .banner button{border:0;border-radius:10px;padding:9px 12px;font-weight:700;background:var(--accent);color:var(--on-accent)}
 .banner .close{background:transparent;color:var(--bg);padding:6px}
+/* cores das conversas */
+.cprev{display:flex;flex-direction:column;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:10px}
+.cprev .m{max-width:80%;font-size:14px;padding:7px 12px}
+.cpk{position:fixed;inset:0;z-index:46;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}
+.cpkbox{background:var(--card);width:min(560px,100%);max-height:94vh;max-height:94dvh;border-radius:24px 24px 0 0;display:flex;flex-direction:column;padding:10px 16px calc(14px + env(safe-area-inset-bottom,0px))}
+.cpktop{display:flex;align-items:center;justify-content:space-between}.cpktop b{font-size:18px;padding-left:4px}
+.cpkbody{overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:4px 0 10px}
+.cpkbody>*{flex:none}
+.cpkact{display:flex;gap:10px}.cpkact .btn{flex:1;text-align:center}
+.m.me,.m.ai{-webkit-touch-callout:none}
+.m.pressing{transform:scale(.97);transition:transform .25s}
 /* óculos */
 .glbtn{position:relative}
 .gbadge{position:absolute;right:7px;top:8px;width:9px;height:9px;border-radius:50%;background:var(--ok);border:2px solid var(--bg)}
@@ -372,6 +383,12 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
       <div><button class="chip" id="logoutBtn">Sair da conta</button></div>
     </div>
     <div class="card">
+      <p class="label">Cores das conversas</p>
+      <div class="cprev"><div class="m me">Suas mensagens</div><div class="m ai">Respostas da IA</div></div>
+      <p class="sub">Círculo de cores com intensidade. Dica: segure o dedo em cima de um balão da conversa para mudar a cor dele.</p>
+      <div class="pills"><button class="pill" id="setColors">Mudar cores</button></div>
+    </div>
+    <div class="card">
       <p class="label">Personalizar</p>
       <p class="sub">Língua, cores dos balões, letra, voz, tom, velocidade e volume.</p>
       <div class="pills"><button class="pill" id="redoLook">Mudar aparência e voz</button><button class="pill" id="redoTour">Ver a apresentação</button></div>
@@ -379,6 +396,13 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     <p class="ver" id="verInfo">JJGlasses</p>
   </div>
 </div>
+
+<!-- cores das conversas (abre pelos Ajustes ou segurando o dedo num balão) -->
+<div class="cpk" id="cpk" hidden><div class="cpkbox" role="dialog" aria-label="Cores das conversas">
+  <div class="cpktop"><b>Cores das conversas</b><button class="icon" id="cpkX" aria-label="Fechar"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div class="cpkbody" id="cpkBody"></div>
+  <div class="cpkact"><button class="btn" id="cpkReset">Voltar ao padrão</button><button class="btn main" id="cpkOk">Pronto</button></div>
+</div></div>
 
 <!-- óculos: bateria, sinal, duração, óculos 3D e o chat que recebe a fala -->
 <div class="gl" id="gl" hidden>
@@ -961,7 +985,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     $('vpGo').onclick=function(){prefs.voice=VOICES[vpIdx].id;persist();toast('Voz escolhida: '+VOICES[vpIdx].label.split(' · ')[0]);closeVoicePicker()};
     window.addEventListener('resize',function(){if(!$('vp').hidden)vpShow(0,false)});
   })();
-  window.jjBack=function(){var nz=document.querySelector('.nzoom');if(nz){nz.remove();return true}if(!$('vp').hidden){closeVoicePicker();return true}if(inCall&&!$('cmenu').hidden){$('cmenu').hidden=true;return true}if(!$('ob').hidden){if(obStep>0){obStep--;renderOb()}else closeOnboarding();return true}if(!$('snap').hidden){closeSnap();return true}if(!$('pmenu').hidden){closeMenu();return true}if(!$('recBar').hidden){stopRec(true);return true}if(inCall){hangUp();return true}if(!$('sheet').hidden){$('sheet').hidden=true;return true}if(!$('gl').hidden){closeGlasses();return true}if($('app').classList.contains('open')){closeDrawer();return true}return false}; // botão voltar do Android
+  window.jjBack=function(){if(!$('cpk').hidden){closeColors();return true}var nz=document.querySelector('.nzoom');if(nz){nz.remove();return true}if(!$('vp').hidden){closeVoicePicker();return true}if(inCall&&!$('cmenu').hidden){$('cmenu').hidden=true;return true}if(!$('ob').hidden){if(obStep>0){obStep--;renderOb()}else closeOnboarding();return true}if(!$('snap').hidden){closeSnap();return true}if(!$('pmenu').hidden){closeMenu();return true}if(!$('recBar').hidden){stopRec(true);return true}if(inCall){hangUp();return true}if(!$('sheet').hidden){$('sheet').hidden=true;return true}if(!$('gl').hidden){closeGlasses();return true}if($('app').classList.contains('open')){closeDrawer();return true}return false}; // botão voltar do Android
 
   /* ---------- óculos ---------- */
   if(prefs.glLook===undefined)prefs.glLook=true;
@@ -1058,6 +1082,38 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   $('glBtn').addEventListener('click',function(){if(!prefs.glUsed){prefs.glUsed=true;persist()}});
   setInterval(function(){if(recFor==='oculos'&&!$('gl').hidden)paintGl()},500);
   $('glTalk').onclick=glassesTalk;
+
+  /* ---------- cores das conversas: Ajustes ou dedo segurado no balão ---------- */
+  function openColors(target){
+    if(target)cwTarget=target;
+    var html=STEP.colors(T()),box=$('cpkBody');box.innerHTML=html;
+    var h=box.querySelector('h2');if(h)h.remove();var l=box.querySelector('p.lead');if(l)l.remove();
+    $('cpk').hidden=false;cwInit();
+  }
+  function closeColors(){$('cpk').hidden=true;$('cpkBody').innerHTML='';persist();paintSettings&&paintSettings()}
+  $('cpkBody').addEventListener('click',function(e){
+    var body=$('cpkBody'),b=e.target.closest('[data-cwt]');
+    if(b&&body.contains(b)){cwTarget=b.getAttribute('data-cwt');body.querySelectorAll('[data-cwt]').forEach(function(x){x.setAttribute('aria-pressed',String(x===b))});cwLoad();return}
+    b=e.target.closest('[data-cwp]');if(b&&body.contains(b)){prefs[cwTarget]=b.getAttribute('data-cwp');applyLook();persist();cwLoad()}
+  });
+  $('cpkX').onclick=closeColors;$('cpkOk').onclick=closeColors;
+  $('cpk').addEventListener('click',function(e){if(e.target===$('cpk'))closeColors()});
+  $('cpkReset').onclick=function(){prefs[cwTarget]='';applyLook();persist();cwLoad();toast('Cor padrão de volta')};
+  $('setColors').onclick=function(){$('sheet').hidden=true;openColors('me')};
+  // segurar o dedo ~0,5 s em cima de um balão abre as cores daquele balão (seu ou da IA)
+  (function(){
+    var timer=null,sx=0,sy=0,el=null;
+    function cancel(){clearTimeout(timer);timer=null;if(el)el.classList.remove('pressing');el=null}
+    $('msgs').addEventListener('pointerdown',function(e){
+      var b=e.target.closest('.m.me,.m.ai');if(!b||e.target.closest('button,a,img'))return;
+      if(b.querySelector('.typing'))return;
+      cancel();el=b;sx=e.clientX;sy=e.clientY;b.classList.add('pressing');
+      timer=setTimeout(function(){var who=b.classList.contains('me')?'me':'ai';cancel();if(navigator.vibrate)navigator.vibrate(30);openColors(who)},550);
+    });
+    $('msgs').addEventListener('pointermove',function(e){if(timer&&(Math.abs(e.clientX-sx)>10||Math.abs(e.clientY-sy)>10))cancel()});
+    ['pointerup','pointercancel','scroll'].forEach(function(ev){$('msgs').addEventListener(ev,cancel,true)});
+    $('msgs').addEventListener('contextmenu',function(e){if(e.target.closest('.m.me,.m.ai'))e.preventDefault()});
+  })();
 
   /* ---------- ajustes ---------- */
   $('openSettings').onclick=function(){$('sheet').hidden=false;closeDrawer();paintSettings()};
