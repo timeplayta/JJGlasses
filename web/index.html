@@ -144,6 +144,18 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 .notice h3{margin:0;font-size:21px}
 .notice ul{margin:0;padding-left:20px;line-height:1.5;overflow-y:auto;min-height:0;flex:1 1 auto;-webkit-overflow-scrolling:touch}
 .notice ul li{margin-bottom:6px}
+.nwrap{position:relative;min-height:0;flex:1 1 auto;display:flex;flex-direction:column}
+.notice ul::-webkit-scrollbar{width:6px}.notice ul::-webkit-scrollbar-thumb{background:var(--mute);border-radius:3px}
+.notice ul{scrollbar-width:thin;padding-right:6px}
+.nmore{position:absolute;left:0;right:0;bottom:0;padding:26px 0 4px;text-align:center;font-size:13px;font-weight:600;color:var(--accent);background:linear-gradient(transparent,var(--card) 60%);pointer-events:none;transition:opacity .2s}
+.nmore.off{opacity:0}
+.notice ul.rich{list-style:none;padding-left:0}
+.nitem{border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:12px!important;display:flex;flex-direction:column;gap:8px;background:var(--bg)}
+.nitem .area{align-self:flex-start;font-size:12px;font-weight:700;color:var(--accent);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px 10px}
+.nitem img,.nitem video{width:100%;max-height:52vh;object-fit:contain;border-radius:12px;background:#000;display:block}
+.nitem .tap{font-size:12px;color:var(--mute);text-align:center}
+.nzoom{position:fixed;inset:0;z-index:80;background:#000;display:grid;place-items:center}
+.nzoom img,.nzoom video{max-width:100%;max-height:100%;object-fit:contain}
 .notice .btn{flex:none}
 .banner{position:fixed;left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));top:calc(10px + env(safe-area-inset-top,0px));z-index:65;background:var(--ink);color:var(--bg);border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
 .banner span{flex:1;font-size:14px}
@@ -378,7 +390,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     <button class="cb" id="snapFlip" aria-label="Virar câmera"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h11l-3-3M20 17H9l3 3"/></svg></button>
   </div>
 </div>
-<div class="notice" id="notice" hidden><div class="box"><h3 id="nTitle">Atualizado!</h3><p class="sub" id="nSub"></p><ul id="nList"></ul><button class="btn main" id="nOk">Legal!</button></div></div>
+<div class="notice" id="notice" hidden><div class="box"><h3 id="nTitle">Atualizado!</h3><p class="sub" id="nSub"></p><div class="nwrap"><ul id="nList"></ul><div class="nmore" id="nMore">Role para ver mais ↓</div></div><button class="btn main" id="nOk">Legal!</button></div></div>
 <div class="banner" id="banner" hidden><span id="bText">Nova versão disponível</span><button id="bGo">Atualizar agora</button><button class="close" id="bX" aria-label="Fechar">✕</button></div>
 <div class="ob" id="ob" hidden>
   <div class="obtop"><div class="obdots" id="obDots"></div><button class="obskip" id="obSkip">Pular</button></div>
@@ -890,7 +902,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     $('vpGo').onclick=function(){prefs.voice=VOICES[vpIdx].id;persist();toast('Voz escolhida: '+VOICES[vpIdx].label.split(' · ')[0]);closeVoicePicker()};
     window.addEventListener('resize',function(){if(!$('vp').hidden)vpShow(0,false)});
   })();
-  window.jjBack=function(){if(!$('vp').hidden){closeVoicePicker();return true}if(inCall&&!$('cmenu').hidden){$('cmenu').hidden=true;return true}if(!$('ob').hidden){if(obStep>0){obStep--;renderOb()}else closeOnboarding();return true}if(!$('snap').hidden){closeSnap();return true}if(!$('pmenu').hidden){closeMenu();return true}if(!$('recBar').hidden){stopRec(true);return true}if(inCall){hangUp();return true}if(!$('sheet').hidden){$('sheet').hidden=true;return true}if($('app').classList.contains('open')){closeDrawer();return true}return false}; // botão voltar do Android
+  window.jjBack=function(){var nz=document.querySelector('.nzoom');if(nz){nz.remove();return true}if(!$('vp').hidden){closeVoicePicker();return true}if(inCall&&!$('cmenu').hidden){$('cmenu').hidden=true;return true}if(!$('ob').hidden){if(obStep>0){obStep--;renderOb()}else closeOnboarding();return true}if(!$('snap').hidden){closeSnap();return true}if(!$('pmenu').hidden){closeMenu();return true}if(!$('recBar').hidden){stopRec(true);return true}if(inCall){hangUp();return true}if(!$('sheet').hidden){$('sheet').hidden=true;return true}if($('app').classList.contains('open')){closeDrawer();return true}return false}; // botão voltar do Android
 
   /* ---------- ajustes ---------- */
   $('openSettings').onclick=function(){$('sheet').hidden=false;closeDrawer();paintSettings()};
@@ -911,16 +923,29 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   }
 
   /* ---------- avisos de atualização (chamados pela casca) ---------- */
-  function notes(n){n=n||{};var b=n.b;if(typeof b==='string')b=[b];if(!Array.isArray(b))b=[];if(b.length>3&&b.every(function(x){return String(x).length<=1}))b=[b.join('')];return {t:n.t||'Novidades',b:b}} // aceita texto solto e conserta lista de letras
+  function notes(n){n=n||{};var b=n.b;if(typeof b==='string')b=[b];if(!Array.isArray(b))b=[];if(b.length>3&&b.every(function(x){return typeof x==='string'&&x.length<=1}))b=[b.join('')];return {t:n.t||'Novidades',b:b}} // aceita texto solto e conserta lista de letras
+  /* Cada novidade pode ser só um texto ou {txt, area, img, video}: mostra onde fica no app, com foto ou vídeo curto dos toques. */
+  function itemTxt(x){return typeof x==='string'?x:String(x&&x.txt||'')}
+  function nItem(x){
+    if(typeof x==='string')return '<li>'+esc(x)+'</li>';
+    var m=x.video?'<video src="'+esc(x.video)+'" muted autoplay loop playsinline preload="metadata"'+(x.img?' poster="'+esc(x.img)+'"':'')+'></video>':x.img?'<img src="'+esc(x.img)+'" alt="" loading="lazy">':'';
+    return '<li class="nitem">'+(x.area?'<span class="area">📍 '+esc(x.area)+'</span>':'')+'<span>'+esc(x.txt||'')+'</span>'+m+(m?'<span class="tap">Toque na imagem para ver maior</span>':'')+'</li>';
+  }
+  function nCheck(){var u=$('nList');$('nMore').classList.toggle('off',u.scrollTop+u.clientHeight>=u.scrollHeight-8)}
+  $('nList').addEventListener('scroll',nCheck);
+  $('nList').addEventListener('click',function(e){var m=e.target.closest('.nitem img,.nitem video');if(!m)return;var z=document.createElement('div');z.className='nzoom';var c=m.cloneNode();if(c.tagName==='VIDEO'){c.controls=true;c.muted=true;c.autoplay=true;c.loop=true}z.appendChild(c);z.onclick=function(ev){if(ev.target===z||c.tagName==='IMG')z.remove()};document.body.appendChild(z)});
   window.jjShowUpdated=function(n){
-    n=notes(n);$('nTitle').textContent='App atualizado!';$('nSub').textContent=n.t;$('nList').innerHTML=n.b.map(function(x){return '<li>'+esc(x)+'</li>'}).join('');$('notice').hidden=false;
+    n=notes(n);$('nTitle').textContent='App atualizado!';$('nSub').textContent=n.t;
+    var rich=n.b.some(function(x){return typeof x!=='string'});$('nList').classList.toggle('rich',rich);
+    $('nList').innerHTML=n.b.map(nItem).join('');$('notice').hidden=false;$('nList').scrollTop=0;
+    setTimeout(nCheck,50);[].forEach.call($('nList').querySelectorAll('img,video'),function(m){m.addEventListener(m.tagName==='IMG'?'load':'loadedmetadata',nCheck)});
     // Fala em voz alta o que mudou, assim que o app abre atualizado.
-    var fala='O JJGlasses foi atualizado. '+n.t+'. '+n.b.map(function(x){return String(x).replace(/[.!]+$/,'')}).join('. ')+'.';
+    var fala='O JJGlasses foi atualizado. '+n.t+'. '+n.b.map(function(x){return itemTxt(x).replace(/[.!]+$/,'')}).join('. ')+'.';
     setTimeout(function(){speak(fala)},600);
   };
   $('nOk').addEventListener('click',function(){stopSpeak()});
   window.jjUpdateReady=function(n){n=notes(n);$('bText').textContent='Nova versão: '+n.t;$('banner').hidden=false};
-  $('nOk').onclick=function(){$('notice').hidden=true};
+  $('nOk').onclick=function(){$('notice').hidden=true;var z=document.querySelector('.nzoom');if(z)z.remove()};
   $('bGo').onclick=function(){$('banner').hidden=true;persist();if(NATIVE&&NATIVE.applyUpdate)NATIVE.applyUpdate();else location.reload()};
   $('bX').onclick=function(){$('banner').hidden=true};
 
