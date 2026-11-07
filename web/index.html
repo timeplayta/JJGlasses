@@ -171,6 +171,9 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 .glbody>*{flex:none}
 .glhero{position:relative;aspect-ratio:16/9;border-radius:22px;background:radial-gradient(ellipse at 50% 60%,var(--card),var(--bg) 75%);display:grid;place-items:center;touch-action:pan-y;user-select:none;-webkit-user-select:none;overflow:hidden}
 .glhero img{width:100%;height:100%;object-fit:contain;pointer-events:none}
+.glmods{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.glmods button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 14px;font-size:14px;font-weight:600}
+.glmods button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .glhint{position:absolute;bottom:8px;font-size:12px;color:var(--mute)}
 .glstat{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px}
 .glstat div{flex:1;min-width:0}.glstat small{display:block;color:var(--mute);font-size:12.5px}
@@ -381,7 +384,8 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 <div class="gl" id="gl" hidden>
   <div class="gltop"><button class="icon" id="glBack" aria-label="Voltar"><svg class="i" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><b>Óculos</b><button class="icon" id="glFind" aria-label="Fazer o óculos apitar"><svg class="i" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg></button></div>
   <div class="glbody" id="glBody">
-    <div class="glhero" id="glHero"><img id="glImg" src="oculos/g00.webp" alt="Óculos JJGlasses" draggable="false"><span class="glhint">Arraste para girar</span></div>
+    <div class="glhero" id="glHero"><img id="glImg" src="oculos/jj/g00.webp" alt="Óculos JJGlasses" draggable="false"><span class="glhint">Arraste para girar</span></div>
+    <div class="glmods" id="glMods"><button data-glm="jj">JJGlasses W AI 4</button><button data-glm="redondo">Redondo</button><button data-glm="quadrado">Quadrado</button></div>
     <div class="glstat"><span class="gdot" id="glDot"></span><div><b id="glState">Desligado</b><small id="glErr"></small></div><button class="chip" id="glConn">Conectar</button></div>
     <div class="glgrid">
       <div class="gcard"><small>Bateria</small><b id="glBat">—</b><div class="gbar"><i id="glBatBar"></i></div></div>
@@ -961,9 +965,12 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 
   /* ---------- óculos ---------- */
   if(prefs.glLook===undefined)prefs.glLook=true;
-  var gs={},glPoll=null,glFrames=36,glFrame=0,glSpin=null,glDragX=null,glHold=0;
-  function glLoad(){for(var i=0;i<glFrames;i++){var im=new Image();im.src='oculos/g'+String(i).padStart(2,'0')+'.webp'}}
-  function glShow(i){glFrame=((i%glFrames)+glFrames)%glFrames;$('glImg').src='oculos/g'+String(glFrame).padStart(2,'0')+'.webp'}
+  var gs={},glPoll=null,glFrames=48,glFrame=0,glSpin=null,glDragX=null,glHold=0;
+  function glModel(){return ['jj','redondo','quadrado'].indexOf(prefs.glModel)>=0?prefs.glModel:'jj'}
+  function glSrc(i){return 'oculos/'+glModel()+'/g'+String(i).padStart(2,'0')+'.webp'}
+  function glLoad(){for(var i=0;i<glFrames;i++){var im=new Image();im.src=glSrc(i)}[].forEach.call($('glMods').children,function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-glm')===glModel()))})}
+  $('glMods').addEventListener('click',function(e){var b=e.target.closest('[data-glm]');if(!b)return;prefs.glModel=b.getAttribute('data-glm');persist();glLoad();glShow(glFrame)});
+  function glShow(i){glFrame=((i%glFrames)+glFrames)%glFrames;$('glImg').src=glSrc(glFrame)}
   function glAuto(on){clearInterval(glSpin);if(on)glSpin=setInterval(function(){if(Date.now()>glHold)glShow(glFrame+1)},90)}
   (function(){var h=$('glHero'),startF=0;
     h.addEventListener('pointerdown',function(e){glDragX=e.clientX;startF=glFrame;glHold=Date.now()+1e9;try{h.setPointerCapture(e.pointerId)}catch(_){}});

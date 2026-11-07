@@ -1,6 +1,4 @@
-{"t":"Óculos de volta e conversa ao lado do microfone","b":[
- {"txt":"O botão de conversar com a IA em tempo real agora fica do lado direito do microfone.","area":"Tela do chat → embaixo, ao lado do microfone","img":"novidades/2026-11-07b/1-tempo-real.jpg"},
- {"txt":"Voltou a tela do óculos: óculos 3D girando, bateria, sinal, quanto tempo a bateria ainda dura e se o som e o microfone estão prontos.","area":"Tela do chat → botão do óculos (em cima)","img":"novidades/2026-11-07b/2-botao-oculos.jpg"},
- {"txt":"Toque no óculos (ou em 'Falar pelo óculos') para falar. A resposta sai no óculos e, se tiver foto, tabela, link ou for longa, ele avisa para olhar o celular.","area":"Óculos","img":"novidades/2026-11-07b/3-tela-oculos.jpg"},
- {"txt":"Escolha em qual chat cai o que você fala pelo óculos, ou deixe no automático (último chat).","area":"Óculos → Chat do óculos","img":"novidades/2026-11-07b/4-chat-do-oculos.jpg"}
+{"t":"Óculos 3D mais realista e novos modelos","b":[
+ {"txt":"O óculos 3D que gira foi refeito: agora tem espessura de verdade, luz de estúdio, reflexo no metal e nas lentes e sombra no chão. E ganhou dois modelos novos: redondo de metal dourado e quadrado de acetato preto.","area":"Óculos → imagem que gira","video":"novidades/2026-11-07c/1-tres-modelos.mp4","img":"novidades/2026-11-07c/1-tres-modelos.jpg"},
+ {"txt":"Escolha qual óculos aparece: JJGlasses W AI 4, Redondo ou Quadrado. Dá para arrastar para girar.","area":"Óculos → botões embaixo do óculos 3D","img":"novidades/2026-11-07c/2-escolher-modelo.jpg"}
 ]}
