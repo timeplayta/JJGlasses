@@ -373,8 +373,12 @@ public class MainActivity extends Activity {
         @Override public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback, FileChooserParams params) {
             if (pendingFiles != null) pendingFiles.onReceiveValue(null);
             pendingFiles = callback;
-            Intent pick = new Intent(Intent.ACTION_GET_CONTENT).setType("image/*").addCategory(Intent.CATEGORY_OPENABLE);
-            try { startActivityForResult(Intent.createChooser(pick, "Escolher foto"), REQ_FILE); }
+            // Respeita o tipo pedido pela página: só fotos (Galeria) ou qualquer arquivo (Adicionar arquivos).
+            String type = "*/*";
+            String[] accept = params.getAcceptTypes();
+            if (accept != null && accept.length > 0 && accept[0] != null && !accept[0].trim().isEmpty()) type = accept[0].trim();
+            Intent pick = new Intent(Intent.ACTION_GET_CONTENT).setType(type).addCategory(Intent.CATEGORY_OPENABLE);
+            try { startActivityForResult(Intent.createChooser(pick, type.startsWith("image") ? "Escolher foto" : "Escolher arquivo"), REQ_FILE); }
             catch (Exception e) { pendingFiles = null; return false; }
             return true;
         }

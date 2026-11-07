@@ -91,6 +91,16 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 .round.go{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .round.on{background:var(--warn);border-color:var(--warn);color:#fff}
 .icon.rec-on{color:var(--warn)}
+.pmenu{position:fixed;z-index:35;left:max(12px,env(safe-area-inset-left,0px));bottom:calc(84px + env(safe-area-inset-bottom,0px));width:240px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:6px;box-shadow:0 12px 32px rgba(0,0,0,.22);display:flex;flex-direction:column}
+.pmenu button{border:0;background:none;display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;font-size:15px;text-align:left}
+.pmenu button:active{background:var(--bg)}
+.fchip{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);border-radius:10px;padding:6px 10px;margin-bottom:6px;font-size:13px}
+.m.ai .fchip{background:var(--bg)}
+.snap{position:fixed;inset:0;z-index:55;background:#000;display:flex;flex-direction:column}
+.snap video{flex:1;min-height:0;width:100%;object-fit:cover}
+.snapbar{display:flex;align-items:center;justify-content:space-around;padding:18px 20px calc(24px + env(safe-area-inset-bottom,0px))}
+.shutter{width:76px;height:76px;border-radius:50%;border:5px solid #fff;background:rgba(255,255,255,.25)}
+.snapbar .cb{width:56px;height:56px}
 .rec{display:flex;align-items:center;gap:10px;background:var(--field);border:1px solid var(--warn);border-radius:26px;padding:6px 6px 6px 16px}
 .rec .rdot{width:10px;height:10px;border-radius:50%;background:var(--warn);animation:pulse 1s infinite}
 @keyframes pulse{50%{opacity:.25}}
@@ -174,17 +184,18 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     <div class="msgs" id="msgs"><div class="col" id="col"></div></div>
     <div class="composer">
       <div class="col">
-        <div class="draft" id="draft" hidden><img id="draftImg" alt=""><span>Foto pronta pra enviar</span><button class="icon" id="draftX" aria-label="Tirar a foto"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+        <div class="draft" id="draft" hidden><img id="draftImg" alt=""><span id="draftTxt">Foto pronta pra enviar</span><button class="icon" id="draftX" aria-label="Tirar a foto"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
         <div class="rec" id="recBar" hidden><span class="rdot" aria-hidden="true"></span><span class="rtime" id="recTime">0:00</span><span class="rtxt">Gravando... toque em Parar quando terminar</span><button class="rcancel" id="recCancel">Cancelar</button><button class="rstop" id="recStop"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor"/></svg>Parar</button></div>
         <div class="row" id="typeRow">
           <div class="shell">
-            <button class="icon" id="photoBtn" aria-label="Anexar foto"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+            <button class="icon" id="photoBtn" aria-label="Mais opções"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
             <textarea id="msgIn" rows="1" placeholder="Pergunte alguma coisa"></textarea>
             <button class="icon" id="micBtn" aria-label="Falar"><svg class="i" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
           </div>
           <button class="round go" id="sendBtn" aria-label="Enviar"><svg class="i" viewBox="0 0 24 24"><path d="M5 12l14-7-5 14-3-6z"/></svg></button>
         </div>
         <input type="file" id="fileIn" accept="image/*" hidden>
+        <input type="file" id="docIn" hidden>
       </div>
     </div>
   </main>
@@ -246,6 +257,20 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   </div>
 </div>
 
+<div class="pmenu" id="pmenu" hidden role="menu">
+  <button id="pmCam"><svg class="i" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Tirar foto</button>
+  <button id="pmGal"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>Galeria</button>
+  <button id="pmGen"><svg class="i" viewBox="0 0 24 24"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M18 15l.8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8z"/></svg>Criar imagem</button>
+  <button id="pmDoc"><svg class="i" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>Adicionar arquivos</button>
+</div>
+<div class="snap" id="snap" hidden>
+  <video id="snapView" playsinline muted autoplay></video>
+  <div class="snapbar">
+    <button class="cb" id="snapClose" aria-label="Fechar"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <button class="shutter" id="snapShot" aria-label="Tirar foto"></button>
+    <button class="cb" id="snapFlip" aria-label="Virar câmera"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h11l-3-3M20 17H9l3 3"/></svg></button>
+  </div>
+</div>
 <div class="notice" id="notice" hidden><div class="box"><h3 id="nTitle">Atualizado!</h3><p class="sub" id="nSub"></p><ul id="nList"></ul><button class="btn main" id="nOk">Legal!</button></div></div>
 <div class="banner" id="banner" hidden><span id="bText">Nova versão disponível</span><button id="bGo">Atualizar agora</button><button class="close" id="bX" aria-label="Fechar">✕</button></div>
 <div class="toast" id="toast" hidden></div>
@@ -285,7 +310,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   var draft=null,busy=false;
 
   function persist(){
-    var slim=chats.slice(0,60).map(function(c){return {id:c.id,title:c.title,at:c.at,msgs:c.msgs.filter(function(m){return !m.pending}).slice(-80).map(function(m){return {role:m.role,text:m.text,img:(m.img&&m.img.length<300000)?m.img:null}})}});
+    var slim=chats.slice(0,60).map(function(c){return {id:c.id,title:c.title,at:c.at,msgs:c.msgs.filter(function(m){return !m.pending}).slice(-80).map(function(m){return {role:m.role,text:m.text,img:(m.img&&m.img.length<300000)?m.img:null,file:m.file||null,ftext:m.ftext||null}})}});
     save('jj_chats',slim);save('jj_prefs',prefs);
   }
   function chat(){for(var i=0;i<chats.length;i++)if(chats[i].id===cur)return chats[i];return null}
@@ -376,7 +401,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     }
     var h='<div class="date">Começou em '+when(c.at)+'</div>';
     c.msgs.forEach(function(m,idx){
-      if(m.role==='me') h+='<div class="m me">'+(m.img?'<img src="'+m.img+'" alt="Foto enviada">':'')+esc(m.text)+'</div>';
+      if(m.role==='me') h+='<div class="m me">'+(m.img?'<img src="'+m.img+'" alt="Foto enviada">':'')+(m.file?'<div class="fchip">📎 '+esc(m.file)+'</div><br>':'')+esc(m.text)+'</div>';
       else if(m.pending) h+='<div class="m ai"><span class="typing" aria-label="Respondendo"><i></i><i></i><i></i></span></div>';
       else h+='<div class="m ai">'+md(m.text)+'<div class="acts"><button class="chip" data-say="'+idx+'">Ouvir</button><button class="chip" data-copy="'+idx+'">Copiar</button></div></div>';
     });
@@ -409,9 +434,48 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     img.onload=function(){var s=Math.min(1,max/Math.max(img.width,img.height)),cv=document.createElement('canvas');cv.width=Math.round(img.width*s);cv.height=Math.round(img.height*s);cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);cb(cv.toDataURL('image/jpeg',.8))};
     img.onerror=function(){toast('Essa foto não abriu.')};img.src=url;
   }
-  $('photoBtn').onclick=function(){$('fileIn').click()};
-  $('fileIn').onchange=function(){var f=this.files&&this.files[0];this.value='';if(!f)return;shrink(f,1024,function(d){draft=d;$('draftImg').src=d;$('draft').hidden=false})};
-  $('draftX').onclick=function(){draft=null;$('draft').hidden=true};
+  /* menu do + : tirar foto, galeria, criar imagem, arquivos */
+  var attach=null; // {name, text}
+  function showDraft(){
+    var has=!!(draft||attach);$('draft').hidden=!has;if(!has)return;
+    $('draftImg').hidden=!draft;if(draft)$('draftImg').src=draft;
+    $('draftTxt').textContent=draft&&attach?'Foto e arquivo prontos':draft?'Foto pronta pra enviar':'Arquivo: '+attach.name;
+  }
+  function closeMenu(){$('pmenu').hidden=true}
+  $('photoBtn').onclick=function(e){e.stopPropagation();$('pmenu').hidden=!$('pmenu').hidden};
+  document.addEventListener('click',function(e){if(!$('pmenu').hidden&&!e.target.closest('#pmenu'))closeMenu()});
+  $('pmGal').onclick=function(){closeMenu();$('fileIn').click()};
+  $('pmDoc').onclick=function(){closeMenu();$('docIn').click()};
+  $('pmGen').onclick=function(){closeMenu();var b=$('msgIn');b.value='Crie uma imagem de ';grow();b.focus();try{b.setSelectionRange(b.value.length,b.value.length)}catch(e){}};
+  $('pmCam').onclick=function(){closeMenu();openSnap()};
+  $('fileIn').onchange=function(){var f=this.files&&this.files[0];this.value='';if(!f)return;shrink(f,1024,function(d){draft=d;showDraft()})};
+  var TEXTY=/\.(txt|md|csv|json|xml|html?|css|js|ts|kt|java|py|c|cpp|h|cs|php|rb|go|rs|sql|yaml|yml|ini|log|bat|ps1|sh|srt)$/i;
+  $('docIn').onchange=function(){
+    var f=this.files&&this.files[0];this.value='';if(!f)return;
+    if(/^image\//.test(f.type)){shrink(f,1024,function(d){draft=d;showDraft()});return}
+    if(/^text\//.test(f.type)||TEXTY.test(f.name)||/json|xml|javascript/.test(f.type)){
+      var r=new FileReader();r.onload=function(){attach={name:f.name,text:String(r.result).slice(0,12000)};showDraft()};r.readAsText(f);return;
+    }
+    attach={name:f.name,text:''};showDraft();toast('Desse tipo de arquivo eu leio só o nome por enquanto.');
+  };
+  $('draftX').onclick=function(){draft=null;attach=null;showDraft()};
+
+  /* câmera dentro do app para tirar foto */
+  var snapStream=null,snapFacing='environment';
+  function openSnap(){
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){toast('Câmera indisponível aqui.');return}
+    navigator.mediaDevices.getUserMedia({video:{facingMode:snapFacing,width:{ideal:1920}},audio:false}).then(function(s){
+      snapStream=s;$('snapView').srcObject=s;$('snap').hidden=false;
+    },function(){toast('Libere a câmera para tirar foto.')});
+  }
+  function closeSnap(){if(snapStream){snapStream.getTracks().forEach(function(t){t.stop()});snapStream=null}$('snap').hidden=true;$('snapView').srcObject=null}
+  $('snapClose').onclick=closeSnap;
+  $('snapFlip').onclick=function(){snapFacing=snapFacing==='environment'?'user':'environment';closeSnap();openSnap()};
+  $('snapShot').onclick=function(){
+    var v=$('snapView');if(!v.videoWidth)return;
+    var s=Math.min(1,1024/Math.max(v.videoWidth,v.videoHeight)),cv=document.createElement('canvas');cv.width=Math.round(v.videoWidth*s);cv.height=Math.round(v.videoHeight*s);
+    cv.getContext('2d').drawImage(v,0,0,cv.width,cv.height);draft=cv.toDataURL('image/jpeg',.82);closeSnap();showDraft();$('msgIn').focus();
+  };
 
   /* ---------- onde a pessoa está (clima) ---------- */
   var place=load('jj_place',null);
@@ -427,15 +491,17 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
         body:JSON.stringify({turns:turns,name:prefs.name||'',live:!!live,place:place})});
     }).then(function(r){return r.json().then(function(j){if(!r.ok)throw j;return j.text})});
   }
-  function turnsOf(c){return c.msgs.filter(function(m){return !m.pending}).slice(-20).map(function(m){return {role:m.role==='me'?'user':'assistant',text:m.text,image:m.img||undefined}})}
+  function turnsOf(c){return c.msgs.filter(function(m){return !m.pending}).slice(-20).map(function(m){
+    var t=m.text;if(m.file)t+='\n\nArquivo anexado: '+m.file+(m.ftext?'\n'+m.ftext:'\n(não consegui ler o conteúdo, só o nome)');
+    return {role:m.role==='me'?'user':'assistant',text:t,image:m.img||undefined}})}
   function send(textArg,imgArg,live){
-    var text=(textArg!=null?textArg:$('msgIn').value).trim(),photo=imgArg!=null?imgArg:draft;
-    if(busy||(!text&&!photo))return Promise.resolve(null);
+    var text=(textArg!=null?textArg:$('msgIn').value).trim(),photo=imgArg!=null?imgArg:draft,file=textArg==null?attach:null;
+    if(busy||(!text&&!photo&&!file))return Promise.resolve(null);
     if(/clima|tempo|previs|chuva|temperatura/i.test(text))locate();
     var c=chat()||newChat();
-    if(imgArg==null){draft=null;$('draft').hidden=true}
-    c.msgs.push({role:'me',text:text||'O que tem nessa foto?',img:photo||null});
-    if(c.title==='Novo chat')c.title=(text||'Foto').slice(0,40);
+    if(imgArg==null){draft=null;attach=null;showDraft()}
+    c.msgs.push({role:'me',text:text||(file?'O que tem nesse arquivo?':'O que tem nessa foto?'),img:photo||null,file:file?file.name:null,ftext:file?file.text:null});
+    if(c.title==='Novo chat')c.title=(text||(file?file.name:'Foto')).slice(0,40);
     c.at=Date.now();if(textArg==null){$('msgIn').value='';grow()}
     var pending={role:'ai',text:'',pending:true};c.msgs.push(pending);
     busy=true;setStatus('Respondendo...');renderAll();
@@ -599,7 +665,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   $('camBtn').onclick=function(){camStream?stopCam():startCam()};
   $('muteBtn').onclick=function(){muted=!muted;$('muteBtn').classList.toggle('on',muted);if(muted){stopListen();setCall('mudo','Microfone desligado. Toque de novo pra falar.')}else if(callState!=='falando'&&callState!=='pensando')hearTurn()};
   $('orb').onclick=function(){if(callState==='falando'){stopSpeak();hearTurn()}};
-  window.jjBack=function(){if(!$('recBar').hidden){stopRec(true);return true}if(inCall){hangUp();return true}if(!$('sheet').hidden){$('sheet').hidden=true;return true}if($('app').classList.contains('open')){closeDrawer();return true}return false}; // botão voltar do Android
+  window.jjBack=function(){if(!$('snap').hidden){closeSnap();return true}if(!$('pmenu').hidden){closeMenu();return true}if(!$('recBar').hidden){stopRec(true);return true}if(inCall){hangUp();return true}if(!$('sheet').hidden){$('sheet').hidden=true;return true}if($('app').classList.contains('open')){closeDrawer();return true}return false}; // botão voltar do Android
 
   /* ---------- ajustes ---------- */
   $('openSettings').onclick=function(){$('sheet').hidden=false;closeDrawer();paintSettings()};

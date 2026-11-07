@@ -1,8 +1,9 @@
 {
-  "t": "Microfone igual ao WhatsApp",
+  "t": "Menu do mais de volta",
   "b": [
-    "O microfone grava até você tocar em Parar, sem cortar sozinho",
-    "Dá para cancelar a gravação",
-    "O áudio vira texto com mais precisão"
+    "Tirar foto direto pelo app",
+    "Escolher foto da galeria",
+    "Criar imagem com a IA",
+    "Adicionar arquivos para a IA ler"
   ]
 }
