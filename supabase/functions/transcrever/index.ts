@@ -36,7 +36,8 @@ Deno.serve(async (req: Request) => {
   const form = new FormData();
   form.append("file", new Blob([audio], { type }), `fala.${ext}`);
   form.append("model", "gpt-4o-mini-transcribe");
-  form.append("language", "pt");
+  const lang = (new URL(req.url).searchParams.get("lang") ?? "pt").slice(0, 2).toLowerCase();
+  if (/^[a-z]{2}$/.test(lang)) form.append("language", lang);
   const res = await fetch("https://api.openai.com/v1/audio/transcriptions", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}` },

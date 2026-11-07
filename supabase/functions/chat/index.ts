@@ -64,7 +64,7 @@ const TOOLS = [
 ];
 
 type Turn = { role: "user" | "assistant"; text: string; image?: string };
-type Body = { turns?: Turn[]; name?: string; live?: boolean; place?: { lat: number; lon: number; label?: string } };
+type Body = { turns?: Turn[]; name?: string; live?: boolean; lang?: string; place?: { lat: number; lon: number; label?: string } };
 
 async function userFromToken(req: Request): Promise<boolean> {
   const auth = req.headers.get("authorization") ?? "";
@@ -139,6 +139,7 @@ Deno.serve(async (req: Request) => {
   extra += " Você TEM acesso à internet pelas ferramentas buscar_na_internet e clima. Use-as para clima, notícias, preços e tudo que muda com o tempo. Nunca diga que não tem acesso à internet.";
   if (body.live) extra += "\n\n" + LIVE;
   if (body.name) extra += `\n\nPessoa: ${String(body.name).slice(0, 60)}.`;
+  if (body.lang) extra += `\n\nIdioma escolhido pela pessoa: ${String(body.lang).slice(0, 40)}. Responda nesse idioma, a não ser que ela escreva em outro.`;
 
   const pictured = turns.map((t, i) => (t.image ? i : -1)).filter((i) => i >= 0).slice(-2);
   const seeing = pictured.length > 0;

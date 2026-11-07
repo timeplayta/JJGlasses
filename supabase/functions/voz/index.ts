@@ -30,24 +30,26 @@ Deno.serve(async (req: Request) => {
   const key = Deno.env.get("OPENAI_API_KEY");
   if (!key) return json({ error: "sem_chave" }, 503);
 
-  let body: { text?: string; voice?: string; style?: string };
+  let body: { text?: string; voice?: string; style?: string; pitch?: number; speed?: number; lang?: string };
   try { body = await req.json(); } catch { return json({ error: "json_invalido" }, 400); }
   const text = String(body.text ?? "").trim().slice(0, 1500);
   if (!text) return json({ error: "texto_vazio" }, 400);
   const voice = VOICES.has(String(body.voice)) ? String(body.voice) : "coral";
   const style = String(body.style ?? "").slice(0, 200);
+  const pitch = Math.max(-2, Math.min(2, Number(body.pitch ?? 0) || 0));
+  const speed = Math.max(0.8, Math.min(1.25, Number(body.speed ?? 1) || 1));
+  const lang = String(body.lang ?? "Portuguese (Brazil)").slice(0, 40);
+  const tone = pitch <= -2 ? "Voz bem mais grave que o normal." : pitch === -1 ? "Voz um pouco mais grave." : pitch === 1 ? "Voz um pouco mais aguda." : pitch >= 2 ? "Voz bem mais aguda que o normal." : "";
+  const pace = speed < 0.95 ? "Fale mais devagar." : speed > 1.05 ? "Fale mais rápido." : "";
+  const instructions = `Fale em ${lang}, com sotaque nativo natural, como uma pessoa conversando, com pausas e entonação naturais. ${style} ${tone} ${pace}`.trim();
 
-  const upstream = await fetch("https://api.openai.com/v1/audio/speech", {
+  const call = (withSpeed: boolean) => fetch("https://api.openai.com/v1/audio/speech", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "gpt-4o-mini-tts",
-      voice,
-      input: text,
-      instructions: `Fale em português do Brasil, com sotaque brasileiro natural, como uma pessoa conversando. ${style}`,
-      response_format: "mp3",
-    }),
+    body: JSON.stringify({ model: "gpt-4o-mini-tts", voice, input: text, instructions, response_format: "mp3", ...(withSpeed ? { speed } : {}) }),
   });
+  let upstream = await call(speed !== 1);
+  if (!upstream.ok && upstream.status === 400 && speed !== 1) upstream = await call(false);
   if (!upstream.ok || !upstream.body) {
     console.error("openai tts", upstream.status, (await upstream.text().catch(() => "")).slice(0, 300));
     return json({ error: "tts_falhou", status: upstream.status }, 502);
