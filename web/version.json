@@ -1,13 +1,14 @@
 {
-  "v": 202611062054,
+  "v": 202611062100,
   "notes": {
-    "t": "Microfone igual ao WhatsApp",
+    "t": "Menu do mais de volta",
     "b": [
-      "O microfone grava até você tocar em Parar, sem cortar sozinho",
-      "Dá para cancelar a gravação",
-      "O áudio vira texto com mais precisão"
+      "Tirar foto direto pelo app",
+      "Escolher foto da galeria",
+      "Criar imagem com a IA",
+      "Adicionar arquivos para a IA ler"
     ]
   },
-  "bytes": 48286,
-  "sha256": "bfee0e42690ec26fb0fdccff6018378e6841b1e31911606f11751384ce504dd3"
+  "bytes": 54026,
+  "sha256": "79c5b2f6fb652ced2090b38d150f7dfbe40661abbe45858b0450a3244e22a349"
 }
