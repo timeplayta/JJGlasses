@@ -1,16 +1,11 @@
 {
-  "v": 202611071640,
+  "v": 202611071723,
   "notes": {
-    "t": "Óculos 3D com cara de foto",
+    "t": "Versão do app nos Ajustes",
     "b": [
-      {
-        "txt": "Os três óculos foram refeitos com mais detalhes: reflexo de estúdio no metal e no acetato, lentes com reflexo de vidro, dobradiças e parafusos, plaquetas no nariz, ponteiras de tartaruga, câmera com anel de metal e o óculos refletido na mesa. E em resolução maior, para não ficar borrado.",
-        "area": "Óculos → imagem que gira",
-        "video": "novidades/2026-11-07f/1-oculos-realistas.mp4",
-        "img": "novidades/2026-11-07f/1-oculos-realistas.jpg"
-      }
+      "Nos Ajustes agora aparece a data e a hora da versão do app, também no navegador do PC."
     ]
   },
-  "bytes": 119480,
-  "sha256": "6e1535a1dda02007cd0ab4510f0a1b72e274e5c05090977ddb25f958ffdb60b2"
+  "bytes": 119877,
+  "sha256": "0973eeedffeaf424ce21dcb598f97b9e84a0604ce8c39197ff8fad1230495a3a"
 }
