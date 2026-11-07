@@ -524,6 +524,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   function voice(){for(var i=0;i<VOICES.length;i++)if(VOICES[i].id===prefs.voice)return VOICES[i];return VOICES[0]}
   function stopSpeak(){speakToken++;try{audio.pause()}catch(e){}if(NATIVE&&NATIVE.stopSpeak)NATIVE.stopSpeak();if(window.speechSynthesis)speechSynthesis.cancel()}
   function speak(text,done){
+    if(rec||dictLoop){if(done)done();return} // gravando: não fala por cima
     stopSpeak();var mine=speakToken,v=voice(),clean=spoken(text).slice(0,1400);
     var finish=function(){if(mine===speakToken&&done)done()};
     if(!clean){finish();return}
@@ -630,7 +631,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
       listen(function(t){if(!dictLoop)return;if(t){var box=$('msgIn');box.value=(box.value?box.value+' ':'')+t;grow()}setTimeout(again,150)},false);
     })();
   }
-  $('micBtn').onclick=function(){if(!$('recBar').hidden)stopRec(false);else startRec()};
+  $('micBtn').onclick=function(){if(!$('recBar').hidden)stopRec(false);else{stopSpeak();startRec()}}; // começou a gravar: a IA para de falar na hora
   $('recStop').onclick=function(){stopRec(false)};
   $('recCancel').onclick=function(){stopRec(true)};
 
