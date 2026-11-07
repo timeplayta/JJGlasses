@@ -994,7 +994,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   if(prefs.glLook===undefined)prefs.glLook=true;
   var gs={},glPoll=null,glFrames=48,glFrame=0,glSpin=null,glDragX=null,glHold=0;
   function glModel(){return ['jj','redondo','quadrado'].indexOf(prefs.glModel)>=0?prefs.glModel:'jj'}
-  function glSrc(i){return 'oculos/'+glModel()+'/g'+String(i).padStart(2,'0')+'.webp'}
+  function glSrc(i){return 'oculos/'+glModel()+'/g'+String(i).padStart(2,'0')+'.webp'+'?v=2'}
   function glLoad(){for(var i=0;i<glFrames;i++){var im=new Image();im.src=glSrc(i)}[].forEach.call($('glMods').children,function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-glm')===glModel()))})}
   $('glMods').addEventListener('click',function(e){var b=e.target.closest('[data-glm]');if(!b)return;prefs.glModel=b.getAttribute('data-glm');persist();glLoad();glShow(glFrame)});
   function glShow(i){glFrame=((i%glFrames)+glFrames)%glFrames;$('glImg').src=glSrc(glFrame)}
