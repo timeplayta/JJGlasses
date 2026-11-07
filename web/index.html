@@ -157,6 +157,9 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 .nzoom{position:fixed;inset:0;z-index:80;background:#000;display:grid;place-items:center}
 .nzoom img,.nzoom video{max-width:100%;max-height:100%;object-fit:contain}
 .notice .btn{flex:none}
+.nacts{display:flex;gap:10px;flex:none}.nacts #nOk{flex:1}
+#nSay{display:flex;align-items:center;gap:8px;justify-content:center;font-weight:600;padding:12px 18px}
+#nSay.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .banner{position:fixed;left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));top:calc(10px + env(safe-area-inset-top,0px));z-index:65;background:var(--ink);color:var(--bg);border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
 .banner span{flex:1;font-size:14px}
 .banner button{border:0;border-radius:10px;padding:9px 12px;font-weight:700;background:var(--accent);color:var(--on-accent)}
@@ -471,7 +474,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     <button class="cb" id="snapFlip" aria-label="Virar câmera"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h11l-3-3M20 17H9l3 3"/></svg></button>
   </div>
 </div>
-<div class="notice" id="notice" hidden><div class="box"><h3 id="nTitle">Atualizado!</h3><p class="sub" id="nSub"></p><div class="nwrap"><ul id="nList"></ul><div class="nmore" id="nMore">Role para ver mais ↓</div></div><button class="btn main" id="nOk">Legal!</button></div></div>
+<div class="notice" id="notice" hidden><div class="box"><h3 id="nTitle">Atualizado!</h3><p class="sub" id="nSub"></p><div class="nwrap"><ul id="nList"></ul><div class="nmore" id="nMore">Role para ver mais ↓</div></div><div class="nacts"><button class="btn" id="nSay"><svg class="i" viewBox="0 0 24 24"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg><span id="nSayT">Ouvir</span></button><button class="btn main" id="nOk">Legal!</button></div></div></div>
 <div class="banner" id="banner" hidden><span id="bText">Nova versão disponível</span><button id="bGo">Atualizar agora</button><button class="close" id="bX" aria-label="Fechar">✕</button></div>
 <div class="ob" id="ob" hidden>
   <div class="obtop"><div class="obdots" id="obDots"></div><button class="obskip" id="obSkip">Pular</button></div>
@@ -1145,6 +1148,9 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   function nCheck(){var u=$('nList');$('nMore').classList.toggle('off',u.scrollTop+u.clientHeight>=u.scrollHeight-8)}
   $('nList').addEventListener('scroll',nCheck);
   $('nList').addEventListener('click',function(e){var m=e.target.closest('.nitem img,.nitem video');if(!m)return;var z=document.createElement('div');z.className='nzoom';var c=m.cloneNode();if(c.tagName==='VIDEO'){c.controls=true;c.muted=true;c.autoplay=true;c.loop=true}z.appendChild(c);z.onclick=function(ev){if(ev.target===z||c.tagName==='IMG')z.remove()};document.body.appendChild(z)});
+  var nFala='',nSpeaking=false;
+  function nSayUI(on){nSpeaking=on;$('nSay').classList.toggle('on',on);$('nSayT').textContent=on?'Parar':'Ouvir'}
+  $('nSay').onclick=function(){if(nSpeaking){stopSpeak();nSayUI(false);return}nSayUI(true);speak(nFala,function(){nSayUI(false)})};
   window.jjShowUpdated=function(n){
     n=notes(n);$('nTitle').textContent='App atualizado!';$('nSub').textContent=n.t;
     var rich=n.b.some(function(x){return typeof x!=='string'});$('nList').classList.toggle('rich',rich);
@@ -1152,11 +1158,12 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     setTimeout(nCheck,50);[].forEach.call($('nList').querySelectorAll('img,video'),function(m){m.addEventListener(m.tagName==='IMG'?'load':'loadedmetadata',nCheck)});
     // Fala em voz alta o que mudou, assim que o app abre atualizado.
     var fala='O JJGlasses foi atualizado. '+n.t+'. '+n.b.map(function(x){return itemTxt(x).replace(/[.!]+$/,'')}).join('. ')+'.';
-    setTimeout(function(){speak(fala)},600);
+    // Não fala sozinho: só se a pessoa tocar em Ouvir.
+    nFala=fala;nSayUI(false);
   };
   $('nOk').addEventListener('click',function(){stopSpeak()});
   window.jjUpdateReady=function(n){n=notes(n);$('bText').textContent='Nova versão: '+n.t;$('banner').hidden=false};
-  $('nOk').onclick=function(){$('notice').hidden=true;var z=document.querySelector('.nzoom');if(z)z.remove()};
+  $('nOk').onclick=function(){if(nSpeaking){stopSpeak();nSayUI(false)}$('notice').hidden=true;var z=document.querySelector('.nzoom');if(z)z.remove()};
   $('bGo').onclick=function(){$('banner').hidden=true;persist();if(NATIVE&&NATIVE.applyUpdate)NATIVE.applyUpdate();else location.reload()};
   $('bX').onclick=function(){$('banner').hidden=true};
 
