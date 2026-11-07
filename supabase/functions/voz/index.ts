@@ -14,12 +14,18 @@ const json = (body: unknown, status = 200) =>
 
 const VOICES = new Set(["alloy", "ash", "ballad", "coral", "echo", "fable", "nova", "onyx", "sage", "shimmer", "verse", "marin", "cedar"]);
 
+// Login já conferido fica guardado por 5 min: o app pede a voz em vários pedaços seguidos
+// e não precisa conferir o login de novo a cada pedaço (deixa a voz começar mais rápido).
+const okTokens = new Map<string, number>();
 async function loggedIn(req: Request): Promise<boolean> {
   const auth = req.headers.get("authorization") ?? "";
   const url = Deno.env.get("SUPABASE_URL");
   const anon = Deno.env.get("SUPABASE_ANON_KEY") ?? req.headers.get("apikey") ?? "";
   if (!auth.startsWith("Bearer ") || !url) return false;
+  const until = okTokens.get(auth);
+  if (until && until > Date.now()) return true;
   const res = await fetch(`${url}/auth/v1/user`, { headers: { Authorization: auth, apikey: anon } });
+  if (res.ok) { okTokens.set(auth, Date.now() + 5 * 60 * 1000); if (okTokens.size > 500) okTokens.clear(); }
   return res.ok;
 }
 

@@ -157,6 +157,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 .nzoom{position:fixed;inset:0;z-index:80;background:#000;display:grid;place-items:center}
 .nzoom img,.nzoom video{max-width:100%;max-height:100%;object-fit:contain}
 .notice .btn{flex:none}
+.acts .chip.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .nacts{display:flex;gap:10px;flex:none}.nacts #nOk{flex:1}
 #nSay{display:flex;align-items:center;gap:8px;justify-content:center;font-weight:600;padding:12px 18px}
 #nSay.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
@@ -633,7 +634,11 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   $('dim').onclick=closeDrawer;
   $('col').addEventListener('click',function(e){
     var s=e.target.closest('[data-sug]');if(s){$('msgIn').value=s.getAttribute('data-sug');send();return}
-    var say=e.target.closest('[data-say]');if(say){speak(chat().msgs[+say.getAttribute('data-say')].text);return}
+    var say=e.target.closest('[data-say]');if(say){
+      if(say.classList.contains('on')){stopSpeak();return}
+      var idx=+say.getAttribute('data-say');
+      speak(chat().msgs[idx].text,function(){sayOff()},function(){if(sayBtn===say)say.textContent='Parar'});
+      say.classList.add('on');say.textContent='Carregando…';sayBtn=say;return}
     var cp=e.target.closest('[data-copy]');if(cp){var t=chat().msgs[+cp.getAttribute('data-copy')].text;
       (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){toast('Copiado')},function(){toast('Não deu pra copiar')});}
   });
@@ -720,7 +725,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
       setStatus('Sem resposta',false);return null;
     }).then(function(t){
       delete pending.pending;busy=false;persist();renderChat();
-      if(t&&prefs.speak&&!live)speak(t);
+      if(t&&prefs.speak&&!live)speak(t);else if(t&&!live)ttsWarm(t);
       return t;
     });
   }
@@ -730,21 +735,51 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   $('msgIn').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey&&!('ontouchstart' in window)){e.preventDefault();send()}});
 
   /* ---------- voz (falar) ---------- */
-  var audio=new Audio(),speakToken=0,onSpoken=null;
+  var audio=new Audio(),speakToken=0,onSpoken=null,sayBtn=null;
+  function sayOff(){var b=sayBtn;sayBtn=null;if(b){b.classList.remove('on');b.textContent='Ouvir'}}
   function voice(){for(var i=0;i<VOICES.length;i++)if(VOICES[i].id===prefs.voice)return VOICES[i];return VOICES[0]}
-  function stopSpeak(){speakToken++;try{audio.pause()}catch(e){}if(NATIVE&&NATIVE.stopSpeak)NATIVE.stopSpeak();if(window.speechSynthesis)speechSynthesis.cancel()}
-  function speak(text,done){
+  function stopSpeak(){speakToken++;try{audio.pause()}catch(e){}try{curAudio&&curAudio.pause()}catch(e){}curAudio=null;sayOff();if(NATIVE&&NATIVE.stopSpeak)NATIVE.stopSpeak();if(window.speechSynthesis)speechSynthesis.cancel()}
+  /* Voz rápida: divide o texto em pedaços. O 1º pedaço é curto (uma frase) e começa a tocar em ~1 s,
+     enquanto os próximos já vão sendo preparados. Cada pedaço fica guardado, então ouvir de novo é na hora. */
+  var ttsCache={},curAudio=null;
+  function ttsChunks(t){
+    var parts=t.replace(/\s+/g,' ').match(/[^.!?…;:\n]+[.!?…;:]*\s*/g)||[t],out=[],cur='';
+    for(var i=0;i<parts.length;i++){var lim=out.length===0?160:420;
+      if(cur&&(cur+parts[i]).length>lim){out.push(cur.trim());cur=''}
+      cur+=parts[i]; if(out.length===0&&cur.length>=60){out.push(cur.trim());cur=''}}
+    if(cur.trim())out.push(cur.trim());
+    return out.filter(Boolean);
+  }
+  function ttsUrl(chunk){
+    var v=voice(),k=[v.oa,prefs.pitch,prefs.rate,prefs.lang,chunk].join('|');
+    if(ttsCache[k])return ttsCache[k];
+    var pr=token().then(function(tk){
+      return fetch(SB_URL+'/functions/v1/voz',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+tk,'Content-Type':'application/json'},body:JSON.stringify({text:chunk,voice:v.oa,style:v.how,pitch:prefs.pitch,speed:prefs.rate,lang:langName(prefs.lang)})});
+    }).then(function(r){if(!r.ok)throw 0;return r.blob()}).then(function(b){return URL.createObjectURL(b)});
+    pr.catch(function(){delete ttsCache[k]});ttsCache[k]=pr;return pr;
+  }
+  // prepara só o começo da resposta, para o "Ouvir" tocar na hora
+  function ttsWarm(text){var c=ttsChunks(spoken(text||''));if(c[0])ttsUrl(c[0])}
+  function speak(text,done,onStart){
     if(rec||dictLoop){if(done)done();return} // gravando: não fala por cima
-    stopSpeak();var mine=speakToken,v=voice(),clean=spoken(text).slice(0,1400);
-    var finish=function(){if(mine===speakToken&&done)done()};
+    stopSpeak();var mine=speakToken,v=voice(),clean=spoken(text).slice(0,6000);
+    var finish=function(){if(mine===speakToken){curAudio=null;if(done)done()}};
     if(!clean){finish();return}
-    token().then(function(tk){
-      return fetch(SB_URL+'/functions/v1/voz',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+tk,'Content-Type':'application/json'},body:JSON.stringify({text:clean,voice:v.oa,style:v.how,pitch:prefs.pitch,speed:prefs.rate,lang:langName(prefs.lang)})});
-    }).then(function(r){if(!r.ok)throw 0;return r.blob()}).then(function(b){
+    var chunks=ttsChunks(clean),started=false;
+    ttsUrl(chunks[0]);if(chunks[1])ttsUrl(chunks[1]);
+    (function play(i){
       if(mine!==speakToken)return;
-      audio.src=URL.createObjectURL(b);audio.volume=Math.max(0,Math.min(1,(prefs.vol||100)/100));audio.onended=finish;audio.onerror=function(){phoneVoice(clean,v,finish)};
-      return audio.play();
-    }).catch(function(){if(mine===speakToken)phoneVoice(clean,v,finish)});
+      if(i>=chunks.length){finish();return}
+      if(chunks[i+1])ttsUrl(chunks[i+1]);if(chunks[i+2])ttsUrl(chunks[i+2]);
+      ttsUrl(chunks[i]).then(function(url){
+        if(mine!==speakToken)return;
+        var a=new Audio(url);curAudio=a;a.volume=Math.max(0,Math.min(1,(prefs.vol||100)/100));
+        a.onended=function(){play(i+1)};
+        a.onerror=function(){phoneVoice(chunks.slice(i).join(' '),v,finish)};
+        if(!started){started=true;if(onStart)onStart()}
+        return a.play();
+      }).catch(function(){if(mine===speakToken){if(!started){started=true;if(onStart)onStart()}phoneVoice(chunks.slice(i).join(' '),v,finish)}});
+    })(0);
   }
   function phoneVoice(clean,v,finish){
     var ph=v.pitch*(1+(prefs.pitch||0)*0.08),rt=v.rate*(prefs.rate||1);
