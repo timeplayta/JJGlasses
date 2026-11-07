@@ -1,13 +1,14 @@
 {
-  "v": 202611071759,
+  "v": 202611071813,
   "notes": {
-    "t": "Ouvir mais rápido",
+    "t": "Conversa mais fluida",
     "b": [
-      "O botão Ouvir agora começa a falar em cerca de 1 segundo: a primeira frase toca enquanto o resto é preparado.",
-      "Respostas longas são lidas inteiras, não cortam mais no meio.",
-      "Enquanto carrega, o botão mostra 'Carregando…' e depois 'Parar'. Ouvir de novo a mesma resposta é na hora."
+      "A resposta da IA agora aparece escrevendo na hora, como no ChatGPT, em vez de esperar tudo ficar pronto.",
+      "Na ligação, no óculos e na leitura automática, a IA começa a falar a primeira frase enquanto ainda está pensando no resto.",
+      "Na ligação ela fala mais como gente: frases curtas, jeito do dia a dia, sem 'ótima pergunta', e às vezes devolve uma pergunta para a conversa continuar.",
+      "A voz ficou mais solta e expressiva, menos com cara de leitura."
     ]
   },
-  "bytes": 122020,
-  "sha256": "9d8f9d01c3631970c28436e17825abcce86b31f1a8faa49f80322981d69ba7c3"
+  "bytes": 126008,
+  "sha256": "88205682a68e6db510fb0de7958d5df3a591e5a57a478e11cf18819992f03065"
 }
