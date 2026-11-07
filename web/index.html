@@ -563,28 +563,53 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   var rec=null,recChunks=[],recStream=null,recStart=0,recTimer=null,recCancelled=false,dictLoop=false;
   function recUI(on){$('recBar').hidden=!on;$('typeRow').hidden=on;$('micBtn').classList.toggle('rec-on',on)}
   function recTick(){var s=Math.floor((Date.now()-recStart)/1000);$('recTime').textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0');if(s>=300)stopRec(false)}
+  // Grava em WAV (formato simples que toda IA de transcrição aceita), lendo o som direto do microfone.
+  var recCtx=null,recNode=null,recSrc=null,recBufs=[],recRate=16000,recPeak=0;
   function startRec(){
-    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!window.MediaRecorder){startDictLoop();return}
-    navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}}).then(function(stream){
-      recStream=stream;recChunks=[];recCancelled=false;
-      var type=['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg'].filter(function(t){return MediaRecorder.isTypeSupported(t)})[0]||'';
-      rec=type?new MediaRecorder(stream,{mimeType:type}):new MediaRecorder(stream);
-      rec.ondataavailable=function(e){if(e.data&&e.data.size)recChunks.push(e.data)};
-      rec.onstop=function(){
-        if(recStream){recStream.getTracks().forEach(function(t){t.stop()});recStream=null}
-        if(recCancelled)return;
-        var blob=new Blob(recChunks,{type:(rec&&rec.mimeType)||'audio/webm'});
-        if(blob.size<800){toast('Não deu pra ouvir nada.');return}
-        transcribe(blob);
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!(window.AudioContext||window.webkitAudioContext)){startDictLoop();return}
+    navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true,channelCount:1}}).then(function(stream){
+      recStream=stream;recBufs=[];recPeak=0;recCancelled=false;
+      var AC=window.AudioContext||window.webkitAudioContext;
+      try{recCtx=new AC({sampleRate:16000})}catch(e){recCtx=new AC()}
+      recRate=recCtx.sampleRate;
+      recSrc=recCtx.createMediaStreamSource(stream);
+      recNode=recCtx.createScriptProcessor(4096,1,1);
+      recNode.onaudioprocess=function(e){
+        var d=e.inputBuffer.getChannelData(0);recBufs.push(new Float32Array(d));
+        for(var i=0;i<d.length;i+=64){var v=Math.abs(d[i]);if(v>recPeak)recPeak=v}
       };
-      rec.start(1000);recStart=Date.now();recUI(true);recTick();recTimer=setInterval(recTick,500);
+      recSrc.connect(recNode);recNode.connect(recCtx.destination);
+      if(recCtx.state==='suspended')recCtx.resume();
+      rec={state:'recording'};recStart=Date.now();recUI(true);recTick();recTimer=setInterval(recTick,500);
     },function(){toast('Libere o microfone para gravar.')});
+  }
+  function finishRec(){
+    try{recNode&&recNode.disconnect();recSrc&&recSrc.disconnect()}catch(e){}
+    if(recStream){recStream.getTracks().forEach(function(t){t.stop()});recStream=null}
+    if(recCtx){try{recCtx.close()}catch(e){}recCtx=null}
+    rec=null;
+    if(recCancelled)return;
+    var n=0;recBufs.forEach(function(b){n+=b.length});
+    if(n<recRate*0.4){toast('Gravação muito curta. Segure um pouco mais.');return}
+    if(recPeak<0.01){toast('Não ouvi som nenhum. Confira o microfone.');return}
+    transcribe(toWav(recBufs,n,recRate,16000));
+  }
+  function toWav(bufs,n,from,to){
+    var all=new Float32Array(n),o=0;bufs.forEach(function(b){all.set(b,o);o+=b.length});
+    var ratio=from/to,len=Math.floor(n/ratio),pcm=new Int16Array(len);
+    for(var i=0;i<len;i++){var start=Math.floor(i*ratio),end=Math.min(n,Math.floor((i+1)*ratio)),sum=0,c=0;for(var j=start;j<end;j++){sum+=all[j];c++}var v=c?sum/c:all[start]||0;v=Math.max(-1,Math.min(1,v));pcm[i]=v<0?v*0x8000:v*0x7FFF}
+    var buf=new ArrayBuffer(44+pcm.length*2),dv=new DataView(buf);
+    function str(p,t){for(var k=0;k<t.length;k++)dv.setUint8(p+k,t.charCodeAt(k))}
+    str(0,'RIFF');dv.setUint32(4,36+pcm.length*2,true);str(8,'WAVE');str(12,'fmt ');dv.setUint32(16,16,true);dv.setUint16(20,1,true);dv.setUint16(22,1,true);
+    dv.setUint32(24,to,true);dv.setUint32(28,to*2,true);dv.setUint16(32,2,true);dv.setUint16(34,16,true);str(36,'data');dv.setUint32(40,pcm.length*2,true);
+    new Int16Array(buf,44).set(pcm);
+    return new Blob([buf],{type:'audio/wav'});
   }
   function stopRec(cancel){
     clearInterval(recTimer);recUI(false);
     if(dictLoop){dictLoop=false;stopListen();setStatus('Pronto');return}
     recCancelled=!!cancel;
-    if(rec&&rec.state!=='inactive'){try{rec.stop()}catch(e){}}
+    if(rec)finishRec();
     if(cancel)toast('Gravação cancelada');
   }
   function transcribe(blob){

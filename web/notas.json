@@ -1,9 +1,7 @@
 {
-  "t": "Menu do mais de volta",
+  "t": "Microfone mais confiável",
   "b": [
-    "Tirar foto direto pelo app",
-    "Escolher foto da galeria",
-    "Criar imagem com a IA",
-    "Adicionar arquivos para a IA ler"
+    "O áudio gravado agora sempre chega inteiro para virar texto",
+    "Avisa se a gravação ficou curta demais ou sem som"
   ]
 }
