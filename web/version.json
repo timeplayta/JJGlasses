@@ -1,11 +1,13 @@
 {
-  "v": 202611071723,
+  "v": 202611071759,
   "notes": {
-    "t": "Versão do app nos Ajustes",
+    "t": "Ouvir mais rápido",
     "b": [
-      "Nos Ajustes agora aparece a data e a hora da versão do app, também no navegador do PC."
+      "O botão Ouvir agora começa a falar em cerca de 1 segundo: a primeira frase toca enquanto o resto é preparado.",
+      "Respostas longas são lidas inteiras, não cortam mais no meio.",
+      "Enquanto carrega, o botão mostra 'Carregando…' e depois 'Parar'. Ouvir de novo a mesma resposta é na hora."
     ]
   },
-  "bytes": 119877,
-  "sha256": "0973eeedffeaf424ce21dcb598f97b9e84a0604ce8c39197ff8fad1230495a3a"
+  "bytes": 122020,
+  "sha256": "9d8f9d01c3631970c28436e17825abcce86b31f1a8faa49f80322981d69ba7c3"
 }
