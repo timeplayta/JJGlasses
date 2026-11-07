@@ -1292,6 +1292,11 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   /* ---------- apresentação + escolhas (língua, tema, cores, letra, voz, tom) ---------- */
   var LANGS=[['pt-BR','Português (Brasil)','Portuguese (Brazil)'],['pt-PT','Português (Portugal)','Portuguese (Portugal)'],['en-US','English','English'],['es-ES','Español','Spanish'],['fr-FR','Français','French'],['it-IT','Italiano','Italian'],['de-DE','Deutsch','German'],['ja-JP','日本語','Japanese'],['zh-CN','中文','Chinese'],['ko-KR','한국어','Korean'],['ru-RU','Русский','Russian'],['ar-SA','العربية','Arabic'],['hi-IN','हिन्दी','Hindi']];
   function detectLang(){var l=(navigator.language||'pt-BR');var hit=LANGS.filter(function(x){return x[0].toLowerCase()===l.toLowerCase()})[0]||LANGS.filter(function(x){return x[0].slice(0,2)===l.slice(0,2).toLowerCase()})[0];return hit?hit[0]:'pt-BR'}
+  // nome da língua escrito na língua da pessoa (ex.: em português "Inglês"; em inglês "Portuguese (Brazil)")
+  function langLocal(code){
+    try{if(window.Intl&&Intl.DisplayNames){var n=new Intl.DisplayNames([prefs.lang||'pt-BR'],{type:'language'}).of(/^pt-/.test(code)?code:code.slice(0,2));if(n&&n!==code)return n.charAt(0).toLocaleUpperCase(prefs.lang||'pt-BR')+n.slice(1)}}catch(e){}
+    var x=LANGS.filter(function(y){return y[0]===code})[0];return x?x[1]:code;
+  }
   function langName(code){var x=LANGS.filter(function(y){return y[0]===(code||'pt-BR')})[0];return x?x[2]:'Portuguese (Brazil)'}
   if(!prefs.lang){prefs.lang=detectLang()}
   var TXT={
@@ -1387,7 +1392,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     w1:function(t){return '<div class="hero"><div class="big">🕶️</div><b>'+esc(t.w1t)+(prefs.name?', '+esc(prefs.name):'')+'!</b><span>'+esc(t.w1b)+'</span></div>'},
     w2:function(t){return '<h2>'+esc(t.w2t)+'</h2><div class="feat">'+t.f.map(function(x){return '<div><em>'+x[0]+'</em><b>'+esc(x[1])+'</b><span>'+esc(x[2])+'</span></div>'}).join('')+'</div>'},
     w3:function(t){return '<div class="hero" style="background:linear-gradient(135deg,#16A34A,#0EA5E9)"><div class="big">✨</div><b>'+esc(t.w3t)+'</b><span>'+esc(t.w3b)+'</span></div>'},
-    lang:function(t){return '<h2>'+esc(t.lt)+'</h2><p class="lead">'+esc(t.lb)+'</p><div class="opts">'+LANGS.map(function(x){return '<button class="opt" data-lang="'+x[0]+'" aria-pressed="'+(prefs.lang===x[0])+'">'+esc(x[1])+'</button>'}).join('')+'</div>'},
+    lang:function(t){return '<h2>'+esc(t.lt)+'</h2><p class="lead">'+esc(t.lb)+'</p><div class="opts">'+LANGS.map(function(x){var loc=langLocal(x[0]);return '<button class="opt" data-lang="'+x[0]+'" aria-pressed="'+(prefs.lang===x[0])+'"><span>'+esc(loc)+(loc.toLowerCase()!==x[1].toLowerCase()?'<small>'+esc(x[1])+'</small>':'')+'</span></button>'}).join('')+'</div>'},
     theme:function(t){return '<h2>'+esc(t.tt)+'</h2><p class="lead">'+esc(t.tb)+'</p><div class="opts">'+[['light','☀️',t.light,''],['dark','🌙',t.dark,''],['auto','📱',t.auto,t.autob]].map(function(x){return '<button class="opt" data-obtheme="'+x[0]+'" aria-pressed="'+(prefs.theme===x[0])+'"><span style="font-size:22px">'+x[1]+'</span><span>'+esc(x[2])+(x[3]?'<small>'+esc(x[3])+'</small>':'')+'</span></button>'}).join('')+'</div>'},
     colors:function(t){var x=XT();return '<h2>'+esc(t.ct)+'</h2><p class="lead">'+esc(t.cb)+'</p><div class="mock"><div class="m me">'+esc(t.mme)+'</div><div class="m ai">'+esc(t.mai)+'</div></div><div class="seg"><button data-cwt="me" aria-pressed="'+(cwTarget==='me')+'">'+esc(t.cme)+'</button><button data-cwt="ai" aria-pressed="'+(cwTarget==='ai')+'">'+esc(t.cai)+'</button></div><div class="wheel" id="cwWheel"><canvas id="cwCan"></canvas><i id="cwKnob"></i></div>'+slider('cwVal',x.int,8,100,1,100,x.dark,x.light)+'<div class="swatches small" id="cwPre"></div>'},
     font:function(t){return '<h2>'+esc(t.ft)+'</h2><p class="lead">'+esc(t.fb)+'</p><div class="opts">'+FONTS.map(function(f){loadFont(f);return '<button class="opt" data-font="'+f[0]+'" aria-pressed="'+(prefs.font===f[0])+'" style="font-family:'+f[2].replace(/"/g,'&quot;')+'">'+esc(f[1])+'<small style="font-family:inherit">'+esc(t.mai)+'</small></button>'}).join('')+'</div>'},
