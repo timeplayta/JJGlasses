@@ -769,15 +769,43 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
      enquanto os próximos já vão sendo preparados. Cada pedaço fica guardado, então ouvir de novo é na hora. */
   var ttsCache={},curAudio=null;
   function ttsChunks(t){
+    // 1º pedaço bem curto (até ~70 letras) para a voz sair logo; os outros maiores (até ~420)
     var parts=t.replace(/\s+/g,' ').match(/[^.!?…;:\n]+[.!?…;:]*\s*/g)||[t],out=[],cur='';
-    for(var i=0;i<parts.length;i++){var lim=out.length===0?160:420;
+    for(var i=0;i<parts.length;i++){var lim=out.length===0?70:420;
       if(cur&&(cur+parts[i]).length>lim){out.push(cur.trim());cur=''}
-      cur+=parts[i]; if(out.length===0&&cur.length>=60){out.push(cur.trim());cur=''}}
+      cur+=parts[i]}
     if(cur.trim())out.push(cur.trim());
+    out=out.filter(Boolean);
+    if(out[0]&&out[0].length>90){var f=out[0],m=f.slice(20,80).search(/[,—–]\s/),c=m>=0?20+m+1:f.lastIndexOf(' ',70);
+      if(c>15)out.splice(0,1,f.slice(0,c).trim(),f.slice(c).trim())}
     return out.filter(Boolean);
   }
+  function ttsKey(chunk){var v=voice();return [v.oa,prefs.pitch,prefs.rate,prefs.lang,chunk].join('|')}
+  /* Toca o áudio enquanto ele ainda está chegando do servidor (MediaSource = "fonte de mídia"):
+     o som começa com os primeiros pedacinhos, sem esperar o arquivo inteiro. */
+  var canStream=!!(window.MediaSource&&MediaSource.isTypeSupported&&MediaSource.isTypeSupported('audio/mpeg'));
+  function ttsAudio(chunk){
+    var k=ttsKey(chunk);
+    var mk=function(u){var a=new Audio(u);a.preload='auto';try{a.load()}catch(e){}return a};
+    if(ttsCache[k]||!canStream)return ttsUrl(chunk).then(mk);
+    var v=voice();
+    return token().then(function(tk){
+      return fetch(SB_URL+'/functions/v1/voz',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+tk,'Content-Type':'application/json'},body:JSON.stringify({text:chunk,voice:v.oa,style:v.how,pitch:prefs.pitch,speed:prefs.rate,lang:langName(prefs.lang)})});
+    }).then(function(r){
+      if(!r.ok||!r.body||!r.body.getReader)throw 0;
+      var ms=new MediaSource(),a=new Audio(),parts=[],q=[],done=false,sb=null,rd=r.body.getReader();
+      a.src=URL.createObjectURL(ms);
+      function feed(){if(!sb||sb.updating)return;if(q.length){try{sb.appendBuffer(q.shift())}catch(e){}}else if(done&&ms.readyState==='open'){try{ms.endOfStream()}catch(e){}}}
+      ms.addEventListener('sourceopen',function(){try{sb=ms.addSourceBuffer('audio/mpeg');sb.addEventListener('updateend',feed);feed()}catch(e){}},{once:true});
+      (function read(){rd.read().then(function(x){
+        if(x.done){done=true;var u=URL.createObjectURL(new Blob(parts,{type:'audio/mpeg'}));ttsCache[k]=Promise.resolve(u);feed();return}
+        parts.push(x.value);q.push(x.value);feed();read();
+      }).catch(function(){done=true;feed()})})();
+      return a;
+    });
+  }
   function ttsUrl(chunk){
-    var v=voice(),k=[v.oa,prefs.pitch,prefs.rate,prefs.lang,chunk].join('|');
+    var v=voice(),k=ttsKey(chunk);
     if(ttsCache[k])return ttsCache[k];
     var pr=token().then(function(tk){
       return fetch(SB_URL+'/functions/v1/voz',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+tk,'Content-Type':'application/json'},body:JSON.stringify({text:chunk,voice:v.oa,style:v.how,pitch:prefs.pitch,speed:prefs.rate,lang:langName(prefs.lang)})});
@@ -803,7 +831,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
       prefetch();pump();
     }
     function playingIdle(){return !playing&&i>=chunks.length}
-    function prefetch(){for(var k=i;k<Math.min(chunks.length,i+3);k++){ (function(k){ if(pre[k])return; pre[k]=ttsUrl(chunks[k]).then(function(u){var a=new Audio(u);a.preload='auto';try{a.load()}catch(e){}return a}) })(k) }}
+    function prefetch(){for(var k=i;k<Math.min(chunks.length,i+3);k++){ (function(k){ if(pre[k])return; pre[k]=ttsAudio(chunks[k]) })(k) }}
     function pump(){
       if(mine!==speakToken||playing)return;
       if(i>=chunks.length){if(ended)finish();return}
@@ -1252,7 +1280,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     // Fala em voz alta o que mudou, assim que o app abre atualizado.
     var fala='O JJGlasses foi atualizado. '+n.t+'. '+n.b.map(function(x){return itemTxt(x).replace(/[.!]+$/,'')}).join('. ')+'.';
     // Não fala sozinho: só se a pessoa tocar em Ouvir.
-    nFala=fala;nSayUI(false);
+    nFala=fala;nSayUI(false);ttsWarm(fala); // já prepara o começo, para o Ouvir sair na hora
   };
   $('nOk').addEventListener('click',function(){stopSpeak()});
   window.jjUpdateReady=function(n){n=notes(n);$('bText').textContent='Nova versão: '+n.t;$('banner').hidden=false};
