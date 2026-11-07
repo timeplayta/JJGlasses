@@ -1,21 +1,20 @@
 {
-  "v": 202611071505,
+  "v": 202611071514,
   "notes": {
-    "t": "Óculos 3D mais realista e novos modelos",
+    "t": "Cores das conversas mais fáceis de achar",
     "b": [
       {
-        "txt": "O óculos 3D que gira foi refeito: agora tem espessura de verdade, luz de estúdio, reflexo no metal e nas lentes e sombra no chão. E ganhou dois modelos novos: redondo de metal dourado e quadrado de acetato preto.",
-        "area": "Óculos → imagem que gira",
-        "video": "novidades/2026-11-07c/1-tres-modelos.mp4",
-        "img": "novidades/2026-11-07c/1-tres-modelos.jpg"
+        "txt": "Segure o dedo em cima de um balão da conversa (seu ou da IA) e abre o círculo de cores com intensidade, já na cor daquele balão.",
+        "area": "Qualquer conversa → segure o dedo num balão",
+        "img": "novidades/2026-11-07d/1-segurar-balao.jpg"
       },
       {
-        "txt": "Escolha qual óculos aparece: JJGlasses W AI 4, Redondo ou Quadrado. Dá para arrastar para girar.",
-        "area": "Óculos → botões embaixo do óculos 3D",
-        "img": "novidades/2026-11-07c/2-escolher-modelo.jpg"
+        "txt": "Nos Ajustes agora tem o cartão 'Cores das conversas', com a prévia e o botão 'Mudar cores'. Tem também 'Voltar ao padrão'.",
+        "area": "Menu → Ajustes → Cores das conversas",
+        "img": "novidades/2026-11-07d/2-ajustes-cores.jpg"
       }
     ]
   },
-  "bytes": 114366,
-  "sha256": "93777f317d7b3e8bcb21344adfe4b32df54e72c23874ed8479b6b0b8b10d4fbf"
+  "bytes": 118639,
+  "sha256": "bdde0aa64ec8d48d8bfa2538954d07db5794199ff39548c5292d71e02d041235"
 }
