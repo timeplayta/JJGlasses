@@ -1,7 +1,6 @@
-{"t":"Novidades com fotos e vídeos","b":[
- {"txt":"O aviso de atualização agora mostra fotos e vídeos curtos de cada novidade, dizendo onde ela fica. Toque na imagem para ver maior. Se tiver muita coisa, aparece 'Role para ver mais'.","area":"Aparece sozinho quando o app atualiza"},
- {"txt":"Conversa em tempo real com a IA: é só falar. Se ela estiver falando e você começar a falar, ela para e te escuta.","area":"Tela do chat → botão de ondas (em cima, à direita)","img":"novidades/2026-11-07/1-ligacao.jpg"},
- {"txt":"Escolher a voz deslizando as bolinhas: puxe para o lado ou toque nos lados. Cada voz se apresenta.","area":"Ligação → engrenagem","video":"novidades/2026-11-07/5-escolher-voz.mp4","img":"novidades/2026-11-07/5-escolher-voz.jpg"},
- {"txt":"Durante a conversa dá para tirar foto, ligar a câmera ao vivo ou mandar da galeria, e a IA responde falando.","area":"Ligação → botão +","img":"novidades/2026-11-07/3-foto-na-ligacao.jpg"},
- {"txt":"Nos Ajustes, a voz também é trocada pelas bolinhas.","area":"Menu → Configurações → Voz da IA","img":"novidades/2026-11-07/4-ajustes-voz.jpg"}
+{"t":"Óculos de volta e conversa ao lado do microfone","b":[
+ {"txt":"O botão de conversar com a IA em tempo real agora fica do lado direito do microfone.","area":"Tela do chat → embaixo, ao lado do microfone","img":"novidades/2026-11-07b/1-tempo-real.jpg"},
+ {"txt":"Voltou a tela do óculos: óculos 3D girando, bateria, sinal, quanto tempo a bateria ainda dura e se o som e o microfone estão prontos.","area":"Tela do chat → botão do óculos (em cima)","img":"novidades/2026-11-07b/2-botao-oculos.jpg"},
+ {"txt":"Toque no óculos (ou em 'Falar pelo óculos') para falar. A resposta sai no óculos e, se tiver foto, tabela, link ou for longa, ele avisa para olhar o celular.","area":"Óculos","img":"novidades/2026-11-07b/3-tela-oculos.jpg"},
+ {"txt":"Escolha em qual chat cai o que você fala pelo óculos, ou deixe no automático (último chat).","area":"Óculos → Chat do óculos","img":"novidades/2026-11-07b/4-chat-do-oculos.jpg"}
 ]}

@@ -161,6 +161,37 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 .banner span{flex:1;font-size:14px}
 .banner button{border:0;border-radius:10px;padding:9px 12px;font-weight:700;background:var(--accent);color:var(--on-accent)}
 .banner .close{background:transparent;color:var(--bg);padding:6px}
+/* óculos */
+.glbtn{position:relative}
+.gbadge{position:absolute;right:7px;top:8px;width:9px;height:9px;border-radius:50%;background:var(--ok);border:2px solid var(--bg)}
+.gl{position:fixed;inset:0;z-index:44;background:var(--bg);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
+.gltop{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.gltop b{flex:1;text-align:center;font-size:18px}
+.glbody{flex:1;overflow-y:auto;padding:12px max(16px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:12px;max-width:620px;width:100%;margin:0 auto}
+.glbody>*{flex:none}
+.glhero{position:relative;aspect-ratio:16/9;border-radius:22px;background:radial-gradient(ellipse at 50% 60%,var(--card),var(--bg) 75%);display:grid;place-items:center;touch-action:pan-y;user-select:none;-webkit-user-select:none;overflow:hidden}
+.glhero img{width:100%;height:100%;object-fit:contain;pointer-events:none}
+.glhint{position:absolute;bottom:8px;font-size:12px;color:var(--mute)}
+.glstat{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px}
+.glstat div{flex:1;min-width:0}.glstat small{display:block;color:var(--mute);font-size:12.5px}
+.gdot{width:12px;height:12px;border-radius:50%;background:var(--warn);flex:none}
+.gdot.on{background:var(--ok)}.gdot.wait{background:#F59E0B;animation:gpulse 1s infinite}
+@keyframes gpulse{50%{opacity:.35}}
+.glgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.gcard small{color:var(--mute);font-size:12.5px}.gcard b{font-size:19px}.gcard span{font-size:12.5px;color:var(--mute)}
+.gbar{height:8px;border-radius:5px;background:var(--line);overflow:hidden}.gbar i{display:block;height:100%;width:0;background:var(--ok);border-radius:5px;transition:width .3s}
+.gsig{display:flex;align-items:flex-end;gap:3px;height:16px}.gsig i{width:6px;border-radius:2px;background:var(--line)}
+.gsig i:nth-child(1){height:25%}.gsig i:nth-child(2){height:50%}.gsig i:nth-child(3){height:75%}.gsig i:nth-child(4){height:100%}.gsig i.on{background:var(--ok)}
+.gtalk{padding:16px;font-size:16.5px;font-weight:700;border-radius:999px}
+.gtalk.rec{background:var(--warn);border-color:var(--warn);color:#fff}
+.gsub{margin:0;color:var(--mute);font-size:13.5px;line-height:1.4}
+.gsw{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.4;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
+.gsw input{width:20px;height:20px;accent-color:var(--accent);flex:none;margin:0}
+.glbody h3{margin:8px 0 0;font-size:17px}
+.gchat .av{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:700;background:var(--line);flex:none}
+.gchat[aria-pressed="true"] .av{background:var(--accent);color:var(--on-accent)}
+.gchat span{min-width:0;overflow:hidden}.gchat b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
 /* ligação em tempo real (fundo preto, bola no meio, barra embaixo) */
 .call{position:fixed;inset:0;z-index:50;background:#000;color:#fff;display:flex;flex-direction:column;align-items:center;padding:calc(14px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px))}
 .call video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
@@ -277,7 +308,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
       <button class="icon menuBtn" id="menuBtn" aria-label="Abrir chats"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
       <div class="ttl"><b id="chatTitle">JJGlasses</b><div class="st"><span class="dot" id="dot"></span><span id="status">Pronto</span></div></div>
       <button class="icon" id="speakToggle" aria-label="Ler respostas em voz alta"><svg class="i" viewBox="0 0 24 24"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></button>
-      <button class="icon" id="callBtn" aria-label="Ligar para a IA"><svg class="i" viewBox="0 0 24 24"><path d="M3 12h2M7 8v8M11 5v14M15 8v8M19 11v2"/></svg></button>
+      <button class="icon glbtn" id="glBtn" aria-label="Óculos"><svg class="i" viewBox="0 0 24 24"><rect x="2" y="8" width="8.5" height="7.5" rx="2.5"/><rect x="13.5" y="8" width="8.5" height="7.5" rx="2.5"/><path d="M10.5 11h3"/></svg><span class="gbadge" id="glBadge" hidden></span></button>
     </div>
     <div class="msgs" id="msgs"><div class="col" id="col"></div></div>
     <div class="composer">
@@ -289,6 +320,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
             <button class="icon" id="photoBtn" aria-label="Mais opções"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
             <textarea id="msgIn" rows="1" placeholder="Pergunte alguma coisa"></textarea>
             <button class="icon" id="micBtn" aria-label="Falar"><svg class="i" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+            <button class="icon" id="callBtn" aria-label="Conversar com a IA em tempo real"><svg class="i" viewBox="0 0 24 24"><path d="M3 12h2M7 8v8M11 5v14M15 8v8M19 11v2"/></svg></button>
           </div>
           <button class="round go" id="sendBtn" aria-label="Enviar"><svg class="i" viewBox="0 0 24 24"><path d="M5 12l14-7-5 14-3-6z"/></svg></button>
         </div>
@@ -342,6 +374,27 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
       <div class="pills"><button class="pill" id="redoLook">Mudar aparência e voz</button><button class="pill" id="redoTour">Ver a apresentação</button></div>
     </div>
     <p class="ver" id="verInfo">JJGlasses</p>
+  </div>
+</div>
+
+<!-- óculos: bateria, sinal, duração, óculos 3D e o chat que recebe a fala -->
+<div class="gl" id="gl" hidden>
+  <div class="gltop"><button class="icon" id="glBack" aria-label="Voltar"><svg class="i" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><b>Óculos</b><button class="icon" id="glFind" aria-label="Fazer o óculos apitar"><svg class="i" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg></button></div>
+  <div class="glbody" id="glBody">
+    <div class="glhero" id="glHero"><img id="glImg" src="oculos/g00.webp" alt="Óculos JJGlasses" draggable="false"><span class="glhint">Arraste para girar</span></div>
+    <div class="glstat"><span class="gdot" id="glDot"></span><div><b id="glState">Desligado</b><small id="glErr"></small></div><button class="chip" id="glConn">Conectar</button></div>
+    <div class="glgrid">
+      <div class="gcard"><small>Bateria</small><b id="glBat">—</b><div class="gbar"><i id="glBatBar"></i></div></div>
+      <div class="gcard"><small>Sinal</small><b id="glSig">—</b><div class="gsig" id="glSigBars"><i></i><i></i><i></i><i></i></div></div>
+      <div class="gcard"><small>Duração da bateria</small><b id="glLeft">—</b><span id="glSince"></span></div>
+      <div class="gcard"><small>Som e microfone</small><b id="glAudio">—</b><span id="glAudioSub">Fala da IA sai no óculos</span></div>
+    </div>
+    <button class="btn main gtalk" id="glTalk">Falar pelo óculos</button>
+    <p class="gsub" id="glTime">Toque no óculos ou aqui. Grava até você parar (máximo 5 min).</p>
+    <label class="gsw"><input type="checkbox" id="glLook"><span>Avisar pelo óculos quando precisar olhar o celular (fotos, tabelas, links e respostas longas)</span></label>
+    <h3>Chat do óculos</h3>
+    <p class="gsub" id="glChatLbl">O que você falar pelo óculos vai para este chat.</p>
+    <div class="opts" id="glChats"></div>
   </div>
 </div>
 
@@ -688,7 +741,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   window.jjHeard=function(text,err){var cb=hearCb;if(cb)cb(text||null,err||null)}; // a casca devolve o que ouviu
   window.jjLevel=function(level){callLevel=Math.max(callLevel,+level||0)};
   /* Gravar como áudio de WhatsApp: só para quando você toca em Parar. Depois vira texto. */
-  var rec=null,recChunks=[],recStream=null,recStart=0,recTimer=null,recCancelled=false,dictLoop=false;
+  var recFor=null,rec=null,recChunks=[],recStream=null,recStart=0,recTimer=null,recCancelled=false,dictLoop=false;
   function recUI(on){$('recBar').hidden=!on;$('typeRow').hidden=on;$('micBtn').classList.toggle('rec-on',on)}
   function recTick(){var s=Math.floor((Date.now()-recStart)/1000);$('recTime').textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0');if(s>=300)stopRec(false)}
   // Grava em WAV (formato simples que toda IA de transcrição aceita), lendo o som direto do microfone.
@@ -709,17 +762,18 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
       recSrc.connect(recNode);recNode.connect(recCtx.destination);
       if(recCtx.state==='suspended')recCtx.resume();
       rec={state:'recording'};recStart=Date.now();recUI(true);recTick();recTimer=setInterval(recTick,500);
-    },function(){toast('Libere o microfone para gravar.')});
+    },function(){toast('Libere o microfone para gravar.');if(recFor==='oculos')glassesDone()});
   }
   function finishRec(){
     try{recNode&&recNode.disconnect();recSrc&&recSrc.disconnect()}catch(e){}
     if(recStream){recStream.getTracks().forEach(function(t){t.stop()});recStream=null}
     if(recCtx){try{recCtx.close()}catch(e){}recCtx=null}
     rec=null;
-    if(recCancelled)return;
+    var forG=recFor==='oculos';
+    if(recCancelled){if(forG)glassesDone();return}
     var n=0;recBufs.forEach(function(b){n+=b.length});
-    if(n<recRate*0.4){toast('Gravação muito curta. Segure um pouco mais.');return}
-    if(recPeak<0.01){toast('Não ouvi som nenhum. Confira o microfone.');return}
+    if(n<recRate*0.4){toast('Gravação muito curta. Segure um pouco mais.');if(forG)glassesDone();return}
+    if(recPeak<0.01){toast('Não ouvi som nenhum. Confira o microfone.');if(forG)glassesDone();return}
     transcribe(toWav(recBufs,n,recRate,16000));
   }
   function toWav(bufs,n,from,to){
@@ -746,9 +800,10 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
       return fetch(SB_URL+'/functions/v1/transcrever?lang='+encodeURIComponent((prefs.lang||'pt').slice(0,2)),{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+tk,'Content-Type':blob.type||'audio/webm'},body:blob});
     }).then(function(r){return r.json()}).then(function(j){
       setStatus('Pronto');
+      if(recFor==='oculos'){glassesHeard(j&&j.text);return}
       if(j&&j.text){var box=$('msgIn');box.value=(box.value?box.value+' ':'')+j.text;grow();box.focus()}
       else toast(j&&j.error==='sem_chave'?'A transcrição ainda não foi configurada no servidor.':'Não entendi o áudio. Tente de novo.');
-    }).catch(function(){setStatus('Pronto');toast('Sem internet para transformar o áudio em texto.')});
+    }).catch(function(){setStatus('Pronto');if(recFor==='oculos'){glassesHeard(null);return}toast('Sem internet para transformar o áudio em texto.')});
   }
   // Plano B (sem gravador): reconhecimento do celular que reinicia sozinho até você tocar em Parar.
   function startDictLoop(){
@@ -902,7 +957,100 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     $('vpGo').onclick=function(){prefs.voice=VOICES[vpIdx].id;persist();toast('Voz escolhida: '+VOICES[vpIdx].label.split(' · ')[0]);closeVoicePicker()};
     window.addEventListener('resize',function(){if(!$('vp').hidden)vpShow(0,false)});
   })();
-  window.jjBack=function(){var nz=document.querySelector('.nzoom');if(nz){nz.remove();return true}if(!$('vp').hidden){closeVoicePicker();return true}if(inCall&&!$('cmenu').hidden){$('cmenu').hidden=true;return true}if(!$('ob').hidden){if(obStep>0){obStep--;renderOb()}else closeOnboarding();return true}if(!$('snap').hidden){closeSnap();return true}if(!$('pmenu').hidden){closeMenu();return true}if(!$('recBar').hidden){stopRec(true);return true}if(inCall){hangUp();return true}if(!$('sheet').hidden){$('sheet').hidden=true;return true}if($('app').classList.contains('open')){closeDrawer();return true}return false}; // botão voltar do Android
+  window.jjBack=function(){var nz=document.querySelector('.nzoom');if(nz){nz.remove();return true}if(!$('vp').hidden){closeVoicePicker();return true}if(inCall&&!$('cmenu').hidden){$('cmenu').hidden=true;return true}if(!$('ob').hidden){if(obStep>0){obStep--;renderOb()}else closeOnboarding();return true}if(!$('snap').hidden){closeSnap();return true}if(!$('pmenu').hidden){closeMenu();return true}if(!$('recBar').hidden){stopRec(true);return true}if(inCall){hangUp();return true}if(!$('sheet').hidden){$('sheet').hidden=true;return true}if(!$('gl').hidden){closeGlasses();return true}if($('app').classList.contains('open')){closeDrawer();return true}return false}; // botão voltar do Android
+
+  /* ---------- óculos ---------- */
+  if(prefs.glLook===undefined)prefs.glLook=true;
+  var gs={},glPoll=null,glFrames=36,glFrame=0,glSpin=null,glDragX=null,glHold=0;
+  function glLoad(){for(var i=0;i<glFrames;i++){var im=new Image();im.src='oculos/g'+String(i).padStart(2,'0')+'.webp'}}
+  function glShow(i){glFrame=((i%glFrames)+glFrames)%glFrames;$('glImg').src='oculos/g'+String(glFrame).padStart(2,'0')+'.webp'}
+  function glAuto(on){clearInterval(glSpin);if(on)glSpin=setInterval(function(){if(Date.now()>glHold)glShow(glFrame+1)},90)}
+  (function(){var h=$('glHero'),startF=0;
+    h.addEventListener('pointerdown',function(e){glDragX=e.clientX;startF=glFrame;glHold=Date.now()+1e9;try{h.setPointerCapture(e.pointerId)}catch(_){}});
+    h.addEventListener('pointermove',function(e){if(glDragX==null)return;glShow(startF-Math.round((e.clientX-glDragX)/9))});
+    var up=function(){if(glDragX==null)return;glDragX=null;glHold=Date.now()+2500};h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up);
+  })();
+  function glChatId(){var id=prefs.glChat;if(id&&chats.some(function(c){return c.id===id}))return id;return chats.length?chats[0].id:null}
+  function glChats(){
+    var sel=glChatId(),auto=!prefs.glChat||!chats.some(function(c){return c.id===prefs.glChat});
+    $('glChatLbl').textContent=chats.length?(auto?'Automático: a fala vai para o último chat.':'A fala vai para o chat escolhido.'):'Ainda não tem chat. Quando você falar pelo óculos, um chat novo é criado.';
+    var rows='<div class="opt gchat" role="button" data-glc="" aria-pressed="'+auto+'"><span class="av">⟳</span><span><b>Último chat (automático)</b><small>Sempre o chat mais recente</small></span></div>';
+    rows+=chats.slice(0,30).map(function(c){var last=c.msgs.filter(function(m){return !m.pending}).slice(-1)[0];var l=(c.title.match(/[A-Za-zÀ-ÿ0-9]/)||['•'])[0].toUpperCase();
+      return '<div class="opt gchat" role="button" data-glc="'+c.id+'" aria-pressed="'+(!auto&&c.id===sel)+'"><span class="av">'+esc(l)+'</span><span><b>'+esc(c.title)+'</b><small>'+esc(last?String(last.text||'').replace(/\s+/g,' ').slice(0,70):when(c.at))+'</small></span></div>'}).join('');
+    $('glChats').innerHTML=rows;
+  }
+  $('glChats').addEventListener('click',function(e){var b=e.target.closest('[data-glc]');if(!b)return;prefs.glChat=b.getAttribute('data-glc');persist();glChats()});
+  function fmtDur(ms){var m=Math.round(ms/60000);if(m<60)return m+' min';var h=Math.floor(m/60);return h+' h'+(m%60?' '+(m%60)+' min':'')}
+  function paintGl(){
+    var on=!!gs.connected,wait=!!(gs.connecting||gs.scanning);
+    $('glBadge').hidden=!on;
+    if($('gl').hidden)return;
+    $('glDot').className='gdot'+(on?' on':wait?' wait':'');
+    $('glState').textContent=!NATIVE?'Use o app do celular para ligar o óculos':on?'Ligado · '+(gs.name||'W AI 4'):gs.scanning?'Procurando o óculos...':gs.connecting?'Conectando...':gs.bluetooth===false?'Bluetooth do celular desligado':'Desligado';
+    $('glErr').textContent=on?'Conexão estável. Toque no óculos para falar.':(gs.error||'');
+    $('glConn').textContent=on?'Desligar':'Conectar';$('glConn').disabled=!NATIVE||wait;
+    var bat=gs.battery;$('glBat').textContent=bat>=0?bat+'%':'—';$('glBatBar').style.width=(bat>=0?bat:0)+'%';$('glBatBar').style.background=bat>=0&&bat<20?'var(--warn)':'var(--ok)';
+    var r=gs.rssi||0,lv=!on||!r?0:r>-60?4:r>-70?3:r>-80?2:1;
+    $('glSig').textContent=!on?'—':['—','Fraco','Médio','Bom','Ótimo'][lv];
+    [].forEach.call($('glSigBars').children,function(b,i){b.classList.toggle('on',i<lv)});
+    if(on&&lv===1)$('glErr').textContent='Sinal fraco: deixe o celular mais perto do óculos.';
+    // duração: calcula pela velocidade que a bateria está descendo
+    var left='—';
+    if(on&&bat>=0){var drop=(gs.firstBattery||0)-bat,dt=(gs.lastBatteryAt||0)-(gs.firstBatteryAt||0);left=drop>=2&&dt>5*60000?'≈ '+fmtDur(bat/(drop/dt)):'Calculando...'}
+    $('glLeft').textContent=left;$('glSince').textContent=on&&gs.since?'Conectado há '+fmtDur(Date.now()-gs.since):'';
+    $('glAudio').textContent=!on?'—':gs.mic?'Ouvindo':gs.audio?'Pronto':'Só Bluetooth';
+    $('glAudioSub').textContent=on&&!gs.audio?'Pareie o óculos nas configurações de Bluetooth do celular para o som sair nele':'Fala da IA sai no óculos';
+    var recG=recFor==='oculos'&&!!rec;$('glTalk').textContent=recG?'Concluir e enviar':'Falar pelo óculos';$('glTalk').classList.toggle('rec',recG);
+    $('glTime').textContent=recG?'Gravando: '+$('recTime').textContent+' · toque no óculos ou em Concluir':'Toque no óculos ou aqui. Grava até você parar (máximo 5 min).';
+  }
+  window.jjGlasses=function(st){for(var k in st)gs[k]=st[k];paintGl()};
+  function openGlasses(){
+    $('gl').hidden=false;glLoad();glAuto(true);$('glLook').checked=prefs.glLook!==false;glChats();
+    if(NATIVE&&NATIVE.glassesStart){try{window.jjGlasses(JSON.parse(NATIVE.glassesState()))}catch(e){}NATIVE.glassesStart()}
+    clearInterval(glPoll);glPoll=setInterval(function(){if(NATIVE&&NATIVE.glassesState){try{window.jjGlasses(JSON.parse(NATIVE.glassesState()))}catch(e){}}else paintGl()},1000);
+    paintGl();
+  }
+  function closeGlasses(){$('gl').hidden=true;glAuto(false);clearInterval(glPoll)}
+  $('glBtn').onclick=openGlasses;$('glBack').onclick=closeGlasses;
+  $('glConn').onclick=function(){if(!NATIVE)return;if(gs.connected)NATIVE.glassesStop();else NATIVE.glassesScan()};
+  $('glFind').onclick=function(){if(NATIVE&&NATIVE.glassesFind&&gs.connected){NATIVE.glassesFind();toast('O óculos vai apitar')}else toast('Conecte o óculos primeiro.')};
+  $('glLook').onchange=function(){prefs.glLook=this.checked;persist()};
+  // Falar pelo óculos: grava pelo microfone do óculos, manda pro chat escolhido e a resposta sai no óculos.
+  function glassesTalk(){
+    if(rec||dictLoop){if(recFor==='oculos')stopRec(false);return}
+    if(busy){toast('Espere a resposta anterior terminar.');return}
+    var id=glChatId();if(!id)id=newChat().id;cur=id;renderAll();
+    stopSpeak();stopBarge&&stopBarge();recFor='oculos';
+    if(NATIVE&&NATIVE.glassesMic&&gs.connected)NATIVE.glassesMic(true);
+    setTimeout(function(){startRec();setTimeout(paintGl,300)},gs.connected?600:0);
+    if(navigator.vibrate)navigator.vibrate(60);
+  }
+  function glassesDone(){recFor=null;if(NATIVE&&NATIVE.glassesMic)NATIVE.glassesMic(false);paintGl()}
+  function glassesHeard(text){
+    glassesDone();
+    if(!text){speak('Não entendi. Toque de novo e fale.');return}
+    send(text).then(function(a){if(a)speakGlasses(a)});
+  }
+  // Se a resposta tem algo que só dá pra ver na tela, o óculos avisa para olhar o celular.
+  function lookReason(a){
+    if(/\[\[foto:|!\[[^\]]*\]\(/.test(a))return 'Olhe o celular: mandei uma imagem.';
+    if(/\n\s*\|.*\|\s*\n\s*\|?\s*:?-{2,}/.test(a))return 'Olhe o celular: tem uma tabela na resposta.';
+    if(/```/.test(a))return 'Olhe o celular: tem um código na resposta.';
+    if(/https?:\/\//.test(a))return 'Olhe o celular: mandei um link.';
+    if((a.match(/^\s*([-*•]|\d+[.)])\s/gm)||[]).length>=6||a.length>900)return 'A resposta é longa. Vou resumir falando, e o resto está no celular.';
+    return '';
+  }
+  function speakGlasses(a){
+    var why=prefs.glLook!==false?lookReason(a):'';
+    if(why&&navigator.vibrate)navigator.vibrate([200,120,200]);
+    speak((why?why+' ':'')+a);
+  }
+  window.jjGlassesTap=function(){if(inCall)return;stopSpeak();glassesTalk()}; // toque no óculos
+  // Sempre que o app abre, tenta ligar o óculos sozinho (se já foi ligado antes).
+  if(NATIVE&&NATIVE.glassesStart&&prefs.glUsed)setTimeout(function(){NATIVE.glassesStart()},1500);
+  $('glBtn').addEventListener('click',function(){if(!prefs.glUsed){prefs.glUsed=true;persist()}});
+  setInterval(function(){if(recFor==='oculos'&&!$('gl').hidden)paintGl()},500);
+  $('glTalk').onclick=glassesTalk;
 
   /* ---------- ajustes ---------- */
   $('openSettings').onclick=function(){$('sheet').hidden=false;closeDrawer();paintSettings()};

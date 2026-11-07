@@ -62,7 +62,7 @@ public class MainActivity extends Activity {
     static final String INDEX_URL = BASE + "index.html";
 
     private static final long CHECK_EVERY_MS = 10 * 60 * 1000L; // checa versão nova a cada 10 min com o app aberto
-    private static final int REQ_MEDIA = 31, REQ_LOCATION = 32, REQ_FILE = 33, REQ_MIC = 34;
+    private static final int REQ_MEDIA = 31, REQ_LOCATION = 32, REQ_FILE = 33, REQ_MIC = 34, REQ_BT = 35;
 
     private final Handler main = new Handler(Looper.getMainLooper());
     private WebView web;
@@ -81,6 +81,8 @@ public class MainActivity extends Activity {
     private TextToSpeech tts;
     private boolean ttsReady = false;
     private SpeechRecognizer recognizer;
+    private Glasses glasses;
+    private boolean serviceOn = false;
 
     // ---------------------------------------------------------------- início
 
@@ -114,6 +116,10 @@ public class MainActivity extends Activity {
         s.setSupportMultipleWindows(false);              // links "_blank" passam pelo filtro abaixo
         s.setGeolocationEnabled(true);
         s.setAllowFileAccess(false);
+        glasses = new Glasses(this, new Glasses.Out() {
+            @Override public void state(String json) { main.post(() -> { keepAlive(glasses.isReady()); if (web != null) web.evaluateJavascript("window.jjGlasses&&window.jjGlasses(" + json + ")", null); }); }
+            @Override public void tap() { main.post(() -> { if (web != null) web.evaluateJavascript("window.jjGlassesTap&&window.jjGlassesTap()", null); }); }
+        });
         web.addJavascriptInterface(new Bridge(), "JJ");
         web.setWebViewClient(new ShellClient());
         web.setWebChromeClient(new ShellChrome());
@@ -188,11 +194,14 @@ public class MainActivity extends Activity {
     @Override protected void onPause() {
         super.onPause();
         main.removeCallbacks(periodic);
-        if (web != null) web.onPause();
+        // Com o óculos ligado, o app continua ouvindo e falando mesmo com a tela apagada.
+        if (web != null && (glasses == null || !glasses.isReady())) web.onPause();
     }
 
     @Override protected void onDestroy() {
         main.removeCallbacksAndMessages(null);
+        if (glasses != null) glasses.release();
+        keepAlive(false);
         if (recognizer != null) recognizer.destroy();
         if (tts != null) tts.shutdown();
         if (web != null) web.destroy();
@@ -402,6 +411,8 @@ public class MainActivity extends Activity {
         } else if (code == REQ_LOCATION && pendingGeo != null) {
             pendingGeo.invoke(pendingGeoOrigin, has(Manifest.permission.ACCESS_COARSE_LOCATION), false);
             pendingGeo = null;
+        } else if (code == REQ_BT) {
+            if (btAllowed()) glasses.start(); else js("window.jjGlasses&&window.jjGlasses({error:'Permita o Bluetooth para ligar o óculos'})");
         } else if (code == REQ_MIC) {
             int mode = pendingListenMode;
             pendingListenMode = -1;
@@ -421,6 +432,30 @@ public class MainActivity extends Activity {
     }
 
     // ---------------------------------------------------------------- microfone e voz do celular
+
+    private boolean btAllowed() {
+        if (Build.VERSION.SDK_INT >= 31) return has(Manifest.permission.BLUETOOTH_SCAN) && has(Manifest.permission.BLUETOOTH_CONNECT);
+        return has(Manifest.permission.ACCESS_FINE_LOCATION);
+    }
+
+    private void askBluetooth() {
+        ArrayList<String> need = new ArrayList<>();
+        if (Build.VERSION.SDK_INT >= 31) { need.add(Manifest.permission.BLUETOOTH_SCAN); need.add(Manifest.permission.BLUETOOTH_CONNECT); }
+        else need.add(Manifest.permission.ACCESS_FINE_LOCATION);
+        if (Build.VERSION.SDK_INT >= 33 && !has(Manifest.permission.POST_NOTIFICATIONS)) need.add(Manifest.permission.POST_NOTIFICATIONS);
+        if (!has(Manifest.permission.RECORD_AUDIO)) need.add(Manifest.permission.RECORD_AUDIO);
+        requestPermissions(need.toArray(new String[0]), REQ_BT);
+    }
+
+    /** Liga/desliga o serviço que mantém o óculos conectado com a tela apagada. */
+    private void keepAlive(boolean on) {
+        if (on == serviceOn) return;
+        try {
+            Intent i = new Intent(this, GlassesService.class);
+            if (on) startForegroundService(i); else stopService(i);
+            serviceOn = on;
+        } catch (Throwable e) { CrashReport.note(this, e); }
+    }
 
     private void js(String code) { main.post(() -> web.evaluateJavascript(code, null)); }
 
@@ -517,6 +552,13 @@ public class MainActivity extends Activity {
                 tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "jj");
             });
         }
+
+        @JavascriptInterface public void glassesStart() { main.post(() -> { if (btAllowed()) glasses.start(); else askBluetooth(); }); }
+        @JavascriptInterface public void glassesScan() { main.post(() -> { if (btAllowed()) glasses.scan(); else askBluetooth(); }); }
+        @JavascriptInterface public void glassesStop() { main.post(() -> glasses.stop()); }
+        @JavascriptInterface public String glassesState() { return glasses.stateJson(); }
+        @JavascriptInterface public void glassesMic(boolean on) { main.post(() -> glasses.mic(on)); }
+        @JavascriptInterface public void glassesFind() { main.post(() -> glasses.find()); }
 
         @JavascriptInterface public void stopSpeak() { main.post(() -> { if (tts != null) tts.stop(); }); }
     }
