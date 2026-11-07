@@ -1,14 +1,13 @@
 {
-  "v": 202611071813,
+  "v": 202611071831,
   "notes": {
-    "t": "Conversa mais fluida",
+    "t": "Ouvir quase na hora",
     "b": [
-      "A resposta da IA agora aparece escrevendo na hora, como no ChatGPT, em vez de esperar tudo ficar pronto.",
-      "Na ligação, no óculos e na leitura automática, a IA começa a falar a primeira frase enquanto ainda está pensando no resto.",
-      "Na ligação ela fala mais como gente: frases curtas, jeito do dia a dia, sem 'ótima pergunta', e às vezes devolve uma pergunta para a conversa continuar.",
-      "A voz ficou mais solta e expressiva, menos com cara de leitura."
+      "O áudio agora começa a tocar enquanto ainda está chegando do servidor, sem esperar o arquivo inteiro.",
+      "A primeira parte falada ficou bem curtinha, então a voz sai mais cedo.",
+      "O aviso de novidades já deixa o começo da fala pronto, então o Ouvir dele sai na hora."
     ]
   },
-  "bytes": 126008,
-  "sha256": "88205682a68e6db510fb0de7958d5df3a591e5a57a478e11cf18819992f03065"
+  "bytes": 128011,
+  "sha256": "840e5d48f4f342a86dd2c1afbd1321549f4ee450111342326b957b1c8e7d448f"
 }
