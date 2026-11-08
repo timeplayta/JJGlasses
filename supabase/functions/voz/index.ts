@@ -36,7 +36,7 @@ Deno.serve(async (req: Request) => {
   const key = Deno.env.get("OPENAI_API_KEY");
   if (!key) return json({ error: "sem_chave" }, 503);
 
-  let body: { text?: string; voice?: string; style?: string; pitch?: number; speed?: number; lang?: string };
+  let body: { text?: string; voice?: string; style?: string; pitch?: number; speed?: number; lang?: string; format?: string };
   try { body = await req.json(); } catch { return json({ error: "json_invalido" }, 400); }
   const text = String(body.text ?? "").trim().slice(0, 1500);
   if (!text) return json({ error: "texto_vazio" }, 400);
@@ -49,10 +49,12 @@ Deno.serve(async (req: Request) => {
   const pace = speed < 0.95 ? "Fale mais devagar." : speed > 1.05 ? "Fale mais rápido." : "";
   const instructions = `Fale em ${lang}, com sotaque nativo natural. Soe como uma pessoa real conversando com um amigo, não como alguém lendo um texto: tom caloroso e expressivo, ritmo solto, pausas curtas e naturais, entonação que sobe e desce com o sentido da frase. ${style} ${tone} ${pace}`.trim();
 
+  // "pcm" = som cru, sem compactar: é o formato que a OpenAI entrega mais rápido (o app toca enquanto chega)
+  const pcm = body.format === "pcm";
   const call = (withSpeed: boolean) => fetch("https://api.openai.com/v1/audio/speech", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ model: "gpt-4o-mini-tts", voice, input: text, instructions, response_format: "mp3", ...(withSpeed ? { speed } : {}) }),
+    body: JSON.stringify({ model: "gpt-4o-mini-tts", voice, input: text, instructions, response_format: pcm ? "pcm" : "mp3", ...(withSpeed ? { speed } : {}) }),
   });
   let upstream = await call(speed !== 1);
   if (!upstream.ok && upstream.status === 400 && speed !== 1) upstream = await call(false);
@@ -60,5 +62,5 @@ Deno.serve(async (req: Request) => {
     console.error("openai tts", upstream.status, (await upstream.text().catch(() => "")).slice(0, 300));
     return json({ error: "tts_falhou", status: upstream.status }, 502);
   }
-  return new Response(upstream.body, { headers: { ...CORS, "Content-Type": "audio/mpeg", "Cache-Control": "no-store" } });
+  return new Response(upstream.body, { headers: { ...CORS, "Content-Type": pcm ? "audio/pcm;rate=24000" : "audio/mpeg", "Cache-Control": "no-store" } });
 });
