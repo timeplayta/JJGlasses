@@ -1,11 +1,12 @@
 {
-  "v": 202611072046,
+  "v": 202611072112,
   "notes": {
-    "t": "Cores mais vivas no tema escuro",
+    "t": "Voz saindo ainda mais rápido",
     "b": [
-      "No tema escuro, o primeiro toque no círculo de cores já dá uma cor viva, em vez de uma cor quase preta. A barra de intensidade continua deixando mais escuro ou mais claro."
+      "A voz agora chega do servidor em som cru, o formato mais rápido, e começa a tocar com os primeiros pedacinhos.",
+      "No aviso de novidades, o Ouvir já fica preparado e sai praticamente na hora do toque."
     ]
   },
-  "bytes": 128737,
-  "sha256": "369dfe1379ad9bcc06695d8c22dce893c88dc67f2a2742e9a59228d279a92113"
+  "bytes": 132930,
+  "sha256": "fe94a221740765056d12780f56301ded65bf0f2fd4edf59c45448c0d01cc4667"
 }
