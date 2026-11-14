@@ -1,14 +1,13 @@
 {
-  "v": 202611141506,
+  "v": 202611141522,
   "notes": {
-    "t": "Tom da voz e língua nos Ajustes",
+    "t": "Vozes bem diferentes e Tom com mais alcance",
     "b": [
-      "Agora o Tom funciona de verdade: em Ajustes, arraste para \"Mais grossa\" ou \"Mais fina\" e a voz muda na hora, sem ficar mais rápida nem mais lenta.",
-      "A Velocidade também passou a funcionar de verdade, e o Volume ficou junto, na mesma tela. Toque em \"Ouvir como ficou\" para testar.",
-      "Nova opção \"Língua da IA\" nos Ajustes: escolha em qual língua a IA escreve e fala com você. Cada conversa ainda pode ter a sua nos 3 pontinhos.",
-      "A IA também entende gírias e abreviações, como plmds, pfv, vc e tmj."
+      "Cada personagem agora tem o tom e o ritmo dele: o Davi é bem grave e devagar, a Bia é fina e alegre, a Rita fala rápido, o Theo é leve e animado. Troque de voz e ouça a diferença.",
+      "O Tom ficou com mais alcance: dá para deixar a voz bem mais fina ou bem mais grossa.",
+      "O controle do Tom agora vai de fina (esquerda) a grossa (direita), em Ajustes e na apresentação."
     ]
   },
-  "bytes": 179361,
-  "sha256": "2ab7b39a99ddc1e2592e8c5bcbb9138a10ea7d837dc02fc14c2223eb1c23e554"
+  "bytes": 180014,
+  "sha256": "b6eca19eb96063630822629226f98971ff9e60d39ea6fbbf2953fa9781991ffc"
 }
