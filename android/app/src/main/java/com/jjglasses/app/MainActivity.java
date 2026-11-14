@@ -539,6 +539,13 @@ public class MainActivity extends Activity {
             main.post(() -> { if (recognizer != null) { recognizer.cancel(); } });
         }
 
+        /** Voz do celular (reserva) já na língua da conversa, ex.: "fr-FR". */
+        @JavascriptInterface public void speakLang(String text, double pitch, double rate, String lang) {
+            main.post(() -> {
+                if (ttsReady && lang != null && !lang.isEmpty()) { try { tts.setLanguage(java.util.Locale.forLanguageTag(lang)); } catch (Exception ignored) { } }
+                speak(text, pitch, rate);
+            });
+        }
         @JavascriptInterface public void speak(String text, double pitch, double rate) {
             main.post(() -> {
                 if (!ttsReady) { js("window.jjSpoken&&window.jjSpoken()"); return; }

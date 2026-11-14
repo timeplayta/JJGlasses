@@ -820,7 +820,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   function ask(turns,live,onDelta,noStream){
     var p=token().then(function(tk){
       return fetch(SB_URL+'/functions/v1/chat',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+tk,'Content-Type':'application/json'},
-        body:JSON.stringify({turns:turns,name:prefs.name||'',live:!!live,stream:!noStream,place:place,lang:langName(chatLang()),tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||''),now:new Date().toString()})});
+        body:JSON.stringify({turns:turns,name:prefs.name||'',live:!!live,stream:!noStream,place:place,lang:langName(chatLang()),lock:!!(chat()&&chat().lang),tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||''),now:new Date().toString()})});
     }).then(function(r){
       var ct=r.headers.get('content-type')||'';
       if(!r.ok||ct.indexOf('ndjson')<0||!r.body||!r.body.getReader)return r.json().then(function(j){if(!r.ok||j.error)throw j;(j.lembretes||[]).forEach(function(x){window.jjAddReminder(x)});return j.text});
@@ -1027,8 +1027,9 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   }
   function phoneVoice(clean,v,finish){
     var ph=v.pitch*(1+(prefs.pitch||0)*0.08),rt=v.rate*(prefs.rate||1);
+    if(NATIVE&&NATIVE.speakLang){onSpoken=finish;NATIVE.speakLang(clean,ph,rt,sLang());return}
     if(NATIVE&&NATIVE.speak){onSpoken=finish;NATIVE.speak(clean,ph,rt);return}
-    if(window.speechSynthesis){var u=new SpeechSynthesisUtterance(clean);u.lang=prefs.lang||'pt-BR';u.pitch=ph;u.rate=rt;u.volume=(prefs.vol||100)/100;u.onend=finish;speechSynthesis.speak(u);return}
+    if(window.speechSynthesis){var u=new SpeechSynthesisUtterance(clean);u.lang=sLang();u.pitch=ph;u.rate=rt;u.volume=(prefs.vol||100)/100;u.onend=finish;speechSynthesis.speak(u);return}
     finish();
   }
   window.jjSpoken=function(){var f=onSpoken;onSpoken=null;if(f)f()}; // a casca avisa quando a voz do celular terminou

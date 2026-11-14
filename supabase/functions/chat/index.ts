@@ -40,7 +40,7 @@ Fotos que você cria:
 Não diga seu nome, não cite modelo e não diga quem te criou.`;
 
 const LIVE = `Você está numa LIGAÇÃO DE VOZ. Sua resposta vai ser falada em voz alta, como um amigo no telefone.
-- Fale como gente de verdade: frases curtas, jeito brasileiro do dia a dia ("tá", "pra", "olha", "então"), sem soar como texto lido.
+- Fale como gente de verdade: frases curtas, do jeito falado do dia a dia (em português: "tá", "pra", "olha", "então"; em outra língua, o jeito falado equivalente dela), sem soar como texto lido.
 - Vá direto ao ponto na primeira frase. Nada de "Ótima pergunta" nem "Como posso ajudar".
 - 1 a 3 frases. Se o assunto for grande, dê o principal e pergunte se a pessoa quer mais detalhes.
 - Reaja ao que a pessoa disse (se ela estiver animada, cansada ou brincando, acompanhe o tom).
@@ -85,7 +85,7 @@ const TOOLS = [
 ];
 
 type Turn = { role: "user" | "assistant"; text: string; image?: string };
-type Body = { turns?: Turn[]; name?: string; live?: boolean; stream?: boolean; lang?: string; tz?: string; task?: string; text?: string; a?: string; b?: string; place?: { lat: number; lon: number; label?: string } };
+type Body = { turns?: Turn[]; name?: string; live?: boolean; stream?: boolean; lang?: string; lock?: boolean; tz?: string; task?: string; text?: string; a?: string; b?: string; place?: { lat: number; lon: number; label?: string } };
 
 // Login já conferido fica guardado por 5 min (a resposta começa mais rápido).
 const okTokens = new Map<string, number>();
@@ -268,7 +268,10 @@ Deno.serve(async (req: Request) => {
   extra += " Você TEM acesso à internet pelas ferramentas buscar_na_internet e clima. Use-as para clima, notícias, preços e tudo que muda com o tempo. Nunca diga que não tem acesso à internet.";
   if (body.live) extra += "\n\n" + LIVE;
   if (body.name) extra += `\n\nPessoa: ${String(body.name).slice(0, 60)}.`;
-  if (body.lang) extra += `\n\nIdioma escolhido pela pessoa: ${String(body.lang).slice(0, 40)}. Responda nesse idioma, a não ser que ela escreva em outro.`;
+  const lang = String(body.lang ?? "").slice(0, 40);
+  // lock = a pessoa escolheu a língua DESTA conversa nos 3 pontinhos: responder sempre nela
+  if (lang && body.lock) extra += `\n\nLÍNGUA OBRIGATÓRIA DESTA CONVERSA: ${lang}. Escreva TODAS as respostas somente em ${lang}, mesmo que a pessoa escreva em português ou em outra língua, e mesmo que as mensagens anteriores estejam em outra língua. Não explique isso, apenas responda em ${lang}.`;
+  else if (lang) extra += `\n\nIdioma escolhido pela pessoa: ${lang}. Responda nesse idioma, a não ser que ela escreva em outro.`;
 
   const pictured = turns.map((t, i) => (t.image ? i : -1)).filter((i) => i >= 0).slice(-2);
   const seeing = pictured.length > 0;
@@ -280,6 +283,16 @@ Deno.serve(async (req: Request) => {
       messages.push({ role: t.role, content: String(t.text ?? "").slice(0, 12000) });
     }
   });
+
+  // reforço no fim da última mensagem da pessoa (os modelos seguem melhor a última instrução)
+  if (lang && body.lock) {
+    const last = messages[messages.length - 1];
+    const note = `\n\n(Responda somente em ${lang}.)`;
+    if (last && last.role === "user") {
+      if (typeof last.content === "string") last.content += note;
+      else if (Array.isArray(last.content)) (last.content as { type: string; text?: string }[]).forEach((p) => { if (p.type === "text") p.text = (p.text ?? "") + note; });
+    }
+  }
 
   const models = seeing ? ["kimi-k3.1-pro", "kimi-k3"] : ["kimi-k3.1-pro-highspeed", "kimi-k3.1-pro", "kimi-k3"];
   const effort = body.live ? "low" : seeing ? "high" : "low";
