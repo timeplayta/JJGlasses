@@ -435,6 +435,15 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
       <p class="label">Voz da IA</p>
       <p class="sub">12 vozes humanas. Sem internet, usa a voz do celular.</p>
       <div class="vcur"><span class="vorb" id="setOrb"></span><div><b id="setVoiceName"></b><small id="setVoiceDesc"></small></div><button class="chip" id="setVoiceBtn">Trocar voz</button></div>
+      <div class="slider"><label for="setPitch"><span>Tom</span><span id="setPitchV"></span></label><input type="range" id="setPitch" min="-2" max="2" step="1"><div class="ends"><span>Mais grossa</span><span>Mais fina</span></div></div>
+      <div class="slider"><label for="setRate"><span>Velocidade</span><span id="setRateV"></span></label><input type="range" id="setRate" min="0.8" max="1.25" step="0.05"><div class="ends"><span>Mais lenta</span><span>Mais rápida</span></div></div>
+      <div class="slider"><label for="setVol"><span>Volume</span><span id="setVolV"></span></label><input type="range" id="setVol" min="20" max="100" step="5"><div class="ends"><span>20%</span><span>100%</span></div></div>
+      <div class="pills"><button class="pill" id="setTest">▶ Ouvir como ficou</button></div>
+    </div>
+    <div class="card">
+      <p class="label">Língua da IA</p>
+      <p class="sub">A língua em que a IA escreve e fala com você. Cada conversa também pode ter a sua, nos 3 pontinhos ao lado dela.</p>
+      <select class="field" id="setAiLang" aria-label="Língua da IA"></select>
     </div>
     <div class="card">
       <p class="label">Aparência</p>
@@ -603,7 +612,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   ];
   var prefs=load('jj_prefs',{name:'',voice:'ana',theme:'auto',speak:false});
   // novas escolhas (valores padrão para quem já usava)
-  (function(){var d={lang:'',me:'',ai:'',font:'padrao',pitch:0,rate:1,vol:100,onboarded:false};for(var k in d)if(prefs[k]===undefined)prefs[k]=d[k]})();
+  (function(){var d={lang:'',aiLang:'',me:'',ai:'',font:'padrao',pitch:0,rate:1,vol:100,onboarded:false};for(var k in d)if(prefs[k]===undefined)prefs[k]=d[k]})();
   var session=load('jj_session',null); // {access, refresh, email, exp}
   var chats=load('jj_chats',[]);
   var cur=chats.length?chats[0].id:null;
@@ -820,7 +829,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   function ask(turns,live,onDelta,noStream,extra){
     var p=token().then(function(tk){
       return fetch(SB_URL+'/functions/v1/chat',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+tk,'Content-Type':'application/json'},
-        body:JSON.stringify({turns:turns,name:prefs.name||'',live:!!live,stream:!noStream,place:place,lang:langName(chatLang()),lock:!!(chat()&&chat().lang),tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||''),now:new Date().toString(),audio:extra&&extra.audio||undefined,stt:extra&&extra.stt||undefined,sttCtx:extra&&extra.sttCtx||undefined})});
+        body:JSON.stringify({turns:turns,name:prefs.name||'',live:!!live,stream:!noStream,place:place,lang:langName(chatLang()),lock:langLocked(),tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||''),now:new Date().toString(),audio:extra&&extra.audio||undefined,stt:extra&&extra.stt||undefined,sttCtx:extra&&extra.sttCtx||undefined})});
     }).then(function(r){
       var ct=r.headers.get('content-type')||'';
       if(!r.ok||ct.indexOf('ndjson')<0||!r.body||!r.body.getReader)return r.json().then(function(j){if(!r.ok||j.error)throw j;(j.lembretes||[]).forEach(function(x){window.jjAddReminder(x)});return j.text});
@@ -851,7 +860,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     if(c.title==='Novo chat')c.title=(text||(file?file.name:'Foto')).slice(0,40);
     c.at=Date.now();if(textArg==null){$('msgIn').value='';grow()}
     var meMsg=c.msgs[c.msgs.length-1],heardEmpty=false,extra=null;
-    if(opts.audio){extra={audio:opts.audio,stt:(chatLang()||'pt').slice(0,2),sttCtx:opts.ctx||'',onHeard:function(h){
+    if(opts.audio){extra={audio:opts.audio,stt:sttLang(),sttCtx:opts.ctx||'',onHeard:function(h){
       if(!h){heardEmpty=true;return}
       meMsg.text=h;if(c.title==='🎤 …')c.title=h.slice(0,40);renderChat();if(opts.onHeard)opts.onHeard(h)}}}
     var pending={role:'ai',text:'',pending:true};c.msgs.push(pending);
@@ -906,22 +915,57 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   }
   // língua da conversa aberta (dá pra mudar nos 3 pontinhos; a IA é obrigada a responder nela) e língua da voz (o tradutor troca na hora)
   var ttsLang='';
-  function chatLang(){var c=chat();return (c&&c.lang)||prefs.lang||'pt-BR'}
+  // ordem: língua da conversa (3 pontinhos) > língua da IA (Ajustes) > língua do app
+  function chatLang(){var c=chat();return (c&&c.lang)||prefs.aiLang||prefs.lang||'pt-BR'}
+  function langLocked(){var c=chat();return !!((c&&c.lang)||prefs.aiLang)}
+  // língua para entender a sua fala: a sua; se a IA estiver em outra língua, descobre sozinho qual você falou
+  function sttLang(){var my=(prefs.lang||'pt-BR').slice(0,2),cl=chatLang().slice(0,2);return my===cl?my:''}
   function sLang(){return ttsLang||chatLang()}
-  function ttsKey(chunk){var v=voice();return [v.oa,prefs.pitch,prefs.rate,sLang(),chunk].join('|')}
+  function ttsKey(chunk){var v=voice();return [v.oa,prefs.rate,sLang(),chunk].join('|')}
+  /* Tom da voz de verdade: a voz da OpenAI não muda de tom nem de velocidade sozinha,
+     então o próprio app muda o som na hora de tocar. Cada passo do Tom = 1,5 semitom (nota musical). */
+  function pf(){return Math.pow(2,(+prefs.pitch||0)*1.5/12)}
+  function shiftPitch(a){if(a&&a.tagName==='AUDIO'){var f=pf();try{a.preservesPitch=false;a.mozPreservesPitch=false;a.webkitPreservesPitch=false;a.defaultPlaybackRate=f;a.playbackRate=f}catch(e){}}return a}
+  function vozBody(text,v,lang,pcm){return JSON.stringify({text:text,voice:v.oa,style:v.how,pitch:0,speed:pcm?1:(prefs.rate||1),lang:langName(lang),format:pcm?'pcm':undefined})}
+  /* Muda tom (p) e velocidade (r) do som cru enquanto ele chega:
+     1) reamostra (resample = "reler o som mais rápido ou mais devagar") -> muda o tom;
+     2) WSOLA (sobreposição de pedacinhos parecidos) -> estica ou encolhe o tempo sem mudar o tom de novo. */
+  function Shifter(p,r){
+    var N=1024,Hs=512,tol=192,Ha=Hs*r/p,w=new Float32Array(N),i;
+    for(i=0;i<N;i++)w[i]=0.5-0.5*Math.cos(2*Math.PI*i/N);
+    var rT=0,rN=0,rLast=0,buf=new Float32Array(0),b0=0,ana=0,prev=null,ola=new Float32Array(N);
+    function resample(seg){if(p===1)return seg;var S=rN,E=S+seg.length,o=[],t=rT;
+      while(t+1<E){var k=Math.floor(t),f=t-k,a=k<S?rLast:seg[k-S],b=seg[k+1-S];o.push(a+(b-a)*f);t+=p}
+      rT=t;rN=E;rLast=seg[seg.length-1];return Float32Array.from(o)}
+    function at(k){return k>=b0&&k<b0+buf.length?buf[k-b0]:0}
+    function run(fin){var out=[],guard=0,end=b0+buf.length;
+      while(guard++<4000){var nom=Math.round(ana),s=nom;
+        if(prev===null){if(end<N+tol&&!fin)break;s=0}
+        else{if(end<Math.max(nom+tol+N,prev+Hs+N)&&!fin)break;
+          if(fin&&prev+Hs>=end)break;
+          var tp=prev+Hs,lo=Math.max(b0,nom-tol),hi=Math.min(nom+tol,end-N),best=-1e30;
+          if(tp+N<=end&&hi>=lo){for(var d=lo;d<=hi;d+=2){var c=0;for(var j=0;j<N;j+=4)c+=buf[tp+j-b0]*buf[d+j-b0];if(c>best){best=c;s=d}}}}
+        for(var j2=0;j2<N;j2++)ola[j2]+=at(s+j2)*w[j2];
+        out.push(ola.slice(0,Hs));ola.copyWithin(0,Hs);ola.fill(0,N-Hs);prev=s;ana+=Ha;
+        var keep=Math.min(prev,Math.floor(ana)-tol);if(keep-b0>16384){buf=buf.slice(keep-b0);b0=keep}}
+      if(fin)out.push(ola.slice(0,N-Hs));
+      var n=0;out.forEach(function(x){n+=x.length});var res=new Float32Array(n),o=0;out.forEach(function(x){res.set(x,o);o+=x.length});return res}
+    return {push:function(seg){var x=resample(seg),nb=new Float32Array(buf.length+x.length);nb.set(buf);nb.set(x,buf.length);buf=nb;return run(false)},
+      end:function(){return run(true)}};
+  }
   /* Toca o áudio enquanto ele ainda está chegando do servidor (MediaSource = "fonte de mídia"):
      o som começa com os primeiros pedacinhos, sem esperar o arquivo inteiro. */
   var canStream=!!(window.MediaSource&&MediaSource.isTypeSupported&&MediaSource.isTypeSupported('audio/mpeg'));
   function ttsAudio(chunk){
     var k=ttsKey(chunk);
-    var mk=function(u){var a=new Audio(u);a.preload='auto';try{a.load()}catch(e){}return a};
+    var mk=function(u){var a=new Audio(u);a.preload='auto';try{a.load()}catch(e){}return shiftPitch(a)};
     if(ttsCache[k]||!canStream)return ttsUrl(chunk).then(mk);
     var v=voice();
     return token().then(function(tk){
-      return fetch(SB_URL+'/functions/v1/voz',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+tk,'Content-Type':'application/json'},body:JSON.stringify({text:chunk,voice:v.oa,style:v.how,pitch:prefs.pitch,speed:prefs.rate,lang:langName(sLang())})});
+      return fetch(SB_URL+'/functions/v1/voz',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+tk,'Content-Type':'application/json'},body:vozBody(chunk,v,sLang(),false)});
     }).then(function(r){
       if(!r.ok||!r.body||!r.body.getReader)throw 0;
-      var ms=new MediaSource(),a=new Audio(),parts=[],q=[],done=false,sb=null,rd=r.body.getReader();
+      var ms=new MediaSource(),a=shiftPitch(new Audio()),parts=[],q=[],done=false,sb=null,rd=r.body.getReader();
       a.src=URL.createObjectURL(ms);
       function feed(){if(!sb||sb.updating)return;if(q.length){try{sb.appendBuffer(q.shift())}catch(e){}}else if(done&&ms.readyState==='open'){try{ms.endOfStream()}catch(e){}}}
       ms.addEventListener('sourceopen',function(){try{sb=ms.addSourceBuffer('audio/mpeg');sb.addEventListener('updateend',feed);feed()}catch(e){}},{once:true});
@@ -936,7 +980,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     var v=voice(),k=ttsKey(chunk);
     if(ttsCache[k])return ttsCache[k];
     var pr=token().then(function(tk){
-      return fetch(SB_URL+'/functions/v1/voz',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+tk,'Content-Type':'application/json'},body:JSON.stringify({text:chunk,voice:v.oa,style:v.how,pitch:prefs.pitch,speed:prefs.rate,lang:langName(sLang())})});
+      return fetch(SB_URL+'/functions/v1/voz',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+tk,'Content-Type':'application/json'},body:vozBody(chunk,v,sLang(),false)});
     }).then(function(r){if(!r.ok)throw 0;return r.blob()}).then(function(b){return URL.createObjectURL(b)});
     pr.catch(function(){delete ttsCache[k]});ttsCache[k]=pr;return pr;
   }
@@ -950,13 +994,15 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     return actx;
   }
   ['pointerdown','touchstart','keydown'].forEach(function(ev){document.addEventListener(ev,function(){getCtx()},{capture:true,passive:true})});
-  function pcmSource(chunk){
-    var k=ttsKey(chunk);
+  // o som cru fica guardado sem tom/velocidade aplicados: mudar o Tom não precisa baixar de novo
+  function pcmSource(chunk,v,lang){
+    v=v||voice();lang=lang||sLang();
+    var k=[v.oa,lang,chunk].join('|');
     if(pcmSrc[k]&&!pcmSrc[k].failed)return pcmSrc[k];
     var src={segs:[],done:false,failed:false,subs:[]};pcmSrc[k]=src;
-    var v=voice(),emit=function(){src.subs.slice().forEach(function(f){f()})};
+    var emit=function(){src.subs.slice().forEach(function(f){f()})};
     token().then(function(tk){
-      return fetch(SB_URL+'/functions/v1/voz',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+tk,'Content-Type':'application/json'},body:JSON.stringify({text:chunk,voice:v.oa,style:v.how,pitch:prefs.pitch,speed:prefs.rate,lang:langName(sLang()),format:'pcm'})});
+      return fetch(SB_URL+'/functions/v1/voz',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+tk,'Content-Type':'application/json'},body:vozBody(chunk,v,lang,true)});
     }).then(function(r){
       if(!r.ok||!r.body||!r.body.getReader||(r.headers.get('content-type')||'').indexOf('pcm')<0)throw 0;
       var rd=r.body.getReader(),left=null,pend=[],pendN=0,first=true;
@@ -973,20 +1019,22 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     return src;
   }
   function pcmPlayer(src){
-    var p={volume:1,onended:null,onerror:null},srcs=[],idx=0,t=0,on=false,gain=null,endT=null;
+    var p={volume:1,onended:null,onerror:null},srcs=[],idx=0,t=0,on=false,gain=null,endT=null,fx=null,fxEnd=false;
+    function queue(seg){if(!seg||!seg.length)return;var ctx=getCtx(),buf=ctx.createBuffer(1,seg.length,24000);buf.getChannelData(0).set(seg);
+      var s=ctx.createBufferSource();s.buffer=buf;s.connect(gain);var at=Math.max(t,ctx.currentTime+0.02);s.start(at);t=at+buf.duration;srcs.push(s)}
     function fin(){if(!on)return;on=false;src.subs=src.subs.filter(function(f){return f!==sched});if(p.onended)p.onended()}
     function sched(){
       if(!on)return;var ctx=getCtx();
       if(src.failed&&idx===0){ // som cru falhou: tenta o MP3 antes de cair na voz do celular
         on=false;var fb=p._fallback;p._fallback=null;
-        if(fb){fb().then(function(a){p._alt=a;a.volume=p.volume;a.onended=function(){if(p.onended)p.onended()};a.onerror=function(){if(p.onerror)p.onerror()};return a.play()}).catch(function(){if(p.onerror)p.onerror()})}
+        if(fb){fb().then(function(a){p._alt=shiftPitch(a);a.volume=p.volume;a.onended=function(){if(p.onended)p.onended()};a.onerror=function(){if(p.onerror)p.onerror()};return a.play()}).catch(function(){if(p.onerror)p.onerror()})}
         else if(p.onerror)p.onerror();
         return}
-      while(idx<src.segs.length){var seg=src.segs[idx++],buf=ctx.createBuffer(1,seg.length,24000);buf.getChannelData(0).set(seg);
-        var s=ctx.createBufferSource();s.buffer=buf;s.connect(gain);var at=Math.max(t,ctx.currentTime+0.02);s.start(at);t=at+buf.duration;srcs.push(s)}
+      while(idx<src.segs.length){var seg=src.segs[idx++];queue(fx?fx.push(seg):seg)}
+      if((src.done||src.failed)&&idx>=src.segs.length&&fx&&!fxEnd){fxEnd=true;queue(fx.end())}
       if((src.done||src.failed)&&idx>=src.segs.length&&!endT)endT=setTimeout(fin,Math.max(0,(t-ctx.currentTime)*1000)+40);
     }
-    p.play=function(){var ctx=getCtx();if(!ctx)return Promise.reject(0);gain=ctx.createGain();gain.gain.value=p.volume;gain.connect(ctx.destination);on=true;src.subs.push(sched);sched();return Promise.resolve()};
+    p.play=function(){var ctx=getCtx();if(!ctx)return Promise.reject(0);var pp=pf(),rr=+prefs.rate||1;fx=(Math.abs(pp-1)>.001||Math.abs(rr-1)>.001)?Shifter(pp,rr):null;fxEnd=false;gain=ctx.createGain();gain.gain.value=p.volume;gain.connect(ctx.destination);on=true;src.subs.push(sched);sched();return Promise.resolve()};
     p.pause=function(){on=false;p._fallback=null;try{p._alt&&p._alt.pause()}catch(e){}clearTimeout(endT);srcs.forEach(function(s){try{s.stop()}catch(e){}});srcs=[];src.subs=src.subs.filter(function(f){return f!==sched})};
     return p;
   }
@@ -1740,12 +1788,21 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   $('setVoiceBtn').onclick=function(){openVoicePicker()};
   $('setOrb').onclick=function(){openVoicePicker()};
   $('nameIn').addEventListener('input',function(){prefs.name=this.value.trim();persist();renderList()});
+  // Tom, velocidade e volume direto nos Ajustes (antes só dava no meio da apresentação)
+  function paintVoiceTune(){$('setPitch').value=prefs.pitch||0;$('setRate').value=prefs.rate||1;$('setVol').value=prefs.vol||100;
+    var pt=+prefs.pitch||0;$('setPitchV').textContent=pt===0?'Normal':pt<0?(pt===-1?'Um pouco mais grossa':'Bem mais grossa'):(pt===1?'Um pouco mais fina':'Bem mais fina');
+    $('setRateV').textContent=Math.round((prefs.rate||1)*100)+'%';$('setVolV').textContent=(prefs.vol||100)+'%'}
+  ['setPitch','setRate','setVol'].forEach(function(id){$(id).oninput=function(){var v=+this.value;if(id==='setPitch')prefs.pitch=v;if(id==='setRate')prefs.rate=v;if(id==='setVol')prefs.vol=v;persist();paintVoiceTune()};
+    $(id).onchange=function(){playSample(prefs.voice,null)}});
+  $('setTest').onclick=function(){playSample(prefs.voice,null)};
+  $('setAiLang').onchange=function(){prefs.aiLang=this.value;persist();stopSpeak();toast(this.value?'A IA vai escrever e falar em '+langLocal(this.value):'A IA vai responder na mesma língua que você usar');samplePrefetch([prefs.voice])};
+  function paintAiLang(){var sel=$('setAiLang');sel.innerHTML='<option value="">Automático (a mesma língua que você usar)</option>'+LANGS.map(function(x){return '<option value="'+x[0]+'">'+esc(langLocal(x[0]))+'</option>'}).join('');sel.value=prefs.aiLang||''}
   function applyTheme(){var r=document.documentElement;if(prefs.theme==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',prefs.theme)}
   ['Light','Dark','Auto'].forEach(function(n){$('th'+n).onclick=function(){prefs.theme=n.toLowerCase();applyTheme();persist();paintSettings()}});
   function paintSettings(){
     var cv=voice(),cp=cv.label.split(' · ');$('setVoiceName').textContent=cp[0];$('setVoiceDesc').textContent=cp[1]||'';paintOrb($('setOrb'),cv.id);
     ['Light','Dark','Auto'].forEach(function(n){$('th'+n).setAttribute('aria-pressed',prefs.theme===n.toLowerCase()?'true':'false')});
-    $('nameIn').value=prefs.name||'';
+    $('nameIn').value=prefs.name||'';paintVoiceTune();paintAiLang();
     $('accountInfo').textContent=session?('Conectado como '+session.email):'Não conectado';
     var app=NATIVE&&NATIVE.version?NATIVE.version():'',shell=NATIVE&&NATIVE.shellVersion?NATIVE.shellVersion():'';
     var v=String(app&&app.length>=12?app:(webVer||''));
@@ -1875,16 +1932,27 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     cwLoad()}
   /* ---- amostras de voz: guardadas na memória e baixadas antes, pra tocar na hora ---- */
   var sampleCache={},sampleQueue=[],sampleBusy=0;
-  function sampleKey(id){return [id,prefs.pitch,prefs.rate,prefs.lang].join('|')}
-  function sampleFetch(id){var k=sampleKey(id);if(sampleCache[k])return sampleCache[k];var v=VOICES.filter(function(x){return x.id===id})[0]||VOICES[0],text=sampleText(id);
-    var pr=token().then(function(tk){return fetch(SB_URL+'/functions/v1/voz',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+tk,'Content-Type':'application/json'},body:JSON.stringify({text:text,voice:v.oa,style:v.how,pitch:prefs.pitch,speed:prefs.rate,lang:langName(prefs.lang)})})}).then(function(r){if(!r.ok)throw 0;return r.blob()}).then(function(b){return URL.createObjectURL(b)});
+  function sampleKey(id){return [id,prefs.rate,prefs.lang].join('|')}
+  function sampleVoice(id){return VOICES.filter(function(x){return x.id===id})[0]||VOICES[0]}
+  function sampleLang(){return prefs.aiLang||prefs.lang||'pt-BR'}
+  function sampleFetch(id){var k=sampleKey(id);if(sampleCache[k])return sampleCache[k];var v=sampleVoice(id),text=sampleText(id);
+    var pr=token().then(function(tk){return fetch(SB_URL+'/functions/v1/voz',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+tk,'Content-Type':'application/json'},body:vozBody(text,v,sampleLang(),false)})}).then(function(r){if(!r.ok)throw 0;return r.blob()}).then(function(b){return URL.createObjectURL(b)});
     pr.catch(function(){delete sampleCache[k]});sampleCache[k]=pr;return pr}
-  function samplePrefetch(ids){ids.forEach(function(id){if(!sampleCache[sampleKey(id)]&&sampleQueue.indexOf(id)<0)sampleQueue.push(id)});(function pump(){while(sampleBusy<3&&sampleQueue.length){var id=sampleQueue.shift();sampleBusy++;sampleFetch(id).then(done,done)}function done(){sampleBusy--;pump()}})()}
+  // com Web Audio: baixa o som cru uma vez só; o Tom e a Velocidade são aplicados na hora de tocar
+  function samplePrefetch(ids){if(getCtx()){ids.slice(0,4).forEach(function(id){pcmSource(sampleText(id),sampleVoice(id),sampleLang())});ids.slice(4).forEach(function(id,i){setTimeout(function(){pcmSource(sampleText(id),sampleVoice(id),sampleLang())},400*(i+1))});return}
+    ids.forEach(function(id){if(!sampleCache[sampleKey(id)]&&sampleQueue.indexOf(id)<0)sampleQueue.push(id)});(function pump(){while(sampleBusy<3&&sampleQueue.length){var id=sampleQueue.shift();sampleBusy++;sampleFetch(id).then(done,done)}function done(){sampleBusy--;pump()}})()}
   var sampleTok=0;
-  function playSample(id,btn){stopSpeak();var mine=++sampleTok;document.querySelectorAll('#obBody .play.busy').forEach(function(x){x.classList.remove('busy');x.textContent='▶'});
+  function playSample(id,btn){stopSpeak();var mine=++sampleTok;document.querySelectorAll('.play.busy').forEach(function(x){x.classList.remove('busy');x.textContent='▶'});
     if(btn){btn.classList.add('busy');btn.textContent='⏳'}
     var off=function(){if(btn){btn.classList.remove('busy');btn.textContent='▶'}};
-    sampleFetch(id).then(function(url){off();if(mine!==sampleTok)return;audio.src=url;audio.volume=Math.max(0,Math.min(1,(prefs.vol||100)/100));audio.onended=null;audio.onerror=null;return audio.play()}).catch(function(){off();if(mine===sampleTok){var v=VOICES.filter(function(x){return x.id===id})[0]||VOICES[0];phoneVoice(sampleText(id),v,function(){})}})}
+    var v=sampleVoice(id),vol=Math.max(0,Math.min(1,(prefs.vol||100)/100)),fallback=function(){off();if(mine===sampleTok)phoneVoice(sampleText(id),v,function(){})};
+    if(getCtx()){var src=pcmSource(sampleText(id),v,sampleLang()),pl=pcmPlayer(src);pl.volume=vol;
+      pl._fallback=function(){return sampleFetch(id).then(function(u){return new Audio(u)})};
+      pl.onerror=fallback;pl.onended=function(){if(curAudio===pl)curAudio=null};
+      var go=function(){if(mine!==sampleTok)return;off();curAudio=pl;pl.play()};
+      if(src.segs.length||src.failed)go();else{var w=function(){src.subs=src.subs.filter(function(f){return f!==w});go()};src.subs.push(w)}
+      return}
+    sampleFetch(id).then(function(url){off();if(mine!==sampleTok)return;var a=shiftPitch(new Audio(url));a.volume=vol;curAudio=a;return a.play()}).catch(fallback)}
   function markVoice(){document.querySelectorAll('#obBody [data-voice]').forEach(function(el){el.setAttribute('aria-pressed',String(el.getAttribute('data-voice')===prefs.voice))})}
   var STEP={
     w1:function(t){return '<div class="hero"><div class="big">🕶️</div><b>'+esc(t.w1t)+(prefs.name?', '+esc(prefs.name):'')+'!</b><span>'+esc(t.w1b)+'</span></div>'},
