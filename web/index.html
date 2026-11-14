@@ -895,7 +895,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
       if(c>15)out.splice(0,1,f.slice(0,c).trim(),f.slice(c).trim())}
     return out.filter(Boolean);
   }
-  // língua da conversa aberta (dá pra mudar nos 3 pontinhos) e língua da voz (o tradutor troca na hora)
+  // língua da conversa aberta (dá pra mudar nos 3 pontinhos; a IA é obrigada a responder nela) e língua da voz (o tradutor troca na hora)
   var ttsLang='';
   function chatLang(){var c=chat();return (c&&c.lang)||prefs.lang||'pt-BR'}
   function sLang(){return ttsLang||chatLang()}
