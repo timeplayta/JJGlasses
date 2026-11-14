@@ -74,7 +74,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 .favs{display:inline-flex}.favs i{margin-left:-6px}.favs i:first-child{margin-left:0}
 .favs i,.srcit i{display:inline-block;width:18px;height:18px;border-radius:50%;background:#fff center/cover no-repeat;border:1.5px solid var(--bg);flex:none}
 .srcit i{width:26px;height:26px;border-radius:7px;border:1px solid var(--line)}
-.m .acts .chip[data-say]{margin-left:6px}
+.ib.busy{animation:b 1s infinite}
 .cite{appearance:none;display:inline-flex;align-items:center;gap:5px;vertical-align:1px;border:0;background:var(--bg);color:var(--mute);border-radius:999px;padding:2px 9px 2px 4px;margin-left:4px;font-size:12.5px;font-weight:600;line-height:1.5}
 .cite i{display:inline-block;width:16px;height:16px;border-radius:50%;background:#fff center/cover no-repeat;flex:none}.cite span{opacity:.8}
 .chip{appearance:none;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:7px 12px;font-size:13px;font-weight:500}
@@ -607,18 +607,18 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   function toast(t){var el=$('toast');el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(function(){el.hidden=true},2800)}
 
   var VOICES=[
-    {id:'ana',label:'Ana · calma',oa:'coral',how:'Calma, acolhedora e tranquila, fala baixinho e com carinho.',pitch:1.03,rate:0.94,male:false},
-    {id:'lia',label:'Lia · suave e lenta',oa:'shimmer',how:'Suave e bem devagar, quase sussurrando, muito relaxada.',pitch:1.09,rate:0.84,male:false},
-    {id:'nina',label:'Nina · animada',oa:'nova',how:'Muito animada e sorridente, cheia de energia.',pitch:1.155,rate:1.15,male:false},
-    {id:'bia',label:'Bia · fina e alegre',oa:'sage',how:'Voz fina, alegre e brincalhona, sempre sorrindo.',pitch:1.26,rate:1.06,male:false},
-    {id:'clara',label:'Clara · grave e serena',oa:'marin',how:'Grave, serena e firme, como uma apresentadora séria.',pitch:0.866,rate:0.9,male:false},
-    {id:'rita',label:'Rita · rápida',oa:'alloy',how:'Direta, prática e rápida, sem enrolar.',pitch:1,rate:1.25,male:false},
-    {id:'bruno',label:'Bruno · grave e calmo',oa:'onyx',how:'Grave e calmo, voz de locutor de rádio.',pitch:0.841,rate:0.93,male:true},
-    {id:'davi',label:'Davi · bem grave',oa:'onyx',how:'Bem grave, devagar e profundo, como narrador de trailer de cinema.',pitch:0.728,rate:0.85,male:true},
-    {id:'leo',label:'Léo · natural',oa:'ash',how:'Natural e simpático, como um amigo conversando.',pitch:1,rate:1,male:true},
+    {id:'ana',label:'Ana · calma',oa:'coral',how:'Calma, acolhedora e tranquila, fala baixinho e com carinho.',pitch:1.059,rate:0.95,male:false},
+    {id:'lia',label:'Lia · suave e lenta',oa:'shimmer',how:'Suave e bem devagar, quase sussurrando, muito relaxada.',pitch:1.155,rate:0.82,male:false},
+    {id:'nina',label:'Nina · animada',oa:'nova',how:'Muito animada e sorridente, cheia de energia.',pitch:1.26,rate:1.16,male:false},
+    {id:'bia',label:'Bia · fina e alegre',oa:'sage',how:'Voz fina, alegre e brincalhona, sempre sorrindo.',pitch:1.374,rate:1.07,male:false},
+    {id:'clara',label:'Clara · grave e serena',oa:'marin',how:'Grave, serena e firme, como uma apresentadora séria.',pitch:0.817,rate:0.9,male:false},
+    {id:'rita',label:'Rita · rápida',oa:'alloy',how:'Direta, prática e rápida, sem enrolar.',pitch:0.944,rate:1.26,male:false},
+    {id:'bruno',label:'Bruno · grave e calmo',oa:'onyx',how:'Grave e calmo, voz de locutor de rádio.',pitch:0.794,rate:0.93,male:true},
+    {id:'davi',label:'Davi · bem grave',oa:'onyx',how:'Bem grave, devagar e profundo, como narrador de trailer de cinema.',pitch:0.687,rate:0.84,male:true},
+    {id:'leo',label:'Léo · natural',oa:'ash',how:'Natural e simpático, como um amigo conversando.',pitch:1.0,rate:1,male:true},
     {id:'caio',label:'Caio · jovem e rápido',oa:'echo',how:'Jovem, descontraído, animado e rápido.',pitch:1.122,rate:1.18,male:true},
-    {id:'theo',label:'Theo · leve e animado',oa:'verse',how:'Leve, expressivo e bem-humorado.',pitch:1.189,rate:1.1,male:true},
-    {id:'rui',label:'Rui · firme e rápido',oa:'cedar',how:'Firme, confiante e rápido, como um treinador motivando.',pitch:0.917,rate:1.2,male:true}
+    {id:'theo',label:'Theo · leve e animado',oa:'verse',how:'Leve, expressivo e bem-humorado.',pitch:1.224,rate:1.1,male:true},
+    {id:'rui',label:'Rui · firme e rápido',oa:'cedar',how:'Firme, confiante e rápido, como um treinador motivando.',pitch:0.891,rate:1.2,male:true}
   ];
   var prefs=load('jj_prefs',{name:'',voice:'ana',theme:'auto',speak:false});
   // novas escolhas (valores padrão para quem já usava)
@@ -783,8 +783,8 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     var say=e.target.closest('[data-say]');if(say){
       if(say.classList.contains('on')){stopSpeak();return}
       var idx=+say.getAttribute('data-say');
-      speak(chat().msgs[idx].text,function(){sayOff()},function(){if(sayBtn===say)say.textContent='Parar'});
-      say.classList.add('on');say.textContent='Carregando…';sayBtn=say;return}
+      speak(chat().msgs[idx].text,function(){sayOff()},function(){if(sayBtn===say)say.classList.remove('busy')});
+      say.classList.add('on','busy');say.innerHTML=IC.stop;say.setAttribute('aria-label','Parar de ouvir');sayBtn=say;return}
     var b=e.target.closest('[data-cite]');if(b){var cp=b.getAttribute('data-cite').split(':'),ci=+cp[0],cl=cp[1].split(',').map(Number),cm=chat()&&chat().msgs[ci];
       if(cm&&cm.src){if(cl.length===1){var cf=cm.src[cl[0]-1];if(cf)openLink(cf.u)}else openSources(ci,cl)}return}
     b=e.target.closest('[data-src]');if(b){openSources(+b.getAttribute('data-src'));return}
@@ -795,6 +795,8 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   /* ---------- barra embaixo de cada resposta (como no ChatGPT) ----------
      À vista: Fontes (sites que a IA pesquisou) e Compartilhar. O resto fica no ⋮ (Mais opções). */
   var IC={
+    spk:'<svg class="i" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18.3 6.5a7.6 7.6 0 0 1 0 11"/></svg>',
+    stop:'<svg class="i" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="2" fill="currentColor"/></svg>',
     share:'<svg class="i" viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.7l7.4-4.3M8.3 13.3l7.4 4.3"/></svg>',
     up:'<svg class="i" viewBox="0 0 24 24"><path d="M7 21H4V11h3M7 11l4-8c1.6 0 2.7 1.3 2.3 2.9L12.6 9H19a2 2 0 0 1 2 2.3l-1.2 7.2A2 2 0 0 1 17.8 21H7z"/></svg>',
     down:'<svg class="i" viewBox="0 0 24 24"><path d="M17 3h3v10h-3M17 13l-4 8c-1.6 0-2.7-1.3-2.3-2.9l.7-3.1H5a2 2 0 0 1-2-2.3l1.2-7.2A2 2 0 0 1 6.2 3H17z"/></svg>'};
@@ -804,9 +806,10 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     var h='<div class="acts">';
     if(m.src&&m.src.length)h+='<button class="srcb" data-src="'+idx+'" aria-label="Ver as fontes desta resposta"><span class="favs">'+m.src.slice(0,3).map(function(x){return favi(x.u)}).join('')+'</span>Fontes</button>';
     if(m.fb)h+='<span class="ib on" title="'+(m.fb==='up'?'Você gostou':'Você não gostou')+'">'+IC[m.fb]+'</span>';
+    h+='<button class="ib" data-say="'+idx+'" aria-label="Ouvir">'+IC.spk+'</button>';
     h+='<button class="ib" data-share="'+idx+'" aria-label="Compartilhar">'+IC.share+'</button>';
     h+='<button class="ib" data-mm="'+idx+'" aria-label="Mais opções">'+DOTS+'</button>';
-    return h+'<button class="chip" data-say="'+idx+'" hidden>Ouvir</button></div>';
+    return h+'</div>';
   }
   function plainText(t){return String(t||'').replace(/\[\[(foto|fonte):[^\]]*\]\]/gi,'').replace(/ +([.,;:!?])/g,'$1').replace(/\*\*([^*]+)\*\*/g,'$1').trim()}
   function copyText(t,msg){
@@ -851,7 +854,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     b=e.target.closest('[data-ma]');if(!b)return;var a=b.getAttribute('data-ma');
     if(a==='src'){openSources(mmIdx);return}
     closeMsgMenu();
-    if(a==='say'){var say=$('col').querySelector('[data-say="'+mmIdx+'"]');if(say){say.hidden=false;say.click()}return}
+    if(a==='say'){var say=$('col').querySelector('[data-say="'+mmIdx+'"]');if(say&&!say.classList.contains('on'))say.click();return}
     if(a==='copy'){copyText(plainText(m.text),'Resposta copiada');return}
     if(a==='up'||a==='down'){m.fb=m.fb===a?null:a;persist();renderChat();toast(m.fb?(a==='up'?'Que bom que ajudou! 👍':'Obrigado por avisar. Toque em ⋮ › Tentar de novo para outra resposta.'):'Avaliação removida');return}
     if(a==='share'){shareMsg(mmIdx);return}
@@ -989,7 +992,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 
   /* ---------- voz (falar) ---------- */
   var audio=new Audio(),speakToken=0,onSpoken=null,sayBtn=null;
-  function sayOff(){var b=sayBtn;sayBtn=null;if(b){b.classList.remove('on');b.textContent='Ouvir';b.hidden=true}}
+  function sayOff(){var b=sayBtn;sayBtn=null;if(b){b.classList.remove('on','busy');b.innerHTML=IC.spk;b.setAttribute('aria-label','Ouvir')}}
   function voice(){for(var i=0;i<VOICES.length;i++)if(VOICES[i].id===prefs.voice)return VOICES[i];return VOICES[0]}
   function stopSpeak(){speakToken++;try{audio.pause()}catch(e){}try{curAudio&&curAudio.pause()}catch(e){}curAudio=null;sayOff();if(NATIVE&&NATIVE.stopSpeak)NATIVE.stopSpeak();if(window.speechSynthesis)speechSynthesis.cancel()}
   /* Voz rápida: divide o texto em pedaços. O 1º pedaço é curto (uma frase) e começa a tocar em ~1 s,
@@ -1020,7 +1023,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
      então o próprio app muda o som na hora de tocar. Cada passo do Tom = 1,5 semitom (nota musical). */
   /* Cada personagem tem o tom e o ritmo dele (Davi bem grave, Bia fina, Rita rápida...),
      e o Tom dos Ajustes soma por cima: cada passo = 1,2 semitom, de -5 a +5. */
-  function pf(v){v=v||voice();var p=(v.pitch||1)*Math.pow(2,(+prefs.pitch||0)*1.2/12);return Math.max(.55,Math.min(1.8,p))}
+  function pf(v){v=v||voice();var p=(v.pitch||1)*Math.pow(2,(+prefs.pitch||0)*1.2/12);return Math.max(.5,Math.min(2,p))}
   function rf(v){v=v||voice();return Math.max(.6,Math.min(1.6,(v.rate||1)*(+prefs.rate||1)))}
   function shiftPitch(a,v){if(a&&a.tagName==='AUDIO'){var f=pf(v);try{a.preservesPitch=false;a.mozPreservesPitch=false;a.webkitPreservesPitch=false;a.defaultPlaybackRate=f;a.playbackRate=f}catch(e){}}return a}
   function vozBody(text,v,lang,pcm){return JSON.stringify({text:text,voice:v.oa,style:v.how,pitch:0,speed:pcm?1:rf(v),lang:langName(lang),format:pcm?'pcm':undefined})}
