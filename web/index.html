@@ -435,7 +435,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
       <p class="label">Voz da IA</p>
       <p class="sub">12 vozes humanas. Sem internet, usa a voz do celular.</p>
       <div class="vcur"><span class="vorb" id="setOrb"></span><div><b id="setVoiceName"></b><small id="setVoiceDesc"></small></div><button class="chip" id="setVoiceBtn">Trocar voz</button></div>
-      <div class="slider"><label for="setPitch"><span>Tom</span><span id="setPitchV"></span></label><input type="range" id="setPitch" min="-2" max="2" step="1"><div class="ends"><span>Mais grossa</span><span>Mais fina</span></div></div>
+      <div class="slider"><label for="setPitch"><span>Tom</span><span id="setPitchV"></span></label><input type="range" id="setPitch" min="-5" max="5" step="1"><div class="ends"><span>Mais fina</span><span>Mais grossa</span></div></div>
       <div class="slider"><label for="setRate"><span>Velocidade</span><span id="setRateV"></span></label><input type="range" id="setRate" min="0.8" max="1.25" step="0.05"><div class="ends"><span>Mais lenta</span><span>Mais rápida</span></div></div>
       <div class="slider"><label for="setVol"><span>Volume</span><span id="setVolV"></span></label><input type="range" id="setVol" min="20" max="100" step="5"><div class="ends"><span>20%</span><span>100%</span></div></div>
       <div class="pills"><button class="pill" id="setTest">▶ Ouvir como ficou</button></div>
@@ -597,18 +597,18 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   function toast(t){var el=$('toast');el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(function(){el.hidden=true},2800)}
 
   var VOICES=[
-    {id:'ana',label:'Ana · calma',oa:'coral',how:'Calma, acolhedora e tranquila.',pitch:1.04,rate:.94,male:false},
-    {id:'lia',label:'Lia · suave e lenta',oa:'shimmer',how:'Suave e devagar, bem relaxada.',pitch:1.08,rate:.86,male:false},
-    {id:'nina',label:'Nina · animada',oa:'nova',how:'Animada, alegre e um pouco rápida.',pitch:1.14,rate:1.16,male:false},
-    {id:'bia',label:'Bia · fina e alegre',oa:'sage',how:'Voz mais fina, alegre e leve.',pitch:1.22,rate:1.06,male:false},
-    {id:'clara',label:'Clara · grave e serena',oa:'marin',how:'Grave, serena e firme.',pitch:.9,rate:.92,male:false},
-    {id:'rita',label:'Rita · rápida',oa:'coral',how:'Direta e rápida, sem enrolar.',pitch:1,rate:1.24,male:false},
-    {id:'bruno',label:'Bruno · grave e calmo',oa:'onyx',how:'Grave e calmo, voz de locutor.',pitch:.84,rate:.94,male:true},
-    {id:'davi',label:'Davi · bem grave',oa:'onyx',how:'Bem grave e devagar, profundo.',pitch:.74,rate:.88,male:true},
-    {id:'leo',label:'Léo · natural',oa:'ash',how:'Natural, simpático, ritmo normal.',pitch:.95,rate:1,male:true},
-    {id:'caio',label:'Caio · jovem e rápido',oa:'echo',how:'Jovem, animado e rápido.',pitch:1.02,rate:1.18,male:true},
-    {id:'theo',label:'Theo · leve e animado',oa:'verse',how:'Leve, animado e expressivo.',pitch:1.08,rate:1.1,male:true},
-    {id:'rui',label:'Rui · firme e rápido',oa:'cedar',how:'Firme, confiante e rápido.',pitch:.88,rate:1.2,male:true}
+    {id:'ana',label:'Ana · calma',oa:'coral',how:'Calma, acolhedora e tranquila, fala baixinho e com carinho.',pitch:1.03,rate:0.94,male:false},
+    {id:'lia',label:'Lia · suave e lenta',oa:'shimmer',how:'Suave e bem devagar, quase sussurrando, muito relaxada.',pitch:1.09,rate:0.84,male:false},
+    {id:'nina',label:'Nina · animada',oa:'nova',how:'Muito animada e sorridente, cheia de energia.',pitch:1.155,rate:1.15,male:false},
+    {id:'bia',label:'Bia · fina e alegre',oa:'sage',how:'Voz fina, alegre e brincalhona, sempre sorrindo.',pitch:1.26,rate:1.06,male:false},
+    {id:'clara',label:'Clara · grave e serena',oa:'marin',how:'Grave, serena e firme, como uma apresentadora séria.',pitch:0.866,rate:0.9,male:false},
+    {id:'rita',label:'Rita · rápida',oa:'alloy',how:'Direta, prática e rápida, sem enrolar.',pitch:1,rate:1.25,male:false},
+    {id:'bruno',label:'Bruno · grave e calmo',oa:'onyx',how:'Grave e calmo, voz de locutor de rádio.',pitch:0.841,rate:0.93,male:true},
+    {id:'davi',label:'Davi · bem grave',oa:'onyx',how:'Bem grave, devagar e profundo, como narrador de trailer de cinema.',pitch:0.728,rate:0.85,male:true},
+    {id:'leo',label:'Léo · natural',oa:'ash',how:'Natural e simpático, como um amigo conversando.',pitch:1,rate:1,male:true},
+    {id:'caio',label:'Caio · jovem e rápido',oa:'echo',how:'Jovem, descontraído, animado e rápido.',pitch:1.122,rate:1.18,male:true},
+    {id:'theo',label:'Theo · leve e animado',oa:'verse',how:'Leve, expressivo e bem-humorado.',pitch:1.189,rate:1.1,male:true},
+    {id:'rui',label:'Rui · firme e rápido',oa:'cedar',how:'Firme, confiante e rápido, como um treinador motivando.',pitch:0.917,rate:1.2,male:true}
   ];
   var prefs=load('jj_prefs',{name:'',voice:'ana',theme:'auto',speak:false});
   // novas escolhas (valores padrão para quem já usava)
@@ -921,12 +921,15 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   // língua para entender a sua fala: a sua; se a IA estiver em outra língua, descobre sozinho qual você falou
   function sttLang(){var my=(prefs.lang||'pt-BR').slice(0,2),cl=chatLang().slice(0,2);return my===cl?my:''}
   function sLang(){return ttsLang||chatLang()}
-  function ttsKey(chunk){var v=voice();return [v.oa,prefs.rate,sLang(),chunk].join('|')}
+  function ttsKey(chunk){var v=voice();return [v.id,prefs.rate,sLang(),chunk].join('|')}
   /* Tom da voz de verdade: a voz da OpenAI não muda de tom nem de velocidade sozinha,
      então o próprio app muda o som na hora de tocar. Cada passo do Tom = 1,5 semitom (nota musical). */
-  function pf(){return Math.pow(2,(+prefs.pitch||0)*1.5/12)}
-  function shiftPitch(a){if(a&&a.tagName==='AUDIO'){var f=pf();try{a.preservesPitch=false;a.mozPreservesPitch=false;a.webkitPreservesPitch=false;a.defaultPlaybackRate=f;a.playbackRate=f}catch(e){}}return a}
-  function vozBody(text,v,lang,pcm){return JSON.stringify({text:text,voice:v.oa,style:v.how,pitch:0,speed:pcm?1:(prefs.rate||1),lang:langName(lang),format:pcm?'pcm':undefined})}
+  /* Cada personagem tem o tom e o ritmo dele (Davi bem grave, Bia fina, Rita rápida...),
+     e o Tom dos Ajustes soma por cima: cada passo = 1,2 semitom, de -5 a +5. */
+  function pf(v){v=v||voice();var p=(v.pitch||1)*Math.pow(2,(+prefs.pitch||0)*1.2/12);return Math.max(.55,Math.min(1.8,p))}
+  function rf(v){v=v||voice();return Math.max(.6,Math.min(1.6,(v.rate||1)*(+prefs.rate||1)))}
+  function shiftPitch(a,v){if(a&&a.tagName==='AUDIO'){var f=pf(v);try{a.preservesPitch=false;a.mozPreservesPitch=false;a.webkitPreservesPitch=false;a.defaultPlaybackRate=f;a.playbackRate=f}catch(e){}}return a}
+  function vozBody(text,v,lang,pcm){return JSON.stringify({text:text,voice:v.oa,style:v.how,pitch:0,speed:pcm?1:rf(v),lang:langName(lang),format:pcm?'pcm':undefined})}
   /* Muda tom (p) e velocidade (r) do som cru enquanto ele chega:
      1) reamostra (resample = "reler o som mais rápido ou mais devagar") -> muda o tom;
      2) WSOLA (sobreposição de pedacinhos parecidos) -> estica ou encolhe o tempo sem mudar o tom de novo. */
@@ -997,7 +1000,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   // o som cru fica guardado sem tom/velocidade aplicados: mudar o Tom não precisa baixar de novo
   function pcmSource(chunk,v,lang){
     v=v||voice();lang=lang||sLang();
-    var k=[v.oa,lang,chunk].join('|');
+    var k=[v.id,lang,chunk].join('|');
     if(pcmSrc[k]&&!pcmSrc[k].failed)return pcmSrc[k];
     var src={segs:[],done:false,failed:false,subs:[]};pcmSrc[k]=src;
     var emit=function(){src.subs.slice().forEach(function(f){f()})};
@@ -1018,7 +1021,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     }).catch(function(){src.failed=true;emit();if(pcmSrc[k]===src)delete pcmSrc[k]});
     return src;
   }
-  function pcmPlayer(src){
+  function pcmPlayer(src,pv){pv=pv||voice();
     var p={volume:1,onended:null,onerror:null},srcs=[],idx=0,t=0,on=false,gain=null,endT=null,fx=null,fxEnd=false;
     function queue(seg){if(!seg||!seg.length)return;var ctx=getCtx(),buf=ctx.createBuffer(1,seg.length,24000);buf.getChannelData(0).set(seg);
       var s=ctx.createBufferSource();s.buffer=buf;s.connect(gain);var at=Math.max(t,ctx.currentTime+0.02);s.start(at);t=at+buf.duration;srcs.push(s)}
@@ -1027,19 +1030,19 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
       if(!on)return;var ctx=getCtx();
       if(src.failed&&idx===0){ // som cru falhou: tenta o MP3 antes de cair na voz do celular
         on=false;var fb=p._fallback;p._fallback=null;
-        if(fb){fb().then(function(a){p._alt=shiftPitch(a);a.volume=p.volume;a.onended=function(){if(p.onended)p.onended()};a.onerror=function(){if(p.onerror)p.onerror()};return a.play()}).catch(function(){if(p.onerror)p.onerror()})}
+        if(fb){fb().then(function(a){p._alt=shiftPitch(a,pv);a.volume=p.volume;a.onended=function(){if(p.onended)p.onended()};a.onerror=function(){if(p.onerror)p.onerror()};return a.play()}).catch(function(){if(p.onerror)p.onerror()})}
         else if(p.onerror)p.onerror();
         return}
       while(idx<src.segs.length){var seg=src.segs[idx++];queue(fx?fx.push(seg):seg)}
       if((src.done||src.failed)&&idx>=src.segs.length&&fx&&!fxEnd){fxEnd=true;queue(fx.end())}
       if((src.done||src.failed)&&idx>=src.segs.length&&!endT)endT=setTimeout(fin,Math.max(0,(t-ctx.currentTime)*1000)+40);
     }
-    p.play=function(){var ctx=getCtx();if(!ctx)return Promise.reject(0);var pp=pf(),rr=+prefs.rate||1;fx=(Math.abs(pp-1)>.001||Math.abs(rr-1)>.001)?Shifter(pp,rr):null;fxEnd=false;gain=ctx.createGain();gain.gain.value=p.volume;gain.connect(ctx.destination);on=true;src.subs.push(sched);sched();return Promise.resolve()};
+    p.play=function(){var ctx=getCtx();if(!ctx)return Promise.reject(0);var pp=pf(pv),rr=rf(pv);fx=(Math.abs(pp-1)>.001||Math.abs(rr-1)>.001)?Shifter(pp,rr):null;fxEnd=false;gain=ctx.createGain();gain.gain.value=p.volume;gain.connect(ctx.destination);on=true;src.subs.push(sched);sched();return Promise.resolve()};
     p.pause=function(){on=false;p._fallback=null;try{p._alt&&p._alt.pause()}catch(e){}clearTimeout(endT);srcs.forEach(function(s){try{s.stop()}catch(e){}});srcs=[];src.subs=src.subs.filter(function(f){return f!==sched})};
     return p;
   }
   // escolhe o jeito mais rápido que o aparelho aguenta: som cru (Web Audio) > MediaSource > arquivo inteiro
-  function ttsPlayer(chunk){if(!getCtx())return ttsAudio(chunk);var pl=pcmPlayer(pcmSource(chunk));pl._fallback=function(){return ttsAudio(chunk)};return Promise.resolve(pl)}
+  function ttsPlayer(chunk){if(!getCtx())return ttsAudio(chunk);var v=voice(),pl=pcmPlayer(pcmSource(chunk,v),v);pl._fallback=function(){return ttsAudio(chunk)};return Promise.resolve(pl)}
   function ttsWarm(text){var c=ttsChunks(spoken(text||''));if(!c[0])return;if(getCtx())pcmSource(c[0]);else ttsUrl(c[0])}
   /* Fala em fila: recebe o texto aos poucos (push) e vai falando frase por frase, sem esperar o resto.
      O próximo áudio já fica carregado, então não tem pausa travada entre as frases. */
@@ -1083,7 +1086,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     var s=speakStream(done,onStart);s._final(String(text||'').slice(0,6000));s.end();
   }
   function phoneVoice(clean,v,finish){
-    var ph=v.pitch*(1+(prefs.pitch||0)*0.08),rt=v.rate*(prefs.rate||1);
+    var ph=Math.max(.5,Math.min(2,v.pitch*Math.pow(2,(+prefs.pitch||0)*1.2/12))),rt=v.rate*(prefs.rate||1);
     if(NATIVE&&NATIVE.speakLang){onSpoken=finish;NATIVE.speakLang(clean,ph,rt,sLang());return}
     if(NATIVE&&NATIVE.speak){onSpoken=finish;NATIVE.speak(clean,ph,rt);return}
     if(window.speechSynthesis){var u=new SpeechSynthesisUtterance(clean);u.lang=sLang();u.pitch=ph;u.rate=rt;u.volume=(prefs.vol||100)/100;u.onend=finish;speechSynthesis.speak(u);return}
@@ -1789,10 +1792,10 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   $('setOrb').onclick=function(){openVoicePicker()};
   $('nameIn').addEventListener('input',function(){prefs.name=this.value.trim();persist();renderList()});
   // Tom, velocidade e volume direto nos Ajustes (antes só dava no meio da apresentação)
-  function paintVoiceTune(){$('setPitch').value=prefs.pitch||0;$('setRate').value=prefs.rate||1;$('setVol').value=prefs.vol||100;
-    var pt=+prefs.pitch||0;$('setPitchV').textContent=pt===0?'Normal':pt<0?(pt===-1?'Um pouco mais grossa':'Bem mais grossa'):(pt===1?'Um pouco mais fina':'Bem mais fina');
+  function paintVoiceTune(){$('setPitch').value=-(prefs.pitch||0);$('setRate').value=prefs.rate||1;$('setVol').value=prefs.vol||100;
+    var pt=+prefs.pitch||0,a=Math.abs(pt),w=pt<0?'grossa':'fina';$('setPitchV').textContent=pt===0?'Normal':(a<=2?'Um pouco mais ':a<=4?'Mais ':'Bem mais ')+w;
     $('setRateV').textContent=Math.round((prefs.rate||1)*100)+'%';$('setVolV').textContent=(prefs.vol||100)+'%'}
-  ['setPitch','setRate','setVol'].forEach(function(id){$(id).oninput=function(){var v=+this.value;if(id==='setPitch')prefs.pitch=v;if(id==='setRate')prefs.rate=v;if(id==='setVol')prefs.vol=v;persist();paintVoiceTune()};
+  ['setPitch','setRate','setVol'].forEach(function(id){$(id).oninput=function(){var v=+this.value;if(id==='setPitch')prefs.pitch=-v;if(id==='setRate')prefs.rate=v;if(id==='setVol')prefs.vol=v;persist();paintVoiceTune()};
     $(id).onchange=function(){playSample(prefs.voice,null)}});
   $('setTest').onclick=function(){playSample(prefs.voice,null)};
   $('setAiLang').onchange=function(){prefs.aiLang=this.value;persist();stopSpeak();toast(this.value?'A IA vai escrever e falar em '+langLocal(this.value):'A IA vai responder na mesma língua que você usar');samplePrefetch([prefs.voice])};
@@ -1864,7 +1867,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
       ct:'Cores das conversas',cb:'Escolha a cor das suas mensagens e das respostas da IA.',cme:'Suas mensagens',cai:'Respostas da IA',mme:'Oi! Tudo bem?',mai:'Tudo ótimo! Como posso ajudar hoje?',
       ft:'Estilo de letra',fb:'Toque para ver como fica.',
       vt:'Escolha a voz da IA',vb:'Toque em ▶ para ouvir cada uma.',sample:'Oi! Eu sou a voz {n}. Prazer em te conhecer!',
-      pt2:'Ajuste a voz',pb:'Deixe mais grave ou mais aguda, mais lenta ou mais rápida.',pitch:'Tom',low:'Mais grave',high:'Mais aguda',rate:'Velocidade',slow:'Mais lenta',fast:'Mais rápida',vol:'Volume',test:'Ouvir como ficou',
+      pt2:'Ajuste a voz',pb:'Deixe mais grave ou mais aguda, mais lenta ou mais rápida.',pitch:'Tom',low:'Mais grossa',high:'Mais fina',rate:'Velocidade',slow:'Mais lenta',fast:'Mais rápida',vol:'Volume',test:'Ouvir como ficou',
       dt:'Tudo pronto!',db:'Você pode mudar tudo isso quando quiser em Ajustes.'},
     en:{skip:'Skip',back:'Back',next:'Next',start:'Get started',
       w1t:'Welcome to JJGlasses',w1b:'Your AI assistant that talks by voice, sees through the camera and works with smart glasses.',
@@ -1946,13 +1949,13 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     if(btn){btn.classList.add('busy');btn.textContent='⏳'}
     var off=function(){if(btn){btn.classList.remove('busy');btn.textContent='▶'}};
     var v=sampleVoice(id),vol=Math.max(0,Math.min(1,(prefs.vol||100)/100)),fallback=function(){off();if(mine===sampleTok)phoneVoice(sampleText(id),v,function(){})};
-    if(getCtx()){var src=pcmSource(sampleText(id),v,sampleLang()),pl=pcmPlayer(src);pl.volume=vol;
+    if(getCtx()){var src=pcmSource(sampleText(id),v,sampleLang()),pl=pcmPlayer(src,v);pl.volume=vol;
       pl._fallback=function(){return sampleFetch(id).then(function(u){return new Audio(u)})};
       pl.onerror=fallback;pl.onended=function(){if(curAudio===pl)curAudio=null};
       var go=function(){if(mine!==sampleTok)return;off();curAudio=pl;pl.play()};
       if(src.segs.length||src.failed)go();else{var w=function(){src.subs=src.subs.filter(function(f){return f!==w});go()};src.subs.push(w)}
       return}
-    sampleFetch(id).then(function(url){off();if(mine!==sampleTok)return;var a=shiftPitch(new Audio(url));a.volume=vol;curAudio=a;return a.play()}).catch(fallback)}
+    sampleFetch(id).then(function(url){off();if(mine!==sampleTok)return;var a=shiftPitch(new Audio(url),v);a.volume=vol;curAudio=a;return a.play()}).catch(fallback)}
   function markVoice(){document.querySelectorAll('#obBody [data-voice]').forEach(function(el){el.setAttribute('aria-pressed',String(el.getAttribute('data-voice')===prefs.voice))})}
   var STEP={
     w1:function(t){return '<div class="hero"><div class="big">🕶️</div><b>'+esc(t.w1t)+(prefs.name?', '+esc(prefs.name):'')+'!</b><span>'+esc(t.w1b)+'</span></div>'},
@@ -1963,18 +1966,18 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     colors:function(t){var x=XT();return '<h2>'+esc(t.ct)+'</h2><p class="lead">'+esc(t.cb)+'</p><div class="mock"><div class="m me">'+esc(t.mme)+'</div><div class="m ai">'+esc(t.mai)+'</div></div><div class="seg"><button data-cwt="me" aria-pressed="'+(cwTarget==='me')+'">'+esc(t.cme)+'</button><button data-cwt="ai" aria-pressed="'+(cwTarget==='ai')+'">'+esc(t.cai)+'</button></div><div class="wheel" id="cwWheel"><canvas id="cwCan"></canvas><i id="cwKnob"></i></div>'+slider('cwVal',x.int,8,100,1,100,x.dark,x.light)+'<div class="swatches small" id="cwPre"></div>'},
     font:function(t){return '<h2>'+esc(t.ft)+'</h2><p class="lead">'+esc(t.fb)+'</p><div class="opts">'+FONTS.map(function(f){loadFont(f);return '<button class="opt" data-font="'+f[0]+'" aria-pressed="'+(prefs.font===f[0])+'" style="font-family:'+f[2].replace(/"/g,'&quot;')+'">'+esc(f[1])+'<small style="font-family:inherit">'+esc(t.mai)+'</small></button>'}).join('')+'</div>'},
     voice:function(t){return '<h2>'+esc(t.vt)+'</h2><p class="lead">'+esc(t.vb)+'</p>'+voiceList()},
-    tune:function(t){return '<h2>'+esc(t.pt2)+'</h2><p class="lead">'+esc(t.pb)+'</p>'+slider('obPitch',t.pitch,-2,2,1,prefs.pitch,t.low,t.high)+slider('obRate',t.rate,0.8,1.25,0.05,prefs.rate,t.slow,t.fast)+slider('obVol',t.vol,20,100,5,prefs.vol,'20%','100%')+'<button class="btn main" id="obTest">▶ '+esc(t.test)+'</button><h3 class="subh">'+esc(XT().other)+'</h3><p class="lead">'+esc(t.vb)+'</p>'+voiceList()},
+    tune:function(t){return '<h2>'+esc(t.pt2)+'</h2><p class="lead">'+esc(t.pb)+'</p>'+slider('obPitch',t.pitch,-5,5,1,-(prefs.pitch||0),t.high,t.low)+slider('obRate',t.rate,0.8,1.25,0.05,prefs.rate,t.slow,t.fast)+slider('obVol',t.vol,20,100,5,prefs.vol,'20%','100%')+'<button class="btn main" id="obTest">▶ '+esc(t.test)+'</button><h3 class="subh">'+esc(XT().other)+'</h3><p class="lead">'+esc(t.vb)+'</p>'+voiceList()},
     done:function(t){return '<div class="hero" style="background:linear-gradient(135deg,#7C5CFF,#DB2777)"><div class="big">🎉</div><b>'+esc(t.dt)+'</b><span>'+esc(t.db)+'</span></div><div class="mock"><div class="m me">'+esc(t.mme)+'</div><div class="m ai">'+esc(t.mai)+'</div></div>'}
   };
   function sampleText(id){return introText(id)}
-  function paintTune(){if(!$('obPitch'))return;var t=T();$('obPitchV').textContent=prefs.pitch>0?'+'+prefs.pitch:String(prefs.pitch);$('obRateV').textContent=Math.round(prefs.rate*100)+'%';$('obVolV').textContent=prefs.vol+'%'}
+  function paintTune(){if(!$('obPitch'))return;var t=T();$('obPitchV').textContent=!prefs.pitch?'0':prefs.pitch>0?'+'+prefs.pitch:String(prefs.pitch);$('obRateV').textContent=Math.round(prefs.rate*100)+'%';$('obVolV').textContent=prefs.vol+'%'}
   function renderOb(){
     var t=T(),key=obSteps[obStep];
     $('obDots').innerHTML=obSteps.map(function(_,i){return '<i class="'+(i<=obStep?'on':'')+'"></i>'}).join('');
     $('obSkip').textContent=t.skip;$('obBack').textContent=t.back;$('obBack').style.visibility=obStep?'visible':'hidden';
     $('obNext').textContent=obStep===obSteps.length-1?t.start:t.next;
     $('obBody').innerHTML=STEP[key](t);$('obBody').scrollTop=0;
-    if(key==='tune'){paintTune();['obPitch','obRate','obVol'].forEach(function(id){$(id).oninput=function(){var v=+this.value;if(id==='obPitch')prefs.pitch=v;if(id==='obRate')prefs.rate=v;if(id==='obVol')prefs.vol=v;persist();paintTune();clearTimeout(window._tuneT);window._tuneT=setTimeout(function(){samplePrefetch([prefs.voice])},700)}});$('obTest').onclick=function(){playSample(prefs.voice,null)}}
+    if(key==='tune'){paintTune();['obPitch','obRate','obVol'].forEach(function(id){$(id).oninput=function(){var v=+this.value;if(id==='obPitch')prefs.pitch=-v;if(id==='obRate')prefs.rate=v;if(id==='obVol')prefs.vol=v;persist();paintTune();clearTimeout(window._tuneT);window._tuneT=setTimeout(function(){samplePrefetch([prefs.voice])},700)}});$('obTest').onclick=function(){playSample(prefs.voice,null)}}
     if(key==='colors')cwInit();
     if(key==='voice'||key==='tune')samplePrefetch([prefs.voice].concat(VOICES.map(function(v){return v.id})));
     if(key==='font'||key==='colors'||key==='theme')samplePrefetch([prefs.voice]);
