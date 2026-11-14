@@ -1,13 +1,14 @@
 {
-  "v": 202611141522,
+  "v": 202611141542,
   "notes": {
-    "t": "Vozes bem diferentes e Tom com mais alcance",
+    "t": "Opções embaixo de cada resposta",
     "b": [
-      "Cada personagem agora tem o tom e o ritmo dele: o Davi é bem grave e devagar, a Bia é fina e alegre, a Rita fala rápido, o Theo é leve e animado. Troque de voz e ouça a diferença.",
-      "O Tom ficou com mais alcance: dá para deixar a voz bem mais fina ou bem mais grossa.",
-      "O controle do Tom agora vai de fina (esquerda) a grossa (direita), em Ajustes e na apresentação."
+      "Embaixo de cada resposta da IA agora tem o botão Fontes: mostra os sites que ela pesquisou, e é só tocar para abrir.",
+      "O botão Compartilhar manda a pergunta e a resposta para o WhatsApp, e-mail ou quem você quiser.",
+      "No ⋮ (Mais opções): Ouvir em voz alta, Copiar, Gostei, Não gostei, Tentar de novo, Nova conversa a partir daqui e Ver fontes.",
+      "Para o Compartilhar abrir a janela do Android, instale o APK novo por cima."
     ]
   },
-  "bytes": 180014,
-  "sha256": "b6eca19eb96063630822629226f98971ff9e60d39ea6fbbf2953fa9781991ffc"
+  "bytes": 187576,
+  "sha256": "0e1dc71dd7eea35c5af188f8b6ecac89e04af45eaa45d4d105e987eadb5a03b2"
 }
