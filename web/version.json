@@ -1,12 +1,36 @@
 {
-  "v": 202611072112,
+  "v": 202611132255,
   "notes": {
-    "t": "Voz saindo ainda mais rápido",
+    "t": "Nuvem, tradutor, lembretes e busca",
     "b": [
-      "A voz agora chega do servidor em som cru, o formato mais rápido, e começa a tocar com os primeiros pedacinhos.",
-      "No aviso de novidades, o Ouvir já fica preparado e sai praticamente na hora do toque."
+      {
+        "txt": "Busca nas conversas: digite e o app acha pelo título ou por qualquer mensagem, mostra o trecho marcado e abre direto na mensagem.",
+        "area": "Menu ☰ → Buscar nas conversas",
+        "img": "novidades/2026-11-13/1-busca.jpg"
+      },
+      {
+        "txt": "Três pontinhos em cada conversa: escolher a língua em que a IA fala nessa conversa, renomear, fixar no topo, copiar tudo ou apagar.",
+        "area": "Menu ☰ → ⋮ ao lado da conversa, ou ⋮ no topo da conversa aberta",
+        "img": "novidades/2026-11-13/2-tres-pontinhos.jpg"
+      },
+      {
+        "txt": "A IA pode falar em outra língua só naquela conversa (a voz também muda de língua).",
+        "area": "⋮ → A IA fala em…",
+        "img": "novidades/2026-11-13/3-lingua-da-conversa.jpg"
+      },
+      {
+        "txt": "Tradutor em tempo real: deixe o celular entre vocês; quando alguém para de falar, ele traduz e fala a tradução. Tem modo frente a frente.",
+        "area": "Menu ☰ → Tradutor (ou botão +)",
+        "img": "novidades/2026-11-13/5-tradutor.jpg"
+      },
+      {
+        "txt": "Lembretes e alarmes: marque na tela ou peça no chat (\"me lembra amanhã às 9h de ligar pro médico\"). Alarme toca até você mexer.",
+        "area": "Menu ☰ → Lembretes e alarmes",
+        "img": "novidades/2026-11-13/4-lembretes.jpg"
+      },
+      "Suas conversas e lembretes agora ficam salvos na nuvem e aparecem iguais no celular e no PC."
     ]
   },
-  "bytes": 132930,
-  "sha256": "fe94a221740765056d12780f56301ded65bf0f2fd4edf59c45448c0d01cc4667"
+  "bytes": 167356,
+  "sha256": "cd1ccadbaf06dcce0736547a80eedaa24aedbc0dde4efa306245d62e2d6d706e"
 }
