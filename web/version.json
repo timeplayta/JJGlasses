@@ -1,36 +1,13 @@
 {
-  "v": 202611132311,
+  "v": 202611132327,
   "notes": {
-    "t": "Nuvem, tradutor, lembretes e busca",
+    "t": "Língua da conversa obedecida",
     "b": [
-      {
-        "txt": "Busca nas conversas: digite e o app acha pelo título ou por qualquer mensagem, mostra o trecho marcado e abre direto na mensagem.",
-        "area": "Menu ☰ → Buscar nas conversas",
-        "img": "novidades/2026-11-13/1-busca.jpg"
-      },
-      {
-        "txt": "Três pontinhos em cada conversa: escolher a língua em que a IA fala nessa conversa, renomear, fixar no topo, copiar tudo ou apagar.",
-        "area": "Menu ☰ → ⋮ ao lado da conversa, ou ⋮ no topo da conversa aberta",
-        "img": "novidades/2026-11-13/2-tres-pontinhos.jpg"
-      },
-      {
-        "txt": "A IA pode falar em outra língua só naquela conversa (a voz também muda de língua).",
-        "area": "⋮ → A IA fala em…",
-        "img": "novidades/2026-11-13/3-lingua-da-conversa.jpg"
-      },
-      {
-        "txt": "Tradutor em tempo real: deixe o celular entre vocês; quando alguém para de falar, ele traduz e fala a tradução. Tem modo frente a frente.",
-        "area": "Menu ☰ → Tradutor (ou botão +)",
-        "img": "novidades/2026-11-13/5-tradutor.jpg"
-      },
-      {
-        "txt": "Lembretes e alarmes: marque na tela ou peça no chat (\"me lembra amanhã às 9h de ligar pro médico\"). Alarme toca até você mexer.",
-        "area": "Menu ☰ → Lembretes e alarmes",
-        "img": "novidades/2026-11-13/4-lembretes.jpg"
-      },
-      "Suas conversas e lembretes agora ficam salvos na nuvem e aparecem iguais no celular e no PC."
+      "Quando você escolhe uma língua nos três pontinhos (por exemplo francês), a IA agora escreve e fala sempre nessa língua naquela conversa, mesmo que você escreva em português.",
+      "Vale para todas as línguas, também na conversa por voz e na voz reserva do celular.",
+      "As conversas e os lembretes agora ficam salvos na nuvem de verdade e aparecem iguais no celular e no PC."
     ]
   },
-  "bytes": 167468,
-  "sha256": "3c053e48e903b0a78c57e295caa9499687346b8b64d4d7d0fe53742a3d7b8230"
+  "bytes": 167503,
+  "sha256": "ac027c4889335ce5a11c890156d4f70096f75a8987615849cba869ae43a2efcb"
 }
