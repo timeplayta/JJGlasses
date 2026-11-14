@@ -553,6 +553,11 @@ public class MainActivity extends Activity {
             });
         }
 
+        @JavascriptInterface public void reminderSync(String json) {
+            Reminders.sync(MainActivity.this, json);
+            if (Build.VERSION.SDK_INT >= 33 && !has(Manifest.permission.POST_NOTIFICATIONS))
+                main.post(() -> requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQ_BT + 1));
+        }
         @JavascriptInterface public void glassesStart() { main.post(() -> { if (btAllowed()) glasses.start(); else askBluetooth(); }); }
         @JavascriptInterface public void glassesScan() { main.post(() -> { if (btAllowed()) glasses.scan(); else askBluetooth(); }); }
         @JavascriptInterface public void glassesStop() { main.post(() -> glasses.stop()); }

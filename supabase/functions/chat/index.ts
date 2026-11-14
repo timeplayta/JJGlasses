@@ -60,6 +60,23 @@ const TOOLS = [
   {
     type: "function",
     function: {
+      name: "criar_lembrete",
+      description: "Marca um lembrete ou alarme no celular da pessoa. Use quando ela pedir para lembrar de algo, avisar, acordar ou despertar em um horário.",
+      parameters: {
+        type: "object",
+        properties: {
+          quando: { type: "string", description: "Data e hora em ISO 8601 com o fuso da pessoa, ex.: 2026-11-14T09:00:00-03:00" },
+          texto: { type: "string", description: "O que lembrar, curto" },
+          tipo: { type: "string", enum: ["lembrete", "alarme"], description: "alarme quando for para acordar/despertar ou tocar som; senão lembrete" },
+          repetir: { type: "string", enum: ["nao", "diario", "semanal"] },
+        },
+        required: ["quando", "texto"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
       name: "clima",
       description: "Clima agora e previsão dos próximos dias. Sem cidade, usa onde a pessoa está.",
       parameters: { type: "object", properties: { cidade: { type: "string", description: "Cidade, opcional" } } },
@@ -68,7 +85,7 @@ const TOOLS = [
 ];
 
 type Turn = { role: "user" | "assistant"; text: string; image?: string };
-type Body = { turns?: Turn[]; name?: string; live?: boolean; stream?: boolean; lang?: string; place?: { lat: number; lon: number; label?: string } };
+type Body = { turns?: Turn[]; name?: string; live?: boolean; stream?: boolean; lang?: string; tz?: string; task?: string; text?: string; a?: string; b?: string; place?: { lat: number; lon: number; label?: string } };
 
 // Login já conferido fica guardado por 5 min (a resposta começa mais rápido).
 const okTokens = new Map<string, number>();
@@ -136,6 +153,7 @@ async function runTool(key: string, name: string, rawArgs: string, place?: Body[
   try {
     if (name === "buscar_na_internet") return await webSearch(key, String(args.consulta ?? ""));
     if (name === "clima") return await weather(String(args.cidade ?? "").trim(), place);
+    if (name === "criar_lembrete") return `Pronto: ${args.tipo === "alarme" ? "alarme" : "lembrete"} marcado no celular da pessoa para ${args.quando} (${args.texto}). Confirme em uma frase curta, dizendo o dia e a hora do jeito que se fala.`;
   } catch (e) { return `Erro ao usar ${name}: ${e}`; }
   return "Ferramenta desconhecida.";
 }
@@ -191,6 +209,7 @@ function streamAnswer(key: string, messages: Record<string, unknown>[], models: 
             messages.push(m);
             out({ tool: tc.map((t) => t.function.name).join(",") });
             for (const call of tc) {
+              if (call.function.name === "criar_lembrete") { try { out({ lembrete: JSON.parse(call.function.arguments || "{}") }); } catch { /* sem dados */ } }
               const result = await runTool(key, call.function.name, call.function.arguments, place);
               messages.push({ role: "tool", tool_call_id: call.id, name: call.function.name, content: result.slice(0, 12000) });
             }
@@ -206,6 +225,26 @@ function streamAnswer(key: string, messages: Record<string, unknown>[], models: 
   return new Response(stream, { headers: { ...CORS, "Content-Type": "application/x-ndjson", "Cache-Control": "no-store" } });
 }
 
+/* Tradutor em tempo real: descobre se a frase foi dita na língua A ou B e traduz para a outra. */
+async function translate(key: string, body: Body): Promise<Response> {
+  const text = String(body.text ?? "").trim().slice(0, 2000);
+  const a = String(body.a ?? "Portuguese (Brazil)").slice(0, 40), b = String(body.b ?? "English").slice(0, 40);
+  if (!text) return json({ error: "texto_vazio" }, 400);
+  const sys = `Você é um intérprete. Língua A: ${a}. Língua B: ${b}.\nA frase foi falada em A ou em B. Descubra qual e traduza para a OUTRA língua, do jeito natural que um nativo falaria (não palavra por palavra), mantendo o tom.\nResponda SOMENTE com JSON: {"de":"a" ou "b","texto":"tradução"}`;
+  for (const model of ["kimi-k3.1-pro-highspeed", "kimi-k3.1-pro", "kimi-k3"]) {
+    const res = await fetch(ENDPOINT, { method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model, reasoning_effort: "low", response_format: { type: "json_object" }, messages: [{ role: "system", content: sys }, { role: "user", content: text }] }) });
+    if (!res.ok) { console.error("traduzir", model, res.status, (await res.text().catch(() => "")).slice(0, 200)); continue; }
+    const data = await res.json();
+    const raw = String(data?.choices?.[0]?.message?.content ?? "");
+    try {
+      const j = JSON.parse(raw.slice(raw.indexOf("{"), raw.lastIndexOf("}") + 1));
+      if (j?.texto) return json({ de: j.de === "b" ? "b" : "a", texto: String(j.texto) });
+    } catch { /* tenta o próximo */ }
+  }
+  return json({ error: "traducao_falhou" }, 502);
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") return json({ error: "use_post" }, 405);
@@ -215,11 +254,16 @@ Deno.serve(async (req: Request) => {
 
   let body: Body;
   try { body = await req.json(); } catch { return json({ error: "json_invalido" }, 400); }
+  if (body.task === "traduzir") return translate(key, body);
   const turns = (body.turns ?? []).slice(-24);
   if (!turns.length) return json({ error: "sem_mensagem" }, 400);
 
-  const now = new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", dateStyle: "full", timeStyle: "short" });
-  let extra = `\n\nAgora é ${now} (horário de Brasília).`;
+  let tz = "America/Sao_Paulo";
+  try { if (body.tz) { new Date().toLocaleString("en-US", { timeZone: body.tz }); tz = body.tz; } } catch { /* fuso inválido */ }
+  const now = new Date().toLocaleString("pt-BR", { timeZone: tz, dateStyle: "full", timeStyle: "short" });
+  const iso = new Date().toLocaleString("sv-SE", { timeZone: tz }).replace(" ", "T");
+  const off = (new Date().toLocaleString("en-US", { timeZone: tz, timeZoneName: "longOffset" }).match(/GMT([+-]\d\d:\d\d)/) ?? [, "+00:00"])[1];
+  let extra = `\n\nAgora é ${now} no fuso da pessoa (${tz}, UTC${off}; data e hora local ${iso}${off}). Para lembretes e alarmes, use a ferramenta criar_lembrete com esse fuso.`;
   if (body.place?.label) extra += ` A pessoa está em ${body.place.label}.`;
   extra += " Você TEM acesso à internet pelas ferramentas buscar_na_internet e clima. Use-as para clima, notícias, preços e tudo que muda com o tempo. Nunca diga que não tem acesso à internet.";
   if (body.live) extra += "\n\n" + LIVE;
@@ -241,6 +285,7 @@ Deno.serve(async (req: Request) => {
   const effort = body.live ? "low" : seeing ? "high" : "low";
   if (body.stream) return streamAnswer(key, messages, models, effort, body.place);
   let modelIndex = 0, useTools = true;
+  const lembretes: Record<string, string>[] = [];
   for (let round = 0; round < 7; round++) {
     const payload: Record<string, unknown> = {
       model: models[modelIndex],
@@ -265,16 +310,14 @@ Deno.serve(async (req: Request) => {
         let args: Record<string, string> = {};
         try { args = JSON.parse(call?.function?.arguments ?? "{}"); } catch { /* sem argumentos */ }
         let result = "Ferramenta desconhecida.";
-        try {
-          if (name === "buscar_na_internet") result = await webSearch(key, String(args.consulta ?? ""));
-          if (name === "clima") result = await weather(String(args.cidade ?? "").trim(), body.place);
-        } catch (e) { result = `Erro ao usar ${name}: ${e}`; }
+        if (name === "criar_lembrete") lembretes.push(args);
+        result = await runTool(key, name, call?.function?.arguments ?? "{}", body.place);
         messages.push({ role: "tool", tool_call_id: call.id, name, content: result.slice(0, 12000) });
       }
       continue;
     }
     const text = String(msg?.content ?? "").trim();
-    return json({ text: text || "Não consegui responder agora. Tenta de novo." });
+    return json({ text: text || "Não consegui responder agora. Tenta de novo.", lembretes });
   }
   return json({ text: "Não consegui responder agora. Tenta de novo." });
 });
