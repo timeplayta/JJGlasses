@@ -1,14 +1,13 @@
 {
-  "v": 202611141542,
+  "v": 202611141613,
   "notes": {
-    "t": "Opções embaixo de cada resposta",
+    "t": "Cada parte da resposta com a sua fonte",
     "b": [
-      "Embaixo de cada resposta da IA agora tem o botão Fontes: mostra os sites que ela pesquisou, e é só tocar para abrir.",
-      "O botão Compartilhar manda a pergunta e a resposta para o WhatsApp, e-mail ou quem você quiser.",
-      "No ⋮ (Mais opções): Ouvir em voz alta, Copiar, Gostei, Não gostei, Tentar de novo, Nova conversa a partir daqui e Ver fontes.",
-      "Para o Compartilhar abrir a janela do Android, instale o APK novo por cima."
+      "Quando a IA pesquisa na internet, cada parte da resposta agora mostra a sua própria fonte logo no fim dela, com o nome e o ícone do site.",
+      "Toque no selo da fonte para abrir o site daquela parte. Se tiver mais de uma (ex.: +1), abre a lista só daquele trecho.",
+      "O botão Fontes, no fim da resposta, continua mostrando todos os sites que ela usou."
     ]
   },
-  "bytes": 187576,
-  "sha256": "0e1dc71dd7eea35c5af188f8b6ecac89e04af45eaa45d4d105e987eadb5a03b2"
+  "bytes": 189613,
+  "sha256": "9a1eee9293c50b8e9581526454b606b015ce9a06c4ce2f84addf4e86405aa88b"
 }
