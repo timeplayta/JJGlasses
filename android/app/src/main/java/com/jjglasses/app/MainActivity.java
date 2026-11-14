@@ -4,6 +4,9 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -360,6 +363,21 @@ public class MainActivity extends Activity {
         catch (ActivityNotFoundException ignored) { }
     }
 
+    /** Abre a janela do Android "Compartilhar com..." (WhatsApp, e-mail, etc.) com o texto. */
+    private void shareOut(String text) {
+        Intent send = new Intent(Intent.ACTION_SEND);
+        send.setType("text/plain");
+        send.putExtra(Intent.EXTRA_TEXT, text);
+        try { startActivity(Intent.createChooser(send, "Compartilhar com")); }
+        catch (ActivityNotFoundException ignored) { }
+    }
+
+    /** Copia o texto para a área de transferência (clipboard) do celular. */
+    private void copyOut(String text) {
+        ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        if (cm != null) cm.setPrimaryClip(ClipData.newPlainText("JJGlasses", text));
+    }
+
     private class ShellChrome extends WebChromeClient {
         @Override public void onPermissionRequest(PermissionRequest request) {
             ArrayList<String> need = new ArrayList<>();
@@ -516,6 +534,10 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void applyUpdate() { main.post(MainActivity.this::applyStaged); }
 
         @JavascriptInterface public void openExternal(String url) { main.post(() -> openOutside(url)); }
+
+        @JavascriptInterface public void shareText(String text) { main.post(() -> shareOut(text)); }
+
+        @JavascriptInterface public void copyText(String text) { main.post(() -> copyOut(text)); }
 
         @JavascriptInterface public void keepScreenOn(boolean on) {
             main.post(() -> {

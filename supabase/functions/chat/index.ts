@@ -112,7 +112,15 @@ async function userFromToken(req: Request): Promise<boolean> {
   return res.ok;
 }
 
-async function webSearch(key: string, query: string): Promise<string> {
+type Fonte = { t: string; u: string };
+// guarda os sites pesquisados (vira o botão "Fontes" embaixo da resposta no app)
+function addFonte(list: Fonte[] | undefined, t: unknown, u: unknown) {
+  const url = String(u ?? "");
+  if (!list || !/^https?:\/\//.test(url) || list.some((f) => f.u === url) || list.length >= 8) return;
+  list.push({ t: String(t ?? "").slice(0, 120), u: url.slice(0, 500) });
+}
+
+async function webSearch(key: string, query: string, fontes?: Fonte[]): Promise<string> {
   if (!query) return "Consulta vazia.";
   const res = await fetch("https://api.moonshot.ai/v1/tools/search", {
     method: "POST",
@@ -136,6 +144,7 @@ async function webSearch(key: string, query: string): Promise<string> {
   if (!items.length) return JSON.stringify(data).slice(0, 6000);
   return items.slice(0, 6).map((raw) => {
     const it = raw as Record<string, unknown>;
+    addFonte(fontes, it.title, it.url);
     const chunks = Array.isArray(it.chunks) ? (it.chunks as Record<string, unknown>[]).slice(0, 2).map((c) => String(c.text ?? "").slice(0, 500)).join(" ") : "";
     return `- ${it.title ?? ""}\n  ${String(it.snippet ?? it.summary ?? "").slice(0, 700)} ${chunks}\n  ${it.date ? "data: " + it.date + "\n  " : ""}${it.url ?? ""}`;
   }).join("\n");
@@ -158,12 +167,12 @@ async function weather(city: string, place?: Body["place"]): Promise<string> {
   return `Local: ${label}\n${body.slice(0, 4000)}\n(weather_code WMO: 0 céu limpo, 1-3 nuvens, 45/48 neblina, 51-67 chuva, 71-77 neve, 80-82 pancadas, 95-99 trovoadas)`;
 }
 
-async function runTool(key: string, name: string, rawArgs: string, place?: Body["place"]): Promise<string> {
+async function runTool(key: string, name: string, rawArgs: string, place?: Body["place"], fontes?: Fonte[]): Promise<string> {
   let args: Record<string, string> = {};
   try { args = JSON.parse(rawArgs || "{}"); } catch { /* sem argumentos */ }
   try {
-    if (name === "buscar_na_internet") return await webSearch(key, String(args.consulta ?? ""));
-    if (name === "clima") return await weather(String(args.cidade ?? "").trim(), place);
+    if (name === "buscar_na_internet") return await webSearch(key, String(args.consulta ?? ""), fontes);
+    if (name === "clima") { addFonte(fontes, "Open-Meteo (previsão do tempo)", "https://open-meteo.com/"); return await weather(String(args.cidade ?? "").trim(), place); }
     if (name === "criar_lembrete") return `Pronto: ${args.tipo === "alarme" ? "alarme" : "lembrete"} marcado no celular da pessoa para ${args.quando} (${args.texto}). Confirme em uma frase curta, dizendo o dia e a hora do jeito que se fala.`;
   } catch (e) { return `Erro ao usar ${name}: ${e}`; }
   return "Ferramenta desconhecida.";
@@ -203,6 +212,7 @@ function streamAnswer(key: string, prepare: (out: (o: unknown) => void) => Promi
         if (!prep) { out({ done: true }); ctrl.close(); return; }
         const { messages, models, effort, maxTokens } = prep;
         let modelIndex = 0, useTools = true;
+        const fontes: Fonte[] = [];
         for (let round = 0; round < 7; round++) {
           const payload: Record<string, unknown> = { model: models[modelIndex], reasoning_effort: effort, messages, stream: true };
           if (maxTokens) payload.max_tokens = maxTokens;
@@ -247,9 +257,10 @@ function streamAnswer(key: string, prepare: (out: (o: unknown) => void) => Promi
             out({ tool: tc.map((t) => t.function.name).join(",") });
             for (const call of tc) {
               if (call.function.name === "criar_lembrete") { try { out({ lembrete: JSON.parse(call.function.arguments || "{}") }); } catch { /* sem dados */ } }
-              const result = await runTool(key, call.function.name, call.function.arguments, place);
+              const result = await runTool(key, call.function.name, call.function.arguments, place, fontes);
               messages.push({ role: "tool", tool_call_id: call.id, name: call.function.name, content: result.slice(0, 12000) });
             }
+            if (fontes.length) out({ fontes });
             continue;
           }
           if (!content.trim()) out({ d: "Não consegui responder agora. Tenta de novo." });
@@ -353,6 +364,7 @@ Deno.serve(async (req: Request) => {
   if (body.stream) return streamAnswer(key, async () => prep, body.place);
   let modelIndex = 0, useTools = true;
   const lembretes: Record<string, string>[] = [];
+  const fontes: Fonte[] = [];
   for (let round = 0; round < 7; round++) {
     const payload: Record<string, unknown> = {
       model: models[modelIndex],
@@ -378,13 +390,13 @@ Deno.serve(async (req: Request) => {
         try { args = JSON.parse(call?.function?.arguments ?? "{}"); } catch { /* sem argumentos */ }
         let result = "Ferramenta desconhecida.";
         if (name === "criar_lembrete") lembretes.push(args);
-        result = await runTool(key, name, call?.function?.arguments ?? "{}", body.place);
+        result = await runTool(key, name, call?.function?.arguments ?? "{}", body.place, fontes);
         messages.push({ role: "tool", tool_call_id: call.id, name, content: result.slice(0, 12000) });
       }
       continue;
     }
     const text = String(msg?.content ?? "").trim();
-    return json({ text: text || "Não consegui responder agora. Tenta de novo.", lembretes });
+    return json({ text: text || "Não consegui responder agora. Tenta de novo.", lembretes, fontes });
   }
   return json({ text: "Não consegui responder agora. Tenta de novo." });
 });

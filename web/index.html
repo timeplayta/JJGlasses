@@ -67,7 +67,14 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 .m.ai a{color:var(--accent)}
 .m img{display:block;max-width:100%;width:240px;border-radius:14px;margin-bottom:6px}
 .m .gen{width:100%;max-width:320px;aspect-ratio:1;object-fit:cover;background:var(--bg)}
-.m .acts{display:flex;gap:8px;margin-top:8px}
+.m .acts{display:flex;gap:2px;margin:8px 0 -4px -6px;align-items:center;flex-wrap:wrap}
+.ib{appearance:none;border:0;background:none;color:var(--mute);width:38px;height:38px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;padding:0}
+.ib:active{background:var(--bg)}.ib .i{width:20px;height:20px}.ib.on{color:var(--accent)}
+.srcb{appearance:none;display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:4px 12px 4px 10px;margin-left:6px;font-size:13.5px;font-weight:600}
+.favs{display:inline-flex}.favs i{margin-left:-6px}.favs i:first-child{margin-left:0}
+.favs i,.srcit i{display:inline-block;width:18px;height:18px;border-radius:50%;background:#fff center/cover no-repeat;border:1.5px solid var(--bg);flex:none}
+.srcit i{width:26px;height:26px;border-radius:7px;border:1px solid var(--line)}
+.m .acts .chip[data-say]{margin-left:6px}
 .chip{appearance:none;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:7px 12px;font-size:13px;font-weight:500}
 .caret{display:inline-block;width:8px;height:1em;margin-left:2px;vertical-align:-2px;border-radius:2px;background:var(--mute);animation:b 1s infinite}
 .typing{display:inline-flex;gap:4px}.typing i{width:7px;height:7px;border-radius:50%;background:var(--mute);animation:b 1s infinite}
@@ -470,6 +477,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 </div>
 
 <!-- menu dos 3 pontinhos de uma conversa -->
+<div class="bs" id="mm" hidden><div class="bsbox" role="dialog" aria-label="Opções da resposta"><div class="bstop"><b id="mmTitle">Mais opções</b><button class="icon" id="mmX" aria-label="Fechar"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div class="bsbody" id="mmBody"></div></div></div>
 <div class="bs" id="cm" hidden><div class="bsbox" role="dialog" aria-label="Opções da conversa"><div class="bstop"><b id="cmTitle">Conversa</b><button class="icon" id="cmX" aria-label="Fechar"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div class="bsbody" id="cmBody"></div></div></div>
 
 <!-- tradutor em tempo real -->
@@ -619,13 +627,13 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   var draft=null,busy=false,hlQuery=null;
 
   var lastSig={};chats.forEach(function(c){lastSig[c.id]=chatSig(c)});
-  function chatSig(c){var m=c.msgs.filter(function(x){return !x.pending}),l=m[m.length-1];return [c.title,c.lang||'',c.pinned?1:0,m.length,l?String(l.text||'').length:0].join('|')}
+  function chatSig(c){var m=c.msgs.filter(function(x){return !x.pending}),l=m[m.length-1];return [c.title,c.lang||'',c.pinned?1:0,m.length,l?String(l.text||'').length:0,m.map(function(x){return x.fb?x.fb[0]:''}).join('')].join('|')}
   function persist(){
     // descobre o que mudou para mandar só isso para a nuvem
     var seen={};
     chats.forEach(function(c){seen[c.id]=1;if(c.msgs.some(function(m){return m.pending}))return;var g=chatSig(c);if(lastSig[c.id]!==g){lastSig[c.id]=g;c.up=Date.now();if(window.markDirty)markDirty(c.id)}});
     Object.keys(lastSig).forEach(function(id){if(!seen[id]){delete lastSig[id];if(window.markDirty)markDirty(id)}});
-    var slim=chats.slice(0,60).map(function(c){return {id:c.id,title:c.title,at:c.at,up:c.up||0,lang:c.lang||'',pinned:!!c.pinned,msgs:c.msgs.filter(function(m){return !m.pending}).slice(-80).map(function(m){return {role:m.role,text:m.text,img:(m.img&&m.img.length<300000)?m.img:null,file:m.file||null,ftext:m.ftext||null}})}});
+    var slim=chats.slice(0,60).map(function(c){return {id:c.id,title:c.title,at:c.at,up:c.up||0,lang:c.lang||'',pinned:!!c.pinned,msgs:c.msgs.filter(function(m){return !m.pending}).slice(-80).map(function(m){return {role:m.role,text:m.text,img:(m.img&&m.img.length<300000)?m.img:null,file:m.file||null,ftext:m.ftext||null,src:m.src||undefined,fb:m.fb||undefined}})}});
     save('jj_chats',slim);save('jj_prefs',prefs);
   }
   function chat(){for(var i=0;i<chats.length;i++)if(chats[i].id===cur)return chats[i];return null}
@@ -735,7 +743,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     c.msgs.forEach(function(m,idx){
       if(m.role==='me') h+='<div class="m me">'+(m.img?'<img src="'+m.img+'" alt="Foto enviada">':'')+(m.file?'<div class="fchip">📎 '+esc(m.file)+'</div><br>':'')+esc(m.text)+'</div>';
       else if(m.pending) h+='<div class="m ai">'+(m.text?md(m.text)+'<span class="caret"></span>':'<span class="typing" aria-label="Respondendo"><i></i><i></i><i></i></span>')+'</div>';
-      else h+='<div class="m ai">'+md(m.text)+'<div class="acts"><button class="chip" data-say="'+idx+'">Ouvir</button><button class="chip" data-copy="'+idx+'">Copiar</button></div></div>';
+      else h+='<div class="m ai">'+md(m.text)+actsHtml(m,idx)+'</div>';
     });
     col.innerHTML=h;
     var box=$('msgs');
@@ -764,8 +772,77 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
       var idx=+say.getAttribute('data-say');
       speak(chat().msgs[idx].text,function(){sayOff()},function(){if(sayBtn===say)say.textContent='Parar'});
       say.classList.add('on');say.textContent='Carregando…';sayBtn=say;return}
-    var cp=e.target.closest('[data-copy]');if(cp){var t=chat().msgs[+cp.getAttribute('data-copy')].text;
-      (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){toast('Copiado')},function(){toast('Não deu pra copiar')});}
+    var b=e.target.closest('[data-src]');if(b){openSources(+b.getAttribute('data-src'));return}
+    b=e.target.closest('[data-share]');if(b){shareMsg(+b.getAttribute('data-share'));return}
+    b=e.target.closest('[data-mm]');if(b){openMsgMenu(+b.getAttribute('data-mm'));return}
+  });
+
+  /* ---------- barra embaixo de cada resposta (como no ChatGPT) ----------
+     À vista: Fontes (sites que a IA pesquisou) e Compartilhar. O resto fica no ⋮ (Mais opções). */
+  var IC={
+    share:'<svg class="i" viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.7l7.4-4.3M8.3 13.3l7.4 4.3"/></svg>',
+    up:'<svg class="i" viewBox="0 0 24 24"><path d="M7 21H4V11h3M7 11l4-8c1.6 0 2.7 1.3 2.3 2.9L12.6 9H19a2 2 0 0 1 2 2.3l-1.2 7.2A2 2 0 0 1 17.8 21H7z"/></svg>',
+    down:'<svg class="i" viewBox="0 0 24 24"><path d="M17 3h3v10h-3M17 13l-4 8c-1.6 0-2.7-1.3-2.3-2.9l.7-3.1H5a2 2 0 0 1-2-2.3l1.2-7.2A2 2 0 0 1 6.2 3H17z"/></svg>'};
+  function host(u){try{return new URL(u).hostname.replace(/^www\./,'')}catch(e){return ''}}
+  function favi(u){return '<i style="background-image:url(https://www.google.com/s2/favicons?sz=64&amp;domain='+encodeURIComponent(host(u))+')"></i>'}
+  function actsHtml(m,idx){
+    var h='<div class="acts">';
+    if(m.src&&m.src.length)h+='<button class="srcb" data-src="'+idx+'" aria-label="Ver as fontes desta resposta"><span class="favs">'+m.src.slice(0,3).map(function(x){return favi(x.u)}).join('')+'</span>Fontes</button>';
+    if(m.fb)h+='<span class="ib on" title="'+(m.fb==='up'?'Você gostou':'Você não gostou')+'">'+IC[m.fb]+'</span>';
+    h+='<button class="ib" data-share="'+idx+'" aria-label="Compartilhar">'+IC.share+'</button>';
+    h+='<button class="ib" data-mm="'+idx+'" aria-label="Mais opções">'+DOTS+'</button>';
+    return h+'<button class="chip" data-say="'+idx+'" hidden>Ouvir</button></div>';
+  }
+  function plainText(t){return String(t||'').replace(/\[\[foto:[^\]]*\]\]/g,'').replace(/\*\*([^*]+)\*\*/g,'$1').trim()}
+  function copyText(t,msg){
+    if(NATIVE&&NATIVE.copyText){NATIVE.copyText(t);toast(msg||'Copiado');return}
+    (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){toast(msg||'Copiado')},function(){toast('Não deu pra copiar')});
+  }
+  function openLink(u){if(!/^https?:\/\//.test(u))return;if(NATIVE&&NATIVE.openExternal)NATIVE.openExternal(u);else window.open(u,'_blank','noopener')}
+  // Compartilhar: manda a pergunta + a resposta (+ fontes) para o WhatsApp, e-mail etc.
+  function shareMsg(idx){
+    var c=chat(),m=c&&c.msgs[idx];if(!m)return;var q=null;
+    for(var i=idx-1;i>=0;i--)if(c.msgs[i].role==='me'){q=c.msgs[i];break}
+    var t=(q&&q.text?'Pergunta: '+q.text+'\n\n':'')+plainText(m.text)+(m.src&&m.src.length?'\n\nFontes:\n'+m.src.map(function(x){return '- '+(x.t||host(x.u))+': '+x.u}).join('\n'):'')+'\n\n— enviado pelo JJGlasses';
+    if(NATIVE&&NATIVE.shareText){NATIVE.shareText(t);return}
+    if(navigator.share){navigator.share({text:t}).catch(function(){});return}
+    copyText(t,'Copiado. Agora é só colar para quem você quiser.');
+  }
+  var mmIdx=-1;
+  function openSources(idx){
+    var m=chat()&&chat().msgs[idx];if(!m||!m.src||!m.src.length)return;mmIdx=idx;
+    $('mmTitle').textContent='Fontes';
+    $('mmBody').innerHTML='<p class="sub" style="margin:0 6px 6px">Sites que a IA pesquisou para responder. Toque para abrir.</p>'+m.src.map(function(x,i){return '<button class="it srcit" data-si="'+i+'">'+favi(x.u)+'<span>'+esc(x.t||host(x.u))+'<small>'+esc(host(x.u))+'</small></span></button>'}).join('');
+    $('mm').hidden=false;
+  }
+  function openMsgMenu(idx){
+    var c=chat(),m=c&&c.msgs[idx];if(!m)return;mmIdx=idx;var last=idx===c.msgs.length-1;
+    var h='<button class="it" data-ma="say">🔊<span>Ouvir em voz alta</span></button>'+
+      '<button class="it" data-ma="copy">📋<span>Copiar resposta</span></button>'+
+      '<button class="it" data-ma="up" aria-pressed="'+(m.fb==='up')+'">👍<span>Gostei</span></button>'+
+      '<button class="it" data-ma="down" aria-pressed="'+(m.fb==='down')+'">👎<span>Não gostei</span></button>'+
+      (last?'<button class="it" data-ma="again">🔄<span>Tentar de novo<small>A IA responde a mesma pergunta outra vez</small></span></button>':'')+
+      '<button class="it" data-ma="branch">🌿<span>Nova conversa a partir daqui<small>Copia a conversa até esta resposta</small></span></button>'+
+      (m.src&&m.src.length?'<button class="it" data-ma="src">🔗<span>Ver fontes</span></button>':'')+
+      '<button class="it" data-ma="share">📤<span>Compartilhar</span></button>';
+    $('mmTitle').textContent='Mais opções';$('mmBody').innerHTML=h;$('mm').hidden=false;
+  }
+  function closeMsgMenu(){$('mm').hidden=true}
+  $('mmX').onclick=closeMsgMenu;$('mm').addEventListener('click',function(e){if(e.target===$('mm'))closeMsgMenu()});
+  $('mmBody').addEventListener('click',function(e){
+    var c=chat(),m=c&&c.msgs[mmIdx];if(!m)return;
+    var b=e.target.closest('[data-si]');if(b){var x=m.src[+b.getAttribute('data-si')];if(x)openLink(x.u);return}
+    b=e.target.closest('[data-ma]');if(!b)return;var a=b.getAttribute('data-ma');
+    if(a==='src'){openSources(mmIdx);return}
+    closeMsgMenu();
+    if(a==='say'){var say=$('col').querySelector('[data-say="'+mmIdx+'"]');if(say){say.hidden=false;say.click()}return}
+    if(a==='copy'){copyText(plainText(m.text),'Resposta copiada');return}
+    if(a==='up'||a==='down'){m.fb=m.fb===a?null:a;persist();renderChat();toast(m.fb?(a==='up'?'Que bom que ajudou! 👍':'Obrigado por avisar. Toque em ⋮ › Tentar de novo para outra resposta.'):'Avaliação removida');return}
+    if(a==='share'){shareMsg(mmIdx);return}
+    if(a==='branch'){var n={id:'c'+Date.now(),title:(c.title+' (continuação)').slice(0,80),at:Date.now(),lang:c.lang||'',msgs:JSON.parse(JSON.stringify(c.msgs.slice(0,mmIdx+1)))};
+      chats.unshift(n);cur=n.id;persist();renderAll();toast('Nova conversa criada a partir daqui');return}
+    if(a==='again'){if(busy)return;var q=c.msgs[mmIdx-1];if(!q||q.role!=='me'){toast('Não achei a pergunta dessa resposta.');return}
+      c.msgs.splice(mmIdx-1,2);persist();renderChat();send(q.text,q.img||'');return}
   });
 
   /* ---------- foto ---------- */
@@ -832,18 +909,18 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
         body:JSON.stringify({turns:turns,name:prefs.name||'',live:!!live,stream:!noStream,place:place,lang:langName(chatLang()),lock:langLocked(),tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||''),now:new Date().toString(),audio:extra&&extra.audio||undefined,stt:extra&&extra.stt||undefined,sttCtx:extra&&extra.sttCtx||undefined})});
     }).then(function(r){
       var ct=r.headers.get('content-type')||'';
-      if(!r.ok||ct.indexOf('ndjson')<0||!r.body||!r.body.getReader)return r.json().then(function(j){if(!r.ok||j.error)throw j;(j.lembretes||[]).forEach(function(x){window.jjAddReminder(x)});return j.text});
+      if(!r.ok||ct.indexOf('ndjson')<0||!r.body||!r.body.getReader)return r.json().then(function(j){if(!r.ok||j.error)throw j;(j.lembretes||[]).forEach(function(x){window.jjAddReminder(x)});if(j.fontes&&j.fontes.length&&extra&&extra.onSources)extra.onSources(j.fontes);return j.text});
       var rd=r.body.getReader(),dec=new TextDecoder(),buf='',acc='',err=null;
       return (function pump(){return rd.read().then(function(x){
         if(x.done){if(err&&!acc)throw err;return acc}
         buf+=dec.decode(x.value,{stream:true});var k;
         while((k=buf.indexOf('\n'))>=0){var line=buf.slice(0,k);buf=buf.slice(k+1);if(!line.trim())continue;var o;try{o=JSON.parse(line)}catch(e){continue}
-          if(o.d){acc+=o.d;if(onDelta)onDelta(acc)}else if(o.heard!==undefined){if(extra&&extra.onHeard)extra.onHeard(o.heard)}else if(o.lembrete){window.jjAddReminder(o.lembrete)}else if(o.tool){setStatus(o.tool.indexOf('clima')>=0?'Vendo o clima...':'Pesquisando na internet...')}else if(o.error){err=o}}
+          if(o.d){acc+=o.d;if(onDelta)onDelta(acc)}else if(o.heard!==undefined){if(extra&&extra.onHeard)extra.onHeard(o.heard)}else if(o.lembrete){window.jjAddReminder(o.lembrete)}else if(o.fontes){if(extra&&extra.onSources)extra.onSources(o.fontes)}else if(o.tool){setStatus(o.tool.indexOf('clima')>=0?'Vendo o clima...':'Pesquisando na internet...')}else if(o.error){err=o}}
         return pump()})})();
     });
     // se o tempo real falhar antes de chegar qualquer texto, pede do jeito antigo (resposta inteira)
     if(noStream)return p;
-    return p.catch(function(e){if(e&&(e.error==='precisa_login'||e.error==='sem_chave'))throw e;if(extra&&extra.audio)throw e;return ask(turns,live,onDelta,true)});
+    return p.catch(function(e){if(e&&(e.error==='precisa_login'||e.error==='sem_chave'))throw e;if(extra&&extra.audio)throw e;return ask(turns,live,onDelta,true,extra)});
   }
   function turnsOf(c){return c.msgs.filter(function(m){return !m.pending}).slice(-20).map(function(m){
     var t=m.text;if(m.file)t+='\n\nArquivo anexado: '+m.file+(m.ftext?'\n'+m.ftext:'\n(não consegui ler o conteúdo, só o nome)');
@@ -864,6 +941,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
       if(!h){heardEmpty=true;return}
       meMsg.text=h;if(c.title==='🎤 …')c.title=h.slice(0,40);renderChat();if(opts.onHeard)opts.onHeard(h)}}}
     var pending={role:'ai',text:'',pending:true};c.msgs.push(pending);
+    extra=extra||{};extra.onSources=function(f){pending.src=(f||[]).filter(function(x){return x&&/^https?:\/\//.test(x.u)}).slice(0,8)};
     busy=true;setStatus('Respondendo...');renderAll();
     // falar enquanto a resposta ainda está chegando (ligação, óculos ou leitura automática)
     if(!voiceOut&&prefs.speak&&!live)voiceOut={};
@@ -895,7 +973,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 
   /* ---------- voz (falar) ---------- */
   var audio=new Audio(),speakToken=0,onSpoken=null,sayBtn=null;
-  function sayOff(){var b=sayBtn;sayBtn=null;if(b){b.classList.remove('on');b.textContent='Ouvir'}}
+  function sayOff(){var b=sayBtn;sayBtn=null;if(b){b.classList.remove('on');b.textContent='Ouvir';b.hidden=true}}
   function voice(){for(var i=0;i<VOICES.length;i++)if(VOICES[i].id===prefs.voice)return VOICES[i];return VOICES[0]}
   function stopSpeak(){speakToken++;try{audio.pause()}catch(e){}try{curAudio&&curAudio.pause()}catch(e){}curAudio=null;sayOff();if(NATIVE&&NATIVE.stopSpeak)NATIVE.stopSpeak();if(window.speechSynthesis)speechSynthesis.cancel()}
   /* Voz rápida: divide o texto em pedaços. O 1º pedaço é curto (uma frase) e começa a tocar em ~1 s,
@@ -1539,7 +1617,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
       return fetch(SB_URL+'/rest/v1/'+path,{method:opt.method||'GET',headers:h,body:opt.body})});
   }
   function cloudInfo(t){cloudState=t;var el=$('cloudInfo');if(el)el.textContent=t}
-  function cloudMsgs(c){return c.msgs.filter(function(m){return !m.pending}).slice(-200).map(function(m){return {role:m.role,text:m.text,img:(m.img&&m.img.length<160000)?m.img:null,file:m.file||null}})}
+  function cloudMsgs(c){return c.msgs.filter(function(m){return !m.pending}).slice(-200).map(function(m){return {role:m.role,text:m.text,img:(m.img&&m.img.length<160000)?m.img:null,file:m.file||null,src:m.src||undefined,fb:m.fb||undefined}})}
   window.markDirty=function(id){dirty[id]=1;clearTimeout(syncT);syncT=setTimeout(pushCloud,1500)};
   function pushCloud(){
     var ids=Object.keys(dirty);if(!ids.length||!session)return;
