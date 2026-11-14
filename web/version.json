@@ -1,13 +1,14 @@
 {
-  "v": 202611132327,
+  "v": 202611132348,
   "notes": {
-    "t": "Língua da conversa obedecida",
+    "t": "Ligação mais rápida e que entende você",
     "b": [
-      "Quando você escolhe uma língua nos três pontinhos (por exemplo francês), a IA agora escreve e fala sempre nessa língua naquela conversa, mesmo que você escreva em português.",
-      "Vale para todas as línguas, também na conversa por voz e na voz reserva do celular.",
-      "As conversas e os lembretes agora ficam salvos na nuvem de verdade e aparecem iguais no celular e no PC."
+      "A ligação agora fica sempre ouvindo: é só falar, sem apertar nada. Quando você para de falar, ela já manda na hora.",
+      "A IA responde bem mais rápido: sua voz vai direto para a IA no mesmo pedido, sem passo extra no meio.",
+      "Captação de voz melhor: usamos um modelo de transcrição mais preciso, que entende valores como \"50 conto\", \"2 mil\", \"dez pila\" e escreve certinho em R$.",
+      "Pode interromper a IA falando por cima dela, como numa ligação de verdade."
     ]
   },
-  "bytes": 167503,
-  "sha256": "ac027c4889335ce5a11c890156d4f70096f75a8987615849cba869ae43a2efcb"
+  "bytes": 172808,
+  "sha256": "b3c4451e737d5614e179d81fcb4ec2522a23f84cc5331576c35cc88615ae7941"
 }
