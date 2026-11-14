@@ -42,6 +42,12 @@ Dinheiro e números:
 - Se a frase veio de voz e o valor parecer estranho (ex.: "cinco zero reais"), entenda o mais provável (R$ 50) e confirme rapidinho se fizer diferença.
 - Faça as contas com cuidado e mostre o resultado em R$ com centavos quando precisar (ex.: R$ 1.250,90).
 
+Gírias e abreviações de internet:
+- Entenda o jeito que o brasileiro escreve no WhatsApp, sem pedir explicação. Exemplos: plmds/plmdd = pelo amor de Deus; mds/meudeus = meu Deus; pfv/pf/pls = por favor; vc/vcs = você(s); tb/tbm = também; q/oq/pq/qnd/qm/cmg/ctg = que/o que/por que/quando/quem/comigo/contigo; n/ñ/nn = não; s/ss/sim sim = sim; blz = beleza; sdds = saudades; obg/vlw = obrigado/valeu; flw = falou (tchau); tmj = tamo junto; pdp = pode pá (pode deixar); slk = sai louco (nossa, impressionante); mt/mto = muito; msm = mesmo; nd/ngm/td/hj/amn/dps/agr = nada/ninguém/tudo/hoje/amanhã/depois/agora; ctz = certeza; vdd = verdade; rlx = relaxa; sqn = só que não; pprt = papo reto (sério); tlgd = tá ligado; mn/mano/mana = amigo(a); kkk/rsrs/hahaha = risada; fds = fim de semana (ou palavrão, pelo contexto); krl/pqp/vsf = palavrões de surpresa ou raiva; bjs = beijos; dnv = de novo; tô/tá/pra/num/cê = estou/está/para/não/você.
+- Também entenda palavras sem acento, letras trocadas, erros de digitação e palavras grudadas (ex.: "oque", "concerteza", "derrepente", "agente" = a gente).
+- Se uma abreviação puder ter dois sentidos, escolha pelo contexto. Só pergunte se mudar a resposta.
+- Responda normalmente, sem corrigir a escrita da pessoa e sem explicar a gíria (a não ser que ela pergunte o que significa).
+
 Não diga seu nome, não cite modelo e não diga quem te criou.`;
 
 const LIVE = `Você está numa LIGAÇÃO DE VOZ. Sua resposta vai ser falada em voz alta, como um amigo no telefone.
@@ -261,7 +267,7 @@ async function translate(key: string, body: Body): Promise<Response> {
   const text = String(body.text ?? "").trim().slice(0, 2000);
   const a = String(body.a ?? "Portuguese (Brazil)").slice(0, 40), b = String(body.b ?? "English").slice(0, 40);
   if (!text) return json({ error: "texto_vazio" }, 400);
-  const sys = `Você é um intérprete. Língua A: ${a}. Língua B: ${b}.\nA frase foi falada em A ou em B. Descubra qual e traduza para a OUTRA língua, do jeito natural que um nativo falaria (não palavra por palavra), mantendo o tom.\nResponda SOMENTE com JSON: {"de":"a" ou "b","texto":"tradução"}`;
+  const sys = `Você é um intérprete. Língua A: ${a}. Língua B: ${b}.\nA frase foi falada em A ou em B. Descubra qual e traduza para a OUTRA língua, do jeito natural que um nativo falaria (não palavra por palavra), mantendo o tom. Entenda gírias e abreviações de internet antes de traduzir (ex.: plmds = pelo amor de Deus, vc = você, pfv = por favor, tb = também).\nResponda SOMENTE com JSON: {"de":"a" ou "b","texto":"tradução"}`;
   for (const model of ["kimi-k3.1-pro-highspeed", "kimi-k3.1-pro", "kimi-k3"]) {
     const res = await fetch(ENDPOINT, { method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({ model, reasoning_effort: "low", response_format: { type: "json_object" }, messages: [{ role: "system", content: sys }, { role: "user", content: text }] }) });
