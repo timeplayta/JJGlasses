@@ -48,7 +48,12 @@ Gírias e abreviações de internet:
 - Se uma abreviação puder ter dois sentidos, escolha pelo contexto. Só pergunte se mudar a resposta.
 - Responda normalmente, sem corrigir a escrita da pessoa e sem explicar a gíria (a não ser que ela pergunte o que significa).
 
-Não diga seu nome, não cite modelo e não diga quem te criou.`;
+Fontes (quando pesquisar na internet ou ver o clima):
+- Cada resultado da pesquisa vem marcado com [fonte N]. Logo no FIM do parágrafo, do item da lista ou da linha que usou aquela informação, escreva [[fonte:N]] (se forem duas, [[fonte:1,3]]). Assim cada parte da resposta fica com a sua própria fonte embaixo dela.
+- Não escreva links, endereços de site nem uma lista de fontes no fim da resposta: o app mostra as fontes sozinho.
+- Só marque a fonte que realmente tem aquela informação. Parte que não veio da pesquisa fica sem marca.
+
+Não diga seu nome, não cite modelo e não diga quem te criou.
 
 const LIVE = `Você está numa LIGAÇÃO DE VOZ. Sua resposta vai ser falada em voz alta, como um amigo no telefone.
 - Fale como gente de verdade: frases curtas, do jeito falado do dia a dia (em português: "tá", "pra", "olha", "então"; em outra língua, o jeito falado equivalente dela), sem soar como texto lido.
@@ -114,10 +119,15 @@ async function userFromToken(req: Request): Promise<boolean> {
 
 type Fonte = { t: string; u: string };
 // guarda os sites pesquisados (vira o botão "Fontes" embaixo da resposta no app)
-function addFonte(list: Fonte[] | undefined, t: unknown, u: unknown) {
+// devolve o número da fonte (1, 2, 3...) para a IA marcar [[fonte:N]] no pedaço da resposta que usou ela
+function addFonte(list: Fonte[] | undefined, t: unknown, u: unknown): number {
   const url = String(u ?? "");
-  if (!list || !/^https?:\/\//.test(url) || list.some((f) => f.u === url) || list.length >= 8) return;
+  if (!list || !/^https?:\/\//.test(url)) return 0;
+  const i = list.findIndex((f) => f.u === url);
+  if (i >= 0) return i + 1;
+  if (list.length >= 10) return 0;
   list.push({ t: String(t ?? "").slice(0, 120), u: url.slice(0, 500) });
+  return list.length;
 }
 
 async function webSearch(key: string, query: string, fontes?: Fonte[]): Promise<string> {
@@ -144,9 +154,9 @@ async function webSearch(key: string, query: string, fontes?: Fonte[]): Promise<
   if (!items.length) return JSON.stringify(data).slice(0, 6000);
   return items.slice(0, 6).map((raw) => {
     const it = raw as Record<string, unknown>;
-    addFonte(fontes, it.title, it.url);
+    const n = addFonte(fontes, it.title, it.url);
     const chunks = Array.isArray(it.chunks) ? (it.chunks as Record<string, unknown>[]).slice(0, 2).map((c) => String(c.text ?? "").slice(0, 500)).join(" ") : "";
-    return `- ${it.title ?? ""}\n  ${String(it.snippet ?? it.summary ?? "").slice(0, 700)} ${chunks}\n  ${it.date ? "data: " + it.date + "\n  " : ""}${it.url ?? ""}`;
+    return `- ${n ? `[fonte ${n}] ` : ""}${it.title ?? ""}\n  ${String(it.snippet ?? it.summary ?? "").slice(0, 700)} ${chunks}\n  ${it.date ? "data: " + it.date + "\n  " : ""}${it.url ?? ""}`;
   }).join("\n");
 }
 
@@ -172,7 +182,7 @@ async function runTool(key: string, name: string, rawArgs: string, place?: Body[
   try { args = JSON.parse(rawArgs || "{}"); } catch { /* sem argumentos */ }
   try {
     if (name === "buscar_na_internet") return await webSearch(key, String(args.consulta ?? ""), fontes);
-    if (name === "clima") { addFonte(fontes, "Open-Meteo (previsão do tempo)", "https://open-meteo.com/"); return await weather(String(args.cidade ?? "").trim(), place); }
+    if (name === "clima") { const n = addFonte(fontes, "Open-Meteo (previsão do tempo)", "https://open-meteo.com/"); return (n ? `[fonte ${n}] ` : "") + await weather(String(args.cidade ?? "").trim(), place); }
     if (name === "criar_lembrete") return `Pronto: ${args.tipo === "alarme" ? "alarme" : "lembrete"} marcado no celular da pessoa para ${args.quando} (${args.texto}). Confirme em uma frase curta, dizendo o dia e a hora do jeito que se fala.`;
   } catch (e) { return `Erro ao usar ${name}: ${e}`; }
   return "Ferramenta desconhecida.";

@@ -75,6 +75,8 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 .favs i,.srcit i{display:inline-block;width:18px;height:18px;border-radius:50%;background:#fff center/cover no-repeat;border:1.5px solid var(--bg);flex:none}
 .srcit i{width:26px;height:26px;border-radius:7px;border:1px solid var(--line)}
 .m .acts .chip[data-say]{margin-left:6px}
+.cite{appearance:none;display:inline-flex;align-items:center;gap:5px;vertical-align:1px;border:0;background:var(--bg);color:var(--mute);border-radius:999px;padding:2px 9px 2px 4px;margin-left:4px;font-size:12.5px;font-weight:600;line-height:1.5}
+.cite i{display:inline-block;width:16px;height:16px;border-radius:50%;background:#fff center/cover no-repeat;flex:none}.cite span{opacity:.8}
 .chip{appearance:none;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:7px 12px;font-size:13px;font-weight:500}
 .caret{display:inline-block;width:8px;height:1em;margin-left:2px;vertical-align:-2px;border-radius:2px;background:var(--mute);animation:b 1s infinite}
 .typing{display:inline-flex;gap:4px}.typing i{width:7px;height:7px;border-radius:50%;background:var(--mute);animation:b 1s infinite}
@@ -679,12 +681,23 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   $('logoutBtn').onclick=function(){session=null;save('jj_session',null);$('sheet').hidden=true;showGate()};
 
   /* ---------- texto da IA (markdown simples) ---------- */
+  /* Fonte de cada parte: a IA escreve [[fonte:2]] no fim do parágrafo e aqui vira um selo com o site (ex.: "Pichau"). */
+  var mdCtx={src:null,idx:-1};
+  function siteName(u){var h=host(u),skip={www:1,m:1,mobile:1,com:1,br:1,org:1,gov:1,net:1,edu:1,co:1,uk:1,pt:1,io:1,info:1,app:1},
+    k=h.split('.').filter(function(x){return !skip[x]}),n=k.length?k[k.length-1]:h;return n.charAt(0).toUpperCase()+n.slice(1)}
+  function citeChip(ns){var src=mdCtx.src||[],list=String(ns).split(/[\s,]+/).map(Number).filter(function(n){return n>0&&src[n-1]});
+    if(!list.length)return '';var f=src[list[0]-1];
+    return ' <button class="cite" data-cite="'+mdCtx.idx+':'+list.join(',')+'">'+favi(f.u)+esc(siteName(f.u))+(list.length>1?'<span>+'+(list.length-1)+'</span>':'')+'</button>'}
   function inline(t){
     return esc(t).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/`([^`]+)`/g,'<code>$1</code>')
-      .replace(/(https?:\/\/[^\s<)]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');
+      .replace(/(https?:\/\/[^\s<)\]]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>')
+      .replace(/\s*\[fonte \d+\]/gi,'')
+      .replace(/\s*\[\[fonte:\s*([\d,\s]+)\]\]/gi,function(_,ns){return citeChip(ns)});
   }
-  function md(src){
-    var lines=String(src||'').split('\n'),out='',i=0;
+  function md(src,sources,idx){
+    mdCtx={src:sources||null,idx:idx==null?-1:idx};
+    src=String(src||'').replace(/\[\[[^\]]*$/,''); // marca ainda chegando: esconde até completar
+    var lines=src.split('\n'),out='',i=0;
     while(i<lines.length){
       var l=lines[i];
       var foto=l.match(/^\s*\[\[foto:\s*(.+?)\]\]\s*$/i);
@@ -705,7 +718,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   }
   // Para falar: sem markdown, sem tabelas, sem links e sem emoji (emoji lido em voz alta fica estranho).
   var EMOJI=/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{1F1E6}-\u{1F1FF}\u{E0020}-\u{E007F}\u{FE00}-\u{FE0F}\u{200D}\u{20E3}\u{2300}-\u{23FF}\u{2190}-\u{21FF}]/gu;
-  function spoken(t){return String(t||'').replace(/\[\[foto:[^\]]*\]\]/gi,'').replace(/^\s*\|.*$/gm,'').replace(/https?:\/\/\S+/g,'').replace(EMOJI,'').replace(/[*#`>|_]/g,' ').replace(/\s+/g,' ').replace(/ +([,.!?;:])/g,'$1').trim()}
+  function spoken(t){return String(t||'').replace(/\[\[(foto|fonte):[^\]]*\]\]/gi,'').replace(/\[fonte \d+\]/gi,'').replace(/^\s*\|.*$/gm,'').replace(/https?:\/\/\S+/g,'').replace(EMOJI,'').replace(/[*#`>|_]/g,' ').replace(/\s+/g,' ').replace(/ +([,.!?;:])/g,'$1').trim()}
 
   /* ---------- telas ---------- */
   function norm(t){return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
@@ -742,8 +755,8 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     var h='<div class="date">Começou em '+when(c.at)+'</div>';
     c.msgs.forEach(function(m,idx){
       if(m.role==='me') h+='<div class="m me">'+(m.img?'<img src="'+m.img+'" alt="Foto enviada">':'')+(m.file?'<div class="fchip">📎 '+esc(m.file)+'</div><br>':'')+esc(m.text)+'</div>';
-      else if(m.pending) h+='<div class="m ai">'+(m.text?md(m.text)+'<span class="caret"></span>':'<span class="typing" aria-label="Respondendo"><i></i><i></i><i></i></span>')+'</div>';
-      else h+='<div class="m ai">'+md(m.text)+actsHtml(m,idx)+'</div>';
+      else if(m.pending) h+='<div class="m ai">'+(m.text?md(m.text,m.src,idx)+'<span class="caret"></span>':'<span class="typing" aria-label="Respondendo"><i></i><i></i><i></i></span>')+'</div>';
+      else h+='<div class="m ai">'+md(m.text,m.src,idx)+actsHtml(m,idx)+'</div>';
     });
     col.innerHTML=h;
     var box=$('msgs');
@@ -772,7 +785,9 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
       var idx=+say.getAttribute('data-say');
       speak(chat().msgs[idx].text,function(){sayOff()},function(){if(sayBtn===say)say.textContent='Parar'});
       say.classList.add('on');say.textContent='Carregando…';sayBtn=say;return}
-    var b=e.target.closest('[data-src]');if(b){openSources(+b.getAttribute('data-src'));return}
+    var b=e.target.closest('[data-cite]');if(b){var cp=b.getAttribute('data-cite').split(':'),ci=+cp[0],cl=cp[1].split(',').map(Number),cm=chat()&&chat().msgs[ci];
+      if(cm&&cm.src){if(cl.length===1){var cf=cm.src[cl[0]-1];if(cf)openLink(cf.u)}else openSources(ci,cl)}return}
+    b=e.target.closest('[data-src]');if(b){openSources(+b.getAttribute('data-src'));return}
     b=e.target.closest('[data-share]');if(b){shareMsg(+b.getAttribute('data-share'));return}
     b=e.target.closest('[data-mm]');if(b){openMsgMenu(+b.getAttribute('data-mm'));return}
   });
@@ -793,7 +808,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     h+='<button class="ib" data-mm="'+idx+'" aria-label="Mais opções">'+DOTS+'</button>';
     return h+'<button class="chip" data-say="'+idx+'" hidden>Ouvir</button></div>';
   }
-  function plainText(t){return String(t||'').replace(/\[\[foto:[^\]]*\]\]/g,'').replace(/\*\*([^*]+)\*\*/g,'$1').trim()}
+  function plainText(t){return String(t||'').replace(/\[\[(foto|fonte):[^\]]*\]\]/gi,'').replace(/ +([.,;:!?])/g,'$1').replace(/\*\*([^*]+)\*\*/g,'$1').trim()}
   function copyText(t,msg){
     if(NATIVE&&NATIVE.copyText){NATIVE.copyText(t);toast(msg||'Copiado');return}
     (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){toast(msg||'Copiado')},function(){toast('Não deu pra copiar')});
@@ -809,10 +824,11 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     copyText(t,'Copiado. Agora é só colar para quem você quiser.');
   }
   var mmIdx=-1;
-  function openSources(idx){
+  function openSources(idx,only){
     var m=chat()&&chat().msgs[idx];if(!m||!m.src||!m.src.length)return;mmIdx=idx;
+    var ids=only&&only.length?only.map(function(n){return n-1}):m.src.map(function(_,i){return i});
     $('mmTitle').textContent='Fontes';
-    $('mmBody').innerHTML='<p class="sub" style="margin:0 6px 6px">Sites que a IA pesquisou para responder. Toque para abrir.</p>'+m.src.map(function(x,i){return '<button class="it srcit" data-si="'+i+'">'+favi(x.u)+'<span>'+esc(x.t||host(x.u))+'<small>'+esc(host(x.u))+'</small></span></button>'}).join('');
+    $('mmBody').innerHTML='<p class="sub" style="margin:0 6px 6px">'+(only?'Fontes deste trecho da resposta. Toque para abrir.':'Sites que a IA pesquisou para responder. Toque para abrir.')+'</p>'+ids.filter(function(i){return m.src[i]}).map(function(i){var x=m.src[i];return '<button class="it srcit" data-si="'+i+'">'+favi(x.u)+'<span>'+esc(x.t||host(x.u))+'<small>'+esc(host(x.u))+'</small></span></button>'}).join('');
     $('mm').hidden=false;
   }
   function openMsgMenu(idx){
@@ -941,7 +957,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
       if(!h){heardEmpty=true;return}
       meMsg.text=h;if(c.title==='🎤 …')c.title=h.slice(0,40);renderChat();if(opts.onHeard)opts.onHeard(h)}}}
     var pending={role:'ai',text:'',pending:true};c.msgs.push(pending);
-    extra=extra||{};extra.onSources=function(f){pending.src=(f||[]).filter(function(x){return x&&/^https?:\/\//.test(x.u)}).slice(0,8)};
+    extra=extra||{};extra.onSources=function(f){pending.src=(f||[]).filter(function(x){return x&&/^https?:\/\//.test(x.u)}).slice(0,10)};
     busy=true;setStatus('Respondendo...');renderAll();
     // falar enquanto a resposta ainda está chegando (ligação, óculos ou leitura automática)
     if(!voiceOut&&prefs.speak&&!live)voiceOut={};
