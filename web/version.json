@@ -1,14 +1,14 @@
 {
-  "v": 202611132348,
+  "v": 202611141506,
   "notes": {
-    "t": "Ligação mais rápida e que entende você",
+    "t": "Tom da voz e língua nos Ajustes",
     "b": [
-      "A ligação agora fica sempre ouvindo: é só falar, sem apertar nada. Quando você para de falar, ela já manda na hora.",
-      "A IA responde bem mais rápido: sua voz vai direto para a IA no mesmo pedido, sem passo extra no meio.",
-      "Captação de voz melhor: usamos um modelo de transcrição mais preciso, que entende valores como \"50 conto\", \"2 mil\", \"dez pila\" e escreve certinho em R$.",
-      "Pode interromper a IA falando por cima dela, como numa ligação de verdade."
+      "Agora o Tom funciona de verdade: em Ajustes, arraste para \"Mais grossa\" ou \"Mais fina\" e a voz muda na hora, sem ficar mais rápida nem mais lenta.",
+      "A Velocidade também passou a funcionar de verdade, e o Volume ficou junto, na mesma tela. Toque em \"Ouvir como ficou\" para testar.",
+      "Nova opção \"Língua da IA\" nos Ajustes: escolha em qual língua a IA escreve e fala com você. Cada conversa ainda pode ter a sua nos 3 pontinhos.",
+      "A IA também entende gírias e abreviações, como plmds, pfv, vc e tmj."
     ]
   },
-  "bytes": 172808,
-  "sha256": "b3c4451e737d5614e179d81fcb4ec2522a23f84cc5331576c35cc88615ae7941"
+  "bytes": 179361,
+  "sha256": "2ab7b39a99ddc1e2592e8c5bcbb9138a10ea7d837dc02fc14c2223eb1c23e554"
 }
