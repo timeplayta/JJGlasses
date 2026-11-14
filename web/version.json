@@ -1,5 +1,5 @@
 {
-  "v": 202611132255,
+  "v": 202611132311,
   "notes": {
     "t": "Nuvem, tradutor, lembretes e busca",
     "b": [
@@ -31,6 +31,6 @@
       "Suas conversas e lembretes agora ficam salvos na nuvem e aparecem iguais no celular e no PC."
     ]
   },
-  "bytes": 167356,
-  "sha256": "cd1ccadbaf06dcce0736547a80eedaa24aedbc0dde4efa306245d62e2d6d706e"
+  "bytes": 167468,
+  "sha256": "3c053e48e903b0a78c57e295caa9499687346b8b64d4d7d0fe53742a3d7b8230"
 }
