@@ -37,6 +37,11 @@ Fotos que você cria:
 [[foto: descrição detalhada em inglês, no estilo que pediram, sem nome de pessoa real]]
 - Se pedirem foto sexual de criança ou adolescente, recuse em uma frase e não use o marcador.
 
+Dinheiro e números:
+- Entenda valores do jeito que o brasileiro fala: "conto", "pila", "pau", "mangos" = reais; "50 conto" = R$ 50; "2 mil" = R$ 2.000; "1k" = mil; "dez pila" = R$ 10; "meio milhão" = R$ 500.000; Pix, boleto, parcela, juros, troco, desconto.
+- Se a frase veio de voz e o valor parecer estranho (ex.: "cinco zero reais"), entenda o mais provável (R$ 50) e confirme rapidinho se fizer diferença.
+- Faça as contas com cuidado e mostre o resultado em R$ com centavos quando precisar (ex.: R$ 1.250,90).
+
 Não diga seu nome, não cite modelo e não diga quem te criou.`;
 
 const LIVE = `Você está numa LIGAÇÃO DE VOZ. Sua resposta vai ser falada em voz alta, como um amigo no telefone.
@@ -85,7 +90,7 @@ const TOOLS = [
 ];
 
 type Turn = { role: "user" | "assistant"; text: string; image?: string };
-type Body = { turns?: Turn[]; name?: string; live?: boolean; stream?: boolean; lang?: string; lock?: boolean; tz?: string; task?: string; text?: string; a?: string; b?: string; place?: { lat: number; lon: number; label?: string } };
+type Body = { audio?: string; stt?: string; sttCtx?: string; turns?: Turn[]; name?: string; live?: boolean; stream?: boolean; lang?: string; lock?: boolean; tz?: string; task?: string; text?: string; a?: string; b?: string; place?: { lat: number; lon: number; label?: string } };
 
 // Login já conferido fica guardado por 5 min (a resposta começa mais rápido).
 const okTokens = new Map<string, number>();
@@ -158,17 +163,43 @@ async function runTool(key: string, name: string, rawArgs: string, place?: Body[
   return "Ferramenta desconhecida.";
 }
 
+/* Ouvir a voz da ligação: transcreve o áudio com o modelo mais preciso da OpenAI,
+   dando dicas de vocabulário (dinheiro, números) e o assunto da conversa. */
+const SILENCE = /^(obrigad[oa][.!]?|legendas? (pela|por).*|tchau[.!]?|\.+|você|thank you[.!]?|thanks for watching.*)$/i;
+async function hear(b64: string, lang: string, ctx: string): Promise<string> {
+  const okey = Deno.env.get("OPENAI_API_KEY");
+  if (!okey || !b64) return "";
+  const bin = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+  if (bin.byteLength < 8000) return ""; // menos de ~0,25 s de som
+  const form = new FormData();
+  form.append("file", new Blob([bin], { type: "audio/wav" }), "fala.wav");
+  form.append("model", "gpt-4o-transcribe");
+  const l = String(lang || "").slice(0, 2).toLowerCase();
+  if (/^[a-z]{2}$/.test(l)) form.append("language", l);
+  form.append("prompt", `Conversa por voz com uma assistente. Pode ter valores em dinheiro (reais, R$, centavos, Pix, conto, pila, mil, milhão), números, datas e horários: escreva dinheiro como R$ 50, R$ 1.250,90. ${String(ctx || "").slice(0, 300)}`);
+  const res = await fetch("https://api.openai.com/v1/audio/transcriptions", { method: "POST", headers: { Authorization: `Bearer ${okey}` }, body: form });
+  if (!res.ok) { console.error("ouvir", res.status, (await res.text().catch(() => "")).slice(0, 200)); return ""; }
+  const t = String((await res.json())?.text ?? "").trim();
+  return SILENCE.test(t) && bin.byteLength < 64000 ? "" : t;
+}
+
+type Prep = { messages: Record<string, unknown>[]; models: string[]; effort: string; maxTokens?: number };
+
 /* Resposta em tempo real: manda o texto para o app pedacinho por pedacinho (cada linha é um JSON).
    Assim o app já mostra e já começa a falar a primeira frase enquanto a IA ainda escreve o resto. */
-function streamAnswer(key: string, messages: Record<string, unknown>[], models: string[], effort: string, place?: Body["place"]): Response {
+function streamAnswer(key: string, prepare: (out: (o: unknown) => void) => Promise<Prep | null>, place?: Body["place"]): Response {
   const enc = new TextEncoder();
   const stream = new ReadableStream({
     async start(ctrl) {
       const out = (o: unknown) => ctrl.enqueue(enc.encode(JSON.stringify(o) + "\n"));
       try {
+        const prep = await prepare(out);
+        if (!prep) { out({ done: true }); ctrl.close(); return; }
+        const { messages, models, effort, maxTokens } = prep;
         let modelIndex = 0, useTools = true;
         for (let round = 0; round < 7; round++) {
           const payload: Record<string, unknown> = { model: models[modelIndex], reasoning_effort: effort, messages, stream: true };
+          if (maxTokens) payload.max_tokens = maxTokens;
           if (useTools) payload.tools = TOOLS;
           const res = await fetch(ENDPOINT, { method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" }, body: JSON.stringify(payload) });
           if (!res.ok || !res.body) {
@@ -257,46 +288,63 @@ Deno.serve(async (req: Request) => {
   if (body.task === "traduzir") return translate(key, body);
   const turns = (body.turns ?? []).slice(-24);
   if (!turns.length) return json({ error: "sem_mensagem" }, 400);
+  const build = (): Prep => {
 
-  let tz = "America/Sao_Paulo";
-  try { if (body.tz) { new Date().toLocaleString("en-US", { timeZone: body.tz }); tz = body.tz; } } catch { /* fuso inválido */ }
-  const now = new Date().toLocaleString("pt-BR", { timeZone: tz, dateStyle: "full", timeStyle: "short" });
-  const iso = new Date().toLocaleString("sv-SE", { timeZone: tz }).replace(" ", "T");
-  const off = (new Date().toLocaleString("en-US", { timeZone: tz, timeZoneName: "longOffset" }).match(/GMT([+-]\d\d:\d\d)/) ?? [, "+00:00"])[1];
-  let extra = `\n\nAgora é ${now} no fuso da pessoa (${tz}, UTC${off}; data e hora local ${iso}${off}). Para lembretes e alarmes, use a ferramenta criar_lembrete com esse fuso.`;
-  if (body.place?.label) extra += ` A pessoa está em ${body.place.label}.`;
-  extra += " Você TEM acesso à internet pelas ferramentas buscar_na_internet e clima. Use-as para clima, notícias, preços e tudo que muda com o tempo. Nunca diga que não tem acesso à internet.";
-  if (body.live) extra += "\n\n" + LIVE;
-  if (body.name) extra += `\n\nPessoa: ${String(body.name).slice(0, 60)}.`;
-  const lang = String(body.lang ?? "").slice(0, 40);
-  // lock = a pessoa escolheu a língua DESTA conversa nos 3 pontinhos: responder sempre nela
-  if (lang && body.lock) extra += `\n\nLÍNGUA OBRIGATÓRIA DESTA CONVERSA: ${lang}. Escreva TODAS as respostas somente em ${lang}, mesmo que a pessoa escreva em português ou em outra língua, e mesmo que as mensagens anteriores estejam em outra língua. Não explique isso, apenas responda em ${lang}.`;
-  else if (lang) extra += `\n\nIdioma escolhido pela pessoa: ${lang}. Responda nesse idioma, a não ser que ela escreva em outro.`;
+    let tz = "America/Sao_Paulo";
+    try { if (body.tz) { new Date().toLocaleString("en-US", { timeZone: body.tz }); tz = body.tz; } } catch { /* fuso inválido */ }
+    const now = new Date().toLocaleString("pt-BR", { timeZone: tz, dateStyle: "full", timeStyle: "short" });
+    const iso = new Date().toLocaleString("sv-SE", { timeZone: tz }).replace(" ", "T");
+    const off = (new Date().toLocaleString("en-US", { timeZone: tz, timeZoneName: "longOffset" }).match(/GMT([+-]\d\d:\d\d)/) ?? [, "+00:00"])[1];
+    let extra = `\n\nAgora é ${now} no fuso da pessoa (${tz}, UTC${off}; data e hora local ${iso}${off}). Para lembretes e alarmes, use a ferramenta criar_lembrete com esse fuso.`;
+    if (body.place?.label) extra += ` A pessoa está em ${body.place.label}.`;
+    extra += " Você TEM acesso à internet pelas ferramentas buscar_na_internet e clima. Use-as para clima, notícias, preços e tudo que muda com o tempo. Nunca diga que não tem acesso à internet.";
+    if (body.live) extra += "\n\n" + LIVE;
+    if (body.name) extra += `\n\nPessoa: ${String(body.name).slice(0, 60)}.`;
+    const lang = String(body.lang ?? "").slice(0, 40);
+    // lock = a pessoa escolheu a língua DESTA conversa nos 3 pontinhos: responder sempre nela
+    if (lang && body.lock) extra += `\n\nLÍNGUA OBRIGATÓRIA DESTA CONVERSA: ${lang}. Escreva TODAS as respostas somente em ${lang}, mesmo que a pessoa escreva em português ou em outra língua, e mesmo que as mensagens anteriores estejam em outra língua. Não explique isso, apenas responda em ${lang}.`;
+    else if (lang) extra += `\n\nIdioma escolhido pela pessoa: ${lang}. Responda nesse idioma, a não ser que ela escreva em outro.`;
 
-  const pictured = turns.map((t, i) => (t.image ? i : -1)).filter((i) => i >= 0).slice(-2);
-  const seeing = pictured.length > 0;
-  const messages: Record<string, unknown>[] = [{ role: "system", content: SYSTEM + extra }];
-  turns.forEach((t, i) => {
-    if (t.role === "user" && t.image && pictured.includes(i)) {
-      messages.push({ role: "user", content: [{ type: "text", text: t.text || "O que tem nessa foto?" }, { type: "image_url", image_url: { url: t.image } }] });
-    } else {
-      messages.push({ role: t.role, content: String(t.text ?? "").slice(0, 12000) });
+    const pictured = turns.map((t, i) => (t.image ? i : -1)).filter((i) => i >= 0).slice(-2);
+    const seeing = pictured.length > 0;
+    const messages: Record<string, unknown>[] = [{ role: "system", content: SYSTEM + extra }];
+    turns.forEach((t, i) => {
+      if (t.role === "user" && t.image && pictured.includes(i)) {
+        messages.push({ role: "user", content: [{ type: "text", text: t.text || "O que tem nessa foto?" }, { type: "image_url", image_url: { url: t.image } }] });
+      } else {
+        messages.push({ role: t.role, content: String(t.text ?? "").slice(0, 12000) });
+      }
+    });
+
+    // reforço no fim da última mensagem da pessoa (os modelos seguem melhor a última instrução)
+    if (lang && body.lock) {
+      const last = messages[messages.length - 1];
+      const note = `\n\n(Responda somente em ${lang}.)`;
+      if (last && last.role === "user") {
+        if (typeof last.content === "string") last.content += note;
+        else if (Array.isArray(last.content)) (last.content as { type: string; text?: string }[]).forEach((p) => { if (p.type === "text") p.text = (p.text ?? "") + note; });
+      }
     }
-  });
 
-  // reforço no fim da última mensagem da pessoa (os modelos seguem melhor a última instrução)
-  if (lang && body.lock) {
-    const last = messages[messages.length - 1];
-    const note = `\n\n(Responda somente em ${lang}.)`;
-    if (last && last.role === "user") {
-      if (typeof last.content === "string") last.content += note;
-      else if (Array.isArray(last.content)) (last.content as { type: string; text?: string }[]).forEach((p) => { if (p.type === "text") p.text = (p.text ?? "") + note; });
-    }
+    const models = seeing ? ["kimi-k3.1-pro", "kimi-k3"] : ["kimi-k3.1-pro-highspeed", "kimi-k3.1-pro", "kimi-k3"];
+    const effort = body.live ? "low" : seeing ? "high" : "low";
+    return { messages, models, effort, maxTokens: body.live ? 1200 : undefined };
+  };
+  // ligação: o app manda o áudio junto e o servidor ouve e responde no mesmo pedido (economiza uma viagem)
+  if (body.audio && body.stream) {
+    return streamAnswer(key, async (out) => {
+      const heard = await hear(body.audio!, body.stt ?? "", body.sttCtx ?? "");
+      out({ heard });
+      if (!heard) return null;
+      const last = turns[turns.length - 1];
+      if (last && last.role === "user") last.text = heard;
+      return build();
+    }, body.place);
   }
-
-  const models = seeing ? ["kimi-k3.1-pro", "kimi-k3"] : ["kimi-k3.1-pro-highspeed", "kimi-k3.1-pro", "kimi-k3"];
-  const effort = body.live ? "low" : seeing ? "high" : "low";
-  if (body.stream) return streamAnswer(key, messages, models, effort, body.place);
+  const prep = build();
+  const { messages, models } = prep;
+  const seeing = turns.some((t) => t.image);
+  if (body.stream) return streamAnswer(key, async () => prep, body.place);
   let modelIndex = 0, useTools = true;
   const lembretes: Record<string, string>[] = [];
   for (let round = 0; round < 7; round++) {

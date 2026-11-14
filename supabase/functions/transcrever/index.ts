@@ -35,7 +35,9 @@ Deno.serve(async (req: Request) => {
 
   const form = new FormData();
   form.append("file", new Blob([audio], { type }), `fala.${ext}`);
-  form.append("model", "gpt-4o-mini-transcribe");
+  // modelo mais preciso + dicas de vocabulário (dinheiro, números), para entender melhor o que foi falado
+  form.append("model", "gpt-4o-transcribe");
+  form.append("prompt", "Pode ter valores em dinheiro (reais, R$, centavos, Pix, conto, pila, mil, milhão), números, datas e horários: escreva dinheiro como R$ 50, R$ 1.250,90.");
   const lang = (new URL(req.url).searchParams.get("lang") ?? "pt").slice(0, 2).toLowerCase();
   // lang=auto (tradutor): deixa a IA descobrir sozinha a língua falada
   if (/^[a-z]{2}$/.test(lang) && lang !== "au") form.append("language", lang);

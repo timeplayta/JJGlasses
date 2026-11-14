@@ -817,10 +817,10 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 
   /* ---------- IA ---------- */
   // Pede a resposta em tempo real: o texto chega aos pedacinhos (onDelta recebe tudo que já chegou).
-  function ask(turns,live,onDelta,noStream){
+  function ask(turns,live,onDelta,noStream,extra){
     var p=token().then(function(tk){
       return fetch(SB_URL+'/functions/v1/chat',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+tk,'Content-Type':'application/json'},
-        body:JSON.stringify({turns:turns,name:prefs.name||'',live:!!live,stream:!noStream,place:place,lang:langName(chatLang()),lock:!!(chat()&&chat().lang),tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||''),now:new Date().toString()})});
+        body:JSON.stringify({turns:turns,name:prefs.name||'',live:!!live,stream:!noStream,place:place,lang:langName(chatLang()),lock:!!(chat()&&chat().lang),tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||''),now:new Date().toString(),audio:extra&&extra.audio||undefined,stt:extra&&extra.stt||undefined,sttCtx:extra&&extra.sttCtx||undefined})});
     }).then(function(r){
       var ct=r.headers.get('content-type')||'';
       if(!r.ok||ct.indexOf('ndjson')<0||!r.body||!r.body.getReader)return r.json().then(function(j){if(!r.ok||j.error)throw j;(j.lembretes||[]).forEach(function(x){window.jjAddReminder(x)});return j.text});
@@ -829,18 +829,20 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
         if(x.done){if(err&&!acc)throw err;return acc}
         buf+=dec.decode(x.value,{stream:true});var k;
         while((k=buf.indexOf('\n'))>=0){var line=buf.slice(0,k);buf=buf.slice(k+1);if(!line.trim())continue;var o;try{o=JSON.parse(line)}catch(e){continue}
-          if(o.d){acc+=o.d;if(onDelta)onDelta(acc)}else if(o.lembrete){window.jjAddReminder(o.lembrete)}else if(o.tool){setStatus(o.tool.indexOf('clima')>=0?'Vendo o clima...':'Pesquisando na internet...')}else if(o.error){err=o}}
+          if(o.d){acc+=o.d;if(onDelta)onDelta(acc)}else if(o.heard!==undefined){if(extra&&extra.onHeard)extra.onHeard(o.heard)}else if(o.lembrete){window.jjAddReminder(o.lembrete)}else if(o.tool){setStatus(o.tool.indexOf('clima')>=0?'Vendo o clima...':'Pesquisando na internet...')}else if(o.error){err=o}}
         return pump()})})();
     });
     // se o tempo real falhar antes de chegar qualquer texto, pede do jeito antigo (resposta inteira)
     if(noStream)return p;
-    return p.catch(function(e){if(e&&(e.error==='precisa_login'||e.error==='sem_chave'))throw e;return ask(turns,live,onDelta,true)});
+    return p.catch(function(e){if(e&&(e.error==='precisa_login'||e.error==='sem_chave'))throw e;if(extra&&extra.audio)throw e;return ask(turns,live,onDelta,true)});
   }
   function turnsOf(c){return c.msgs.filter(function(m){return !m.pending}).slice(-20).map(function(m){
     var t=m.text;if(m.file)t+='\n\nArquivo anexado: '+m.file+(m.ftext?'\n'+m.ftext:'\n(não consegui ler o conteúdo, só o nome)');
     return {role:m.role==='me'?'user':'assistant',text:t,image:m.img||undefined}})}
-  function send(textArg,imgArg,live,voiceOut){
+  function send(textArg,imgArg,live,voiceOut,opts){
+    opts=opts||{};
     var text=(textArg!=null?textArg:$('msgIn').value).trim(),photo=imgArg!=null?imgArg:draft,file=textArg==null?attach:null;
+    if(opts.audio&&!text)text='🎤 …';
     if(busy||(!text&&!photo&&!file))return Promise.resolve(null);
     if(/clima|tempo|previs|chuva|temperatura/i.test(text))locate();
     var c=chat()||newChat();
@@ -848,6 +850,10 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     c.msgs.push({role:'me',text:text||(file?'O que tem nesse arquivo?':'O que tem nessa foto?'),img:photo||null,file:file?file.name:null,ftext:file?file.text:null});
     if(c.title==='Novo chat')c.title=(text||(file?file.name:'Foto')).slice(0,40);
     c.at=Date.now();if(textArg==null){$('msgIn').value='';grow()}
+    var meMsg=c.msgs[c.msgs.length-1],heardEmpty=false,extra=null;
+    if(opts.audio){extra={audio:opts.audio,stt:(chatLang()||'pt').slice(0,2),sttCtx:opts.ctx||'',onHeard:function(h){
+      if(!h){heardEmpty=true;return}
+      meMsg.text=h;if(c.title==='🎤 …')c.title=h.slice(0,40);renderChat();if(opts.onHeard)opts.onHeard(h)}}}
     var pending={role:'ai',text:'',pending:true};c.msgs.push(pending);
     busy=true;setStatus('Respondendo...');renderAll();
     // falar enquanto a resposta ainda está chegando (ligação, óculos ou leitura automática)
@@ -858,12 +864,15 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
       pending.text=acc;setStatus('Respondendo...');
       if(!rT){var w=Math.max(0,90-(Date.now()-lastR));rT=setTimeout(paint,w)}
       if(voiceOut){if(!ss)ss=speakStream(voiceOut.done,voiceOut.onStart);ss.push(acc)}
-    }).then(function(t){clearTimeout(rT);pending.text=t;setStatus('Pronto');
+    },false,extra).then(function(t){clearTimeout(rT);pending.text=t;setStatus('Pronto');
+      if(heardEmpty){opts.empty=true;return null}
       if(voiceOut){if(!ss)ss=speakStream(voiceOut.done,voiceOut.onStart);ss.push(t||'');if(voiceOut.tail){var tl=voiceOut.tail(t||'');if(tl)ss.push((t||'')+'\n'+tl)}ss.end()}
       return t},function(e){clearTimeout(rT);if(ss)ss.end();
       pending.text=(e&&e.error==='precisa_login')?'Sua sessão venceu. Entre de novo.':(e&&e.error==='sem_chave')?'A IA ainda não foi configurada no servidor.':(navigator.onLine===false?'Sem internet agora. Conecte e tente de novo.':'Não consegui responder agora. Tenta de novo.');
       setStatus('Sem resposta',false);return null;
     }).then(function(t){
+      if(opts.empty){c.msgs=c.msgs.filter(function(m){return m!==meMsg&&m!==pending});if(!c.msgs.length&&c.title==='🎤 …')c.title='Novo chat';busy=false;persist();renderAll();return null}
+      if(opts.audio&&meMsg.text==='🎤 …')meMsg.text='🎤 (áudio)';
       delete pending.pending;busy=false;persist();renderChat();
       if(t&&!live&&!voiceOut)ttsWarm(t);
       if(!t&&voiceOut&&voiceOut.done&&!ss)voiceOut.done();
@@ -1174,7 +1183,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     setCall('pensando',img&&!camStream?'Olhando a foto...':'Você: '+text);
     var spokeAny=false;
     send(text,img||null,true,{
-      onStart:function(){spokeAny=true;if(!inCall)return;setCall('falando','');setTimeout(function(){if(inCall&&callState==='falando')startBarge()},700)},
+      onStart:function(){spokeAny=true;if(!inCall)return;setCall('falando','');if(!cmic)setTimeout(function(){if(inCall&&callState==='falando')startBarge()},700)},
       done:function(){stopBarge();if(inCall&&spokeAny)hearTurn()}
     }).then(function(a){
       if(!inCall)return;
@@ -1182,8 +1191,71 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
       $('callSub').textContent=spoken(a).slice(0,260);
     });
   }
+  /* Microfone sempre ligado na ligação (como ChatGPT): percebe quando você começa e para de falar,
+     manda o áudio direto para o servidor ouvir e responder, e deixa interromper a IA falando por cima. */
+  var cmic=null;
+  function startCallMic(){
+    if(cmic||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!(window.AudioContext||window.webkitAudioContext))return false;
+    var me={on:true,ok:false};cmic=me;
+    navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true,channelCount:1}}).then(function(st){
+      if(!me.on){st.getTracks().forEach(function(t){t.stop()});return}
+      var AC=window.AudioContext||window.webkitAudioContext,ctx;try{ctx=new AC({sampleRate:16000})}catch(e){ctx=new AC()}
+      var src=ctx.createMediaStreamSource(st),node=ctx.createScriptProcessor(1024,1,1),rate=ctx.sampleRate,fl=1024/rate;
+      me.st=st;me.ctx=ctx;me.node=node;me.ok=true;
+      var seg=[],pre=[],talking=false,silent=0,loudN=0,floor=0.006,t0=Date.now();
+      node.onaudioprocess=function(e){
+        if(!me.on||!inCall)return;var d=new Float32Array(e.inputBuffer.getChannelData(0));
+        var sum=0;for(var i=0;i<d.length;i+=2)sum+=d[i]*d[i];var rms=Math.sqrt(sum/(d.length/2));
+        callLevel=Math.max(callLevel,rms*6);
+        pre.push(d);if(pre.length>8)pre.shift(); // ~0,5 s antes da fala, para não cortar o começo
+        if(muted||!$('vp').hidden||!$('snap').hidden)return; // escolhendo voz ou tirando foto: não ouve
+        // barulho de fundo: desce rápido quando fica quieto, sobe devagar (assim a própria fala não vira 'barulho')
+        if(rms<floor)floor=floor*0.7+rms*0.3;else floor=Math.min(0.03,floor*0.995+rms*0.005);
+        if(Date.now()-t0<250)return;
+        if(callState==='falando'){ // interromper a IA: precisa falar mais alto e por ~0,35 s
+          if(rms>Math.max(0.05,floor*5))loudN++;else loudN=Math.max(0,loudN-1);
+          if(loudN>=6){loudN=0;stopSpeak();setCall('ouvindo','Pode falar, estou ouvindo.');talking=true;seg=pre.slice();silent=0}
+          return;
+        }
+        if(callState!=='ouvindo'){talking=false;return}
+        var loud=rms>Math.max(0.018,floor*3);
+        if(!talking){if(loud){loudN++;if(loudN>=2){talking=true;loudN=0;seg=pre.slice();silent=0;$('callStatus').textContent='Ouvindo você...'}}else loudN=0;return}
+        seg.push(d);silent=loud?0:silent+1;
+        var dur=seg.length*fl;
+        if(silent*fl>=0.65||dur>25){ // parou de falar
+          talking=false;var n=0;seg.forEach(function(b){n+=b.length});var s2=seg;seg=[];
+          if(dur-silent*fl>=0.35)callAskAudio(toWav(s2,n,rate,16000));
+        }
+      };
+      src.connect(node);node.connect(ctx.destination);if(ctx.state==='suspended')ctx.resume();
+    },function(){me.on=false;cmic=null;toast('Libere o microfone para conversar.');hearTurn()});
+    return true;
+  }
+  function stopCallMic(){var m=cmic;cmic=null;if(!m)return;m.on=false;try{m.node&&m.node.disconnect()}catch(e){}try{m.st&&m.st.getTracks().forEach(function(t){t.stop()})}catch(e){}try{m.ctx&&m.ctx.close()}catch(e){}}
+  function callAskAudio(wav){
+    if(!inCall)return;setCall('pensando','Entendendo...');
+    var fr=new FileReader();
+    fr.onload=function(){
+      var b64=String(fr.result).split(',')[1]||'';var c=chat(),lastAi='';
+      if(c)for(var i=c.msgs.length-1;i>=0;i--){if(c.msgs[i].role==='ai'&&!c.msgs[i].pending){lastAi=spoken(c.msgs[i].text).slice(0,200);break}}
+      var opts={audio:b64,ctx:lastAi?('Última fala da assistente: '+lastAi):'',onHeard:function(h){$('callSub').textContent='Você: '+h}};
+      var spokeAny=false;
+      send('',grabFrame(),true,{
+        onStart:function(){spokeAny=true;if(inCall)setCall('falando','')},
+        done:function(){if(inCall&&callState==='falando')setCall('ouvindo')}
+      },opts).then(function(a){
+        if(!inCall)return;
+        if(opts.empty){setCall('ouvindo','Não deu pra ouvir. Pode falar de novo.');return}
+        if(!a){stopSpeak();setCall('ouvindo','Não consegui responder. Pode repetir?');return}
+        $('callSub').textContent=spoken(a).slice(0,260);
+        if(!spokeAny&&callState==='pensando')setCall('ouvindo');
+      });
+    };
+    fr.readAsDataURL(wav);
+  }
   function hearTurn(){
     if(!inCall||muted||!$('vp').hidden)return;
+    if(cmic){setCall('ouvindo');return} // microfone contínuo já está ouvindo
     setCall('ouvindo');
     listen(function(t,err){
       if(!inCall)return;
@@ -1197,9 +1269,10 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     paintOrb($('orb'),prefs.voice);
     if(NATIVE&&NATIVE.keepScreenOn)NATIVE.keepScreenOn(true);
     setCall('ouvindo','Pode falar. Eu respondo em voz alta.');requestAnimationFrame(animOrb);
-    if(video)startCam();hearTurn();
+    if(video)startCam();
+    if(!startCallMic())hearTurn();
   }
-  function hangUp(){inCall=false;stopBarge();stopListen();stopSpeak();stopCam();$('cmenu').hidden=true;$('call').hidden=true;if(NATIVE&&NATIVE.keepScreenOn)NATIVE.keepScreenOn(false)}
+  function hangUp(){inCall=false;stopCallMic();stopBarge();stopListen();stopSpeak();stopCam();$('cmenu').hidden=true;$('call').hidden=true;if(NATIVE&&NATIVE.keepScreenOn)NATIVE.keepScreenOn(false)}
   function startCam(){
     if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){toast('Câmera indisponível aqui.');return}
     navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280}},audio:false}).then(function(s){
