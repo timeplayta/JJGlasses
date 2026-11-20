@@ -273,6 +273,14 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 .gsw{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.4;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
 .gsw input{width:20px;height:20px;accent-color:var(--accent);flex:none;margin:0}
 .glbody h3{margin:8px 0 0;font-size:17px}
+.glnav{display:flex;gap:4px;margin:0 12px calc(10px + env(safe-area-inset-bottom,0px));padding:6px;background:var(--card);border:1px solid var(--line);border-radius:22px;box-shadow:0 6px 24px rgba(0,0,0,.12)}
+.glnav button{flex:1;appearance:none;border:0;background:none;color:var(--mute);display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px 6px;border-radius:16px;font:inherit;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;position:relative}
+.glnav button .i{width:24px;height:24px}
+.glnav button[aria-current="page"]{color:var(--ink)}
+.glnav button[aria-current="page"]::after{content:'';position:absolute;bottom:0;width:26px;height:3px;border-radius:2px;background:var(--accent)}
+.glv{display:flex;flex-direction:column;gap:14px}.glv[hidden]{display:none}
+.glive{aspect-ratio:16/9;border-radius:18px;background:#0b0c0f;color:#c9ccd3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;padding:16px}
+.glive b{display:flex;align-items:center;gap:8px;color:#fff}.glive small{max-width:320px;color:#9aa0aa}
 .gltabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .gltabs button{display:flex;flex-direction:column;align-items:center;gap:1px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:16px;padding:10px 4px 8px;font:inherit;font-size:13.5px;font-weight:650}
 .gltabs .e{font-size:22px;line-height:1.2}.gltabs small{color:var(--mute);font-weight:500;font-size:12px}
@@ -537,10 +545,9 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 <div class="gl" id="gl" hidden>
   <div class="gltop"><button class="icon" id="glBack" aria-label="Voltar"><svg class="i" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><b>Óculos</b><button class="icon" id="glFind" aria-label="Fazer o óculos apitar"><svg class="i" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg></button></div>
   <div class="glbody" id="glBody">
+    <section class="glv" id="glv-home">
     <div class="glhero" id="glHero"><img id="glImg" src="oculos/jj/g00.webp" alt="Óculos JJGlasses" draggable="false"><span class="glhint">Arraste para girar</span></div>
     <div class="glmods" id="glMods"><button data-glm="jj">JJGlasses W AI 4</button><button data-glm="redondo">Redondo</button><button data-glm="quadrado">Quadrado</button></div>
-    <div class="gltabs" id="glTabs" role="tablist" aria-label="Fotos e vídeos do óculos na nuvem"><button role="tab" data-gt="foto" aria-selected="false"><span class="e">📷</span>Fotos<small id="gtc-foto">—</small></button><button role="tab" data-gt="video" aria-selected="false"><span class="e">🎬</span>Vídeos<small id="gtc-video">—</small></button><button role="tab" data-gt="video_ia" aria-selected="false"><span class="e">✨</span>Vídeos com IA<small id="gtc-video_ia">—</small></button></div>
-    <div class="glgal" id="glGal" hidden></div>
     <div class="glstat"><span class="gdot" id="glDot"></span><div><b id="glState">Desligado</b><small id="glErr"></small></div><button class="chip" id="glConn">Conectar</button></div>
     <div class="glgrid">
       <div class="gcard"><small>Bateria</small><b id="glBat">—</b><div class="gbar"><i id="glBatBar"></i></div></div>
@@ -554,7 +561,9 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     <h3>Chat do óculos</h3>
     <p class="gsub" id="glChatLbl">O que você falar pelo óculos vai para este chat.</p>
     <div class="opts" id="glChats"></div>
-    <h3>Gravação</h3>
+    </section>
+    <section class="glv" id="glv-rec" hidden>
+    <div class="glive" id="recPrev"><span class="gdot" id="recDot2"></span><b>Ao vivo</b><small>A imagem do óculos aparece aqui em tempo real quando a ponte do PC estiver conectada.</small></div>
     <div class="grec">
       <label>Óculos<select class="field" id="recOc"></select></label>
       <div><small class="glbl">Qualidade</small><div class="pills" id="recRes"></div></div>
@@ -565,7 +574,14 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
       <p class="gsub" id="recInfo">Para ver ao vivo e gravar com o iVUE, ele precisa estar ligado no PC com a ponte do JJGlasses aberta. A ponte ainda está sendo feita.</p>
       <p class="gsub">⚠️ Se for filmar pessoas no trabalho, avise antes que elas estão sendo filmadas (LGPD).</p>
     </div>
+    </section>
+    <section class="glv" id="glv-gal" hidden>
+    <p class="gsub" style="margin:0">Fotos e vídeos do óculos guardados na nuvem. Toque em um para assistir.</p>
+    <div class="gltabs" id="glTabs" role="tablist" aria-label="Fotos e vídeos do óculos na nuvem"><button role="tab" data-gt="foto" aria-selected="false"><span class="e">📷</span>Fotos<small id="gtc-foto">—</small></button><button role="tab" data-gt="video" aria-selected="false"><span class="e">🎬</span>Vídeos<small id="gtc-video">—</small></button><button role="tab" data-gt="video_ia" aria-selected="false"><span class="e">✨</span>Vídeos com IA<small id="gtc-video_ia">—</small></button></div>
+    <div class="glgal" id="glGal" hidden></div>
+    </section>
   </div>
+  <nav class="glnav" id="glNav" aria-label="Partes da aba do óculos"><button data-glv="home" aria-current="page"><svg class="i" viewBox="0 0 24 24"><rect x="2" y="8" width="8.5" height="7.5" rx="2.5"/><rect x="13.5" y="8" width="8.5" height="7.5" rx="2.5"/><path d="M10.5 11h3"/></svg><span>Óculos</span></button><button data-glv="rec"><svg class="i" viewBox="0 0 24 24"><rect x="2.5" y="6" width="13" height="12" rx="2.5"/><path d="M15.5 10.5l6-3.5v10l-6-3.5z"/></svg><span>Gravação</span></button><button data-glv="gal"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="M21 16l-5-5L5 21"/></svg><span>Galeria</span></button></nav>
 </div>
 
 <!-- ligação por voz e vídeo -->
@@ -1631,6 +1647,17 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     var b=e.target.closest('[data-seek]');if(b){var v=$('gvVid');if(v){var p=b.getAttribute('data-seek').split(':').map(Number),t=0;p.forEach(function(n){t=t*60+(n||0)});v.currentTime=t;v.play().catch(function(){})}return}
     b=e.target.closest('.gview [data-mid]');if(b)galGo(b.getAttribute('data-mid'));
   });
+  /* ---------- Barra de baixo da aba do óculos: Óculos · Gravação · Galeria ---------- */
+  function glView(v){
+    if(['home','rec','gal'].indexOf(v)<0)v='home';
+    ['home','rec','gal'].forEach(function(k){$('glv-'+k).hidden=k!==v});
+    [].forEach.call($('glNav').children,function(b){if(b.getAttribute('data-glv')===v)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
+    prefs.glView=v;persist();$('glBody').scrollTop=0;
+    glAuto(v==='home'); // o óculos 3D só gira quando está aparecendo (economiza bateria)
+    if(v==='gal'&&!galTab)galOpen('video');
+    if(v==='rec')recPaint();
+  }
+  $('glNav').addEventListener('click',function(e){var b=e.target.closest('[data-glv]');if(b)glView(b.getAttribute('data-glv'))});
   /* ---------- Gravação: óculos, qualidade e contexto de uso ---------- */
   var REC_CTX=['Paraquedismo / esporte','Trabalho pesado','Loja / atendimento','Obra','Linha de produção','Outro'];
   function recPaint(){
@@ -1671,7 +1698,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   }
   window.jjGlasses=function(st){for(var k in st)gs[k]=st[k];paintGl()};
   function openGlasses(){
-    $('gl').hidden=false;glLoad();glAuto(true);$('glLook').checked=prefs.glLook!==false;glChats();galCounts();recPaint();
+    $('gl').hidden=false;glLoad();glAuto(true);$('glLook').checked=prefs.glLook!==false;glChats();galCounts();recPaint();glView(prefs.glView||'home');
     if(NATIVE&&NATIVE.glassesStart){try{window.jjGlasses(JSON.parse(NATIVE.glassesState()))}catch(e){}NATIVE.glassesStart()}
     clearInterval(glPoll);glPoll=setInterval(function(){if(NATIVE&&NATIVE.glassesState){try{window.jjGlasses(JSON.parse(NATIVE.glassesState()))}catch(e){}}else paintGl()},1000);
     paintGl();
