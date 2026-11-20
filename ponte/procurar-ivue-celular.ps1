@@ -72,6 +72,24 @@ Cmds "C) com a porta 3333 (avisos) conectada"
 "`n== 7) Video ao vivo agora (RTSP) ==" | Add-Content $o
 & $adb shell "printf 'DESCRIBE rtsp://$($gw):554/xxx.mov RTSP/1.0\r\nCSeq: 2\r\nAccept: application/sdp\r\n\r\n' | nc -w 3 $gw 554 | head -c 900" 2>&1 | Out-String | Add-Content $o
 
+"`n== 7b) Ligar o ao vivo (comandos autorizados pelo Juan: so modo video e ao vivo; nada de apagar/formatar/desligar) ==" | Add-Content $o
+function Cmd($c, $t) {
+  $r = & $adb shell "printf 'GET /?custom=1&cmd=$c HTTP/1.0\r\nHost: $gw\r\n\r\n' | nc -w 3 $gw 80 | grep -E 'Status|Value' | tr -d '\r\n'" 2>&1 | Out-String
+  "$t (cmd=$c) : $r" | Add-Content $o
+}
+function Rtsp($t) {
+  $r = & $adb shell "printf 'DESCRIBE rtsp://$($gw):554/xxx.mov RTSP/1.0\r\nCSeq: 2\r\nAccept: application/sdp\r\n\r\n' | nc -w 3 $gw 554 | head -1" 2>&1 | Out-String
+  "   ao vivo depois de '$t': $r" | Add-Content $o
+}
+Rtsp "nada"
+Cmd "3016" "esta vivo?"
+Cmd "3001&par=1" "modo video"; Start-Sleep 2; Rtsp "modo video"
+Cmd "2015&par=1" "ligar ao vivo"; Start-Sleep 2; Rtsp "ligar ao vivo"
+Cmd "2015&par=1" "ligar ao vivo (2a vez)"; Start-Sleep 3; Rtsp "ligar ao vivo 2a vez"
+$r = & $adb shell "nc -z -w 1 $gw 8192 >/dev/null 2>&1 && echo ABERTA || echo fechada" 2>&1 | Out-String
+"   porta 8192 (ao vivo em imagens): $r" | Add-Content $o
+Cmd "3016" "esta vivo? (depois)"
+
 "`n== 8) App oficial do oculos no celular (so o nome e o APK dele, para ler quais comandos ele usa) ==" | Add-Content $o
 $pk = (& $adb shell "pm list packages -3" 2>&1 | Out-String) -split "`n" | ForEach-Object { $_.Trim() -replace '^package:','' } | Where-Object { $_ -match 'ivue|novatek|dvr|glass|eyewear|wificam|camglass|vision|denali' }
 if (-not $pk) { "nenhum app oficial encontrado" | Add-Content $o }

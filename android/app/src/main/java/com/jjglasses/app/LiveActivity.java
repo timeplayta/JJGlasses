@@ -25,6 +25,11 @@ import androidx.media3.exoplayer.rtsp.RtspMediaSource;
 import androidx.media3.ui.AspectRatioFrameLayout;
 import androidx.media3.ui.PlayerView;
 import javax.net.SocketFactory;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Tela "Ao vivo" do óculos iVUE Denali.
@@ -44,6 +49,8 @@ public class LiveActivity extends Activity {
     private TextView detail;
     private int attempt;          // 0 = vídeo pela conexão TCP; 1 = vídeo por UDP (o app inteiro preso no Wi-Fi do óculos)
     private boolean bound;
+    private volatile String cmds = "";   // o que o óculos respondeu aos comandos (aparece se der erro)
+    private int gen;                     // evita duas tentativas ao mesmo tempo
 
     private int dp(int v) { return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, v, getResources().getDisplayMetrics()); }
 
@@ -113,7 +120,13 @@ public class LiveActivity extends Activity {
     }
 
     @Override protected void onStart() { super.onStart(); attempt = 0; start(); }
-    @Override protected void onStop() { super.onStop(); stop(); }
+    @Override protected void onStop() {
+        super.onStop();
+        gen++;
+        stop();
+        Network n = Ivue.wifiNet(this);   // saiu da tela: desliga o ao vivo no óculos (volta como estava)
+        if (n != null) new Thread(() -> cmd(n, "2015&par=0"), "jj-live-off").start();
+    }
 
     private void show(String t, boolean retry) {
         msg.setText(t == null ? "" : t);
@@ -122,11 +135,41 @@ public class LiveActivity extends Activity {
         again.setVisibility(retry ? View.VISIBLE : View.GONE);
     }
 
+    /** Comando para o chip do óculos (Novatek). Devolve o Status: 0 = deu certo, -22 = "estado errado". */
+    private static String cmd(Network n, String c) {
+        HttpURLConnection h = null;
+        try {
+            h = (HttpURLConnection) n.openConnection(new URL(Ivue.HOST + "/?custom=1&cmd=" + c));
+            h.setConnectTimeout(3000); h.setReadTimeout(4000); h.setUseCaches(false);
+            try (InputStream in = h.getInputStream()) {
+                byte[] b = new byte[2048]; int k, t = 0; StringBuilder sb = new StringBuilder();
+                while ((k = in.read(b)) > 0 && t < 8000) { sb.append(new String(b, 0, k, "UTF-8")); t += k; }
+                Matcher m = Pattern.compile("<Status>(-?\\d+)</Status>").matcher(sb);
+                return m.find() ? m.group(1) : "?";
+            }
+        } catch (Exception e) { return "x"; }
+        finally { if (h != null) h.disconnect(); }
+    }
+
+    /** Liga o ao vivo no óculos (autorizado pelo Juan): modo vídeo + começar ao vivo. Depois abre o vídeo. */
     private void start() {
         stop();
-        show("Conectando ao óculos…", false);
         Network n = Ivue.wifiNet(this);
         if (n == null) { show("O celular não está no Wi-Fi do óculos.\nConecte no Wi-Fi \"iVUE\" e tente de novo.", true); return; }
+        show("Ligando o ao vivo no óculos…", false);
+        final int my = ++gen;
+        new Thread(() -> {
+            String a = cmd(n, "3016"), b = cmd(n, "3001&par=1");
+            try { Thread.sleep(800); } catch (InterruptedException ignored) { }
+            String c = cmd(n, "2015&par=1");
+            try { Thread.sleep(1200); } catch (InterruptedException ignored) { }
+            cmds = "vivo? " + a + " · modo vídeo " + b + " · ao vivo " + c;
+            main().post(() -> { if (my == gen && !isFinishing()) play(n); });
+        }, "jj-live-cmd").start();
+    }
+
+    private void play(Network n) {
+        show("Conectando ao óculos…", false);
         SocketFactory sf = n.getSocketFactory();
         if (attempt == 1) {   // 2ª tentativa: prende o app inteiro no Wi-Fi do óculos e deixa o vídeo vir por UDP
             ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
@@ -146,10 +189,10 @@ public class LiveActivity extends Activity {
                 else if (st == Player.STATE_BUFFERING) show("Carregando…", false);
             }
             @Override public void onPlayerError(PlaybackException e) {
-                if (attempt == 0) { attempt = 1; main().post(() -> start()); return; }   // tenta o outro jeito
+                if (attempt == 0) { attempt = 1; main().post(() -> { if (player != null) { player.release(); player = null; } play(n); }); return; }   // tenta o outro jeito
                 show("Não consegui ver o óculos ao vivo.\nConfira se ele está ligado e se o celular está no Wi-Fi \"iVUE\".", true);
                 Throwable c = e.getCause();
-                detail.setText("Código: " + e.getErrorCodeName() + (c != null && c.getMessage() != null ? "\n" + c.getMessage() : ""));
+                detail.setText("Código: " + e.getErrorCodeName() + (c != null && c.getMessage() != null ? "\n" + c.getMessage() : "") + "\nÓculos respondeu: " + cmds);
             }
         });
         player.setMediaSource(src);
