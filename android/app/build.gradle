@@ -43,3 +43,11 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 }
+
+dependencies {
+    // ExoPlayer (Media3): player de vídeo do Google, usado no "Ao vivo" do óculos iVUE (RTSP)
+    def media3 = '1.4.1'
+    implementation "androidx.media3:media3-exoplayer:$media3"
+    implementation "androidx.media3:media3-exoplayer-rtsp:$media3"
+    implementation "androidx.media3:media3-ui:$media3"
+}

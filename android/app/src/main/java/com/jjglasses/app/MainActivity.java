@@ -601,6 +601,10 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void ivueDownload(String path, String nome) { ivue.download(path, nome); }
         @JavascriptInterface public void ivueCancel() { ivue.cancelDownload(); }
         @JavascriptInterface public void ivueOpen(String uri, String mime) { main.post(() -> ivue.openFile(uri, mime)); }
+        @JavascriptInterface public void ivueStatus() { ivue.status(); }   // bateria, espaço, vídeos e fotos
+        @JavascriptInterface public void ivueLive() {                      // abre a tela "Ao vivo"
+            main.post(() -> startActivity(new android.content.Intent(MainActivity.this, LiveActivity.class)));
+        }
 
         @JavascriptInterface public void stopSpeak() { main.post(() -> { if (tts != null) tts.stop(); }); }
     }

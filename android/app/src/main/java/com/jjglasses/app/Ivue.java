@@ -41,13 +41,16 @@ public class Ivue {
     static final String HOST = "http://192.168.1.254";
     private final Context ctx;
     private final Out out;
-    private final ExecutorService ex = Executors.newSingleThreadExecutor();
+    private final ExecutorService ex = Executors.newSingleThreadExecutor();      // downloads (podem demorar)
+    private final ExecutorService exInfo = Executors.newSingleThreadExecutor();  // lista e estado (rápidos)
     private volatile boolean cancel = false;
 
     Ivue(Context ctx, Out out) { this.ctx = ctx.getApplicationContext(); this.out = out; }
 
     /** A rede Wi-Fi em que o celular está (a do óculos). */
-    private Network wifi() {
+    private Network wifi() { return wifiNet(ctx); }
+
+    static Network wifiNet(Context ctx) {
         ConnectivityManager cm = (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
         if (cm == null) return null;
         for (Network n : cm.getAllNetworks()) {
@@ -97,7 +100,7 @@ public class Ivue {
 
     /** O app pede a lista: responde em window.jjIvue({ok, videos, fotos}) ou ({ok:false, erro}). */
     public void listAll() {
-        ex.submit(() -> {
+        exInfo.submit(() -> {
             JSONObject r = new JSONObject();
             try {
                 JSONArray v = new JSONArray(), f = new JSONArray();
@@ -108,6 +111,51 @@ public class Ivue {
                 try { r.put("ok", false); r.put("erro", String.valueOf(e.getMessage())); } catch (Exception ignored) { }
             }
             out.js("window.jjIvue&&window.jjIvue(" + r + ")");
+        });
+    }
+
+    private static final Pattern ST = Pattern.compile("<Status>(-?\\d+)</Status>");
+    private static final Pattern VAL = Pattern.compile("<Value>(-?\\d+)</Value>");
+
+    /** Pergunta de LEITURA ao chip Novatek do óculos. Devolve o número (Value) ou null se ele não respondeu. */
+    private Long cmd(int c) {
+        try {
+            String x = get("/?custom=1&cmd=" + c);
+            Matcher s = ST.matcher(x), v = VAL.matcher(x);
+            if (s.find() && "0".equals(s.group(1)) && v.find()) return Long.parseLong(v.group(1));
+        } catch (Exception ignored) { }
+        return null;
+    }
+
+    /** "12.91 MB" -> bytes */
+    static long bytes(String t) {
+        Matcher m = Pattern.compile("([\\d.]+)\\s*([KMGT]?B)", Pattern.CASE_INSENSITIVE).matcher(t == null ? "" : t);
+        if (!m.find()) return 0;
+        double n = Double.parseDouble(m.group(1));
+        switch (m.group(2).toUpperCase()) { case "KB": n *= 1024; break; case "MB": n *= 1048576; break; case "GB": n *= 1073741824d; break; case "TB": n *= 1099511627776d; break; }
+        return (long) n;
+    }
+
+    /** Estado do óculos para a área do iVUE: conectado, bateria, espaço e quantos vídeos/fotos.
+     *  Responde em window.jjIvueSt({ok, videos[], fotos[], usado, livre?, bateria?, cartao?}). Só lê. */
+    public void status() {
+        exInfo.submit(() -> {
+            JSONObject r = new JSONObject();
+            try {
+                JSONArray v = new JSONArray(), f = new JSONArray();
+                list("/DCIM/Movie", v, 0);
+                try { list("/DCIM/Photo", f, 0); } catch (Exception ignored) { }
+                long usado = 0;
+                for (int i = 0; i < v.length(); i++) usado += bytes(v.getJSONObject(i).optString("tamanho"));
+                for (int i = 0; i < f.length(); i++) usado += bytes(f.getJSONObject(i).optString("tamanho"));
+                r.put("ok", true); r.put("videos", v); r.put("fotos", f); r.put("usado", usado);
+                Long bat = cmd(3019);  if (bat != null) r.put("bateria", bat);   // 0 cheia ... 5 carregando
+                Long livre = cmd(3017); if (livre != null) r.put("livre", livre); // bytes livres no cartão
+                Long card = cmd(3024);  if (card != null) r.put("cartao", card);  // 1 = cartão colocado
+            } catch (Exception e) {
+                try { r.put("ok", false); r.put("erro", String.valueOf(e.getMessage())); } catch (Exception ignored) { }
+            }
+            out.js("window.jjIvueSt&&window.jjIvueSt(" + r + ")");
         });
     }
 

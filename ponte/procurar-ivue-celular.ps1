@@ -42,18 +42,31 @@ foreach ($ip in $ips) {
 
 "`n== 4) Perguntas HTTP ao oculos (pelo celular) - so leitura ==" | Add-Content $o
 # comandos de LEITURA do chip Novatek: 3012 versao, 3014 todas as configuracoes, 3015 lista de arquivos,
-# 3016 "esta vivo?", 3017 estado do cartao, 3019 bateria, 3029 nome do Wi-Fi, 3002 lista de comandos, 3024 espaco livre.
+# 3016 "esta vivo?", 3017 espaco livre, 3019 bateria, 3024 estado do cartao, 3002 lista de comandos.
 # Status -22 = "estado errado" (o oculos esta num modo que nao aceita o pedido, ex.: gravando ou ligado no PC). Nada de gravar/apagar/mudar modo.
-foreach ($cam in '/', '/?custom=1&cmd=3012', '/?custom=1&cmd=3014', '/?custom=1&cmd=3016', '/?custom=1&cmd=3017', '/?custom=1&cmd=3019', '/?custom=1&cmd=3029', '/?custom=1&cmd=3015', '/?custom=1&cmd=3002', '/?custom=1&cmd=3024', '/DCIM/', '/DCIM/Movie', '/DCIM/Photo', '/NOVATEK/') {
+foreach ($cam in '/', '/?custom=1&cmd=3012', '/?custom=1&cmd=3014', '/?custom=1&cmd=3016', '/?custom=1&cmd=3017', '/?custom=1&cmd=3019', '/?custom=1&cmd=3015', '/?custom=1&cmd=3002', '/?custom=1&cmd=3024', '/DCIM/', '/DCIM/Movie', '/DCIM/Photo', '/NOVATEK/') {
   "--- http://$($gw)$cam" | Add-Content $o
   $r = & $adb shell "printf 'GET $cam HTTP/1.0\r\nHost: $gw\r\n\r\n' | nc -w 3 $gw 80 | head -c 2500" 2>&1 | Out-String
   $r | Add-Content $o
 }
 "`n== 5) Video ao vivo (RTSP) ==" | Add-Content $o
-foreach ($cam in '/', '/xxx.mov', '/xxx.mp4', '/live', '/live.sdp', '/stream', '/liveRTSP/av4', '/av0', '/H264', '/1', '/main', '/preview') {
+foreach ($cam in '/xxx.mov', '/live') {
   "--- RTSP DESCRIBE rtsp://$($gw):554$cam" | Add-Content $o
   & $adb shell "printf 'DESCRIBE rtsp://$($gw):554$cam RTSP/1.0\r\nCSeq: 2\r\nAccept: application/sdp\r\n\r\n' | nc -w 3 $gw 554 | head -c 900" 2>&1 | Out-String | Add-Content $o
 }
-"`n== 6) Porta 3333 (avisos do oculos) ==" | Add-Content $o
-& $adb shell "nc -w 3 $gw 3333 </dev/null | head -c 300" 2>&1 | Out-String | Add-Content $o
+"`n== 6) Quando o oculos aceita perguntas? (so leitura) ==" | Add-Content $o
+function Cmds($t) {
+  "--- $t" | Add-Content $o
+  foreach ($c in '3016', '3019', '3017', '3024') {
+    $r = & $adb shell "printf 'GET /?custom=1&cmd=$c HTTP/1.0\r\nHost: $gw\r\n\r\n' | nc -w 3 $gw 80 | grep -E 'Status|Value' | tr -d '\r\n'" 2>&1 | Out-String
+    "cmd $c : $r" | Add-Content $o
+  }
+}
+Cmds "A) sem nada conectado"
+& $adb shell "printf 'DESCRIBE rtsp://$($gw):554/xxx.mov RTSP/1.0\r\nCSeq: 2\r\n\r\n' | nc -w 2 $gw 554 >/dev/null" 2>&1 | Out-Null
+Cmds "B) logo depois de pedir o video ao vivo (RTSP)"
+& $adb shell "nohup sh -c 'sleep 25 | nc $gw 3333 > /data/local/tmp/ivue3333.txt 2>&1' >/dev/null 2>&1 & sleep 2" 2>&1 | Out-Null
+Cmds "C) com a porta 3333 (avisos) conectada"
+"--- avisos recebidos na porta 3333:" | Add-Content $o
+& $adb shell "sleep 3; head -c 600 /data/local/tmp/ivue3333.txt; rm -f /data/local/tmp/ivue3333.txt" 2>&1 | Out-String | Add-Content $o
 "Pronto: $o"
