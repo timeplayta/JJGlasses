@@ -234,6 +234,12 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 /* cores das conversas */
 .cprev{display:flex;flex-direction:column;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:10px}
 .cprev .m{max-width:80%;font-size:14px;padding:7px 12px}
+.upd{position:fixed;inset:0;z-index:80;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px max(20px,env(safe-area-inset-right,0px)) 24px max(20px,env(safe-area-inset-left,0px))}.upd[hidden]{display:none}
+.updbox{width:min(440px,100%);display:flex;flex-direction:column;gap:12px;text-align:center}
+.updic{font-size:44px;line-height:1}.updbox h2{margin:0;font-size:22px}.updbox .sub{margin:0;color:var(--mute);font-size:14px;line-height:1.45}
+.updbox ul{margin:0;padding:0 0 0 18px;text-align:left;color:var(--ink);font-size:14.5px;line-height:1.5}
+.updbar{height:12px;border-radius:7px;background:var(--line);overflow:hidden}.updbar i{display:block;height:100%;width:1%;background:var(--accent);border-radius:7px;transition:width .25s}
+.updpct{font-size:30px;font-weight:750}.updbox .btn{margin:0}
 .cpk{position:fixed;inset:0;z-index:46;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}
 .cpkbox{background:var(--card);width:min(560px,100%);max-height:94vh;max-height:94dvh;border-radius:24px 24px 0 0;display:flex;flex-direction:column;padding:10px 16px calc(14px + env(safe-area-inset-bottom,0px))}
 .cpktop{display:flex;align-items:center;justify-content:space-between}.cpktop b{font-size:18px;padding-left:4px}
@@ -544,6 +550,18 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 <div class="ring" id="ring" hidden><div class="ringbox"><div class="ringic">⏰</div><b id="ringT">Lembrete</b><p id="ringTxt"></p><div class="nacts"><button class="btn" id="ringSnooze">Adiar 5 min</button><button class="btn main" id="ringOk">Ok</button></div></div></div>
 
 <!-- cores das conversas (abre pelos Ajustes ou segurando o dedo num balão) -->
+<!-- atualização do APK: chega a notificação, a pessoa abre e autoriza; barra de 1% a 100% -->
+<div class="upd" id="upd" hidden><div class="updbox" role="dialog" aria-label="Atualização do JJGlasses">
+  <div class="updic" id="updIc">⬆️</div>
+  <h2 id="updT">Nova atualização do seu JJGlasses</h2>
+  <p class="sub" id="updN">Autorize para atualizar. Suas conversas, login e ajustes continuam salvos.</p>
+  <ul id="updB"></ul>
+  <div id="updProg" hidden><div class="updpct" id="updPct">1%</div><div class="updbar"><i id="updBar"></i></div></div>
+  <p class="sub" id="updMsg" hidden></p>
+  <button class="btn main" id="updGo">Autorizar e atualizar</button>
+  <button class="btn" id="updLater">Agora não</button>
+</div></div>
+
 <div class="cpk" id="cpk" hidden><div class="cpkbox" role="dialog" aria-label="Cores das conversas">
   <div class="cpktop"><b>Cores das conversas</b><button class="icon" id="cpkX" aria-label="Fechar"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
   <div class="cpkbody" id="cpkBody"></div>
@@ -1716,7 +1734,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   var ivueFiles=null,ivueDl=load('jj_ivue_dl',{}),ivueProg={};
   function ivueSt(t){$('ivueSt').textContent=t}
   $('ivueBtn').onclick=function(){
-    if(!(NATIVE&&NATIVE.ivueList)){ivueSt('Para ver os arquivos do óculos, instale o APK novo por cima (link nos Ajustes).');return}
+    if(!(NATIVE&&NATIVE.ivueList)){ivueSt('Para ver os arquivos do óculos, atualize o app.');apkCheck(true);return}
     ivueSt('Procurando o óculos no Wi-Fi…');$('ivueList').innerHTML='';NATIVE.ivueList();
   };
   window.jjIvue=function(r){
@@ -1768,7 +1786,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   function ivHomePaint(){
     var app=!!(NATIVE&&NATIVE.ivueStatus),on=!!(ivSt&&ivSt.ok);
     $('ivDot').className='gdot'+(on?' on':ivAsking?' wait':'');
-    $('ivState').textContent=!app?'Instale o APK novo por cima para usar o iVUE':on?'Conectado pelo Wi-Fi':ivAsking?'Procurando o óculos no Wi-Fi…':'Não conectado';
+    $('ivState').textContent=!app?'Atualize o app para usar o iVUE':on?'Conectado pelo Wi-Fi':ivAsking?'Procurando o óculos no Wi-Fi…':'Não conectado';
     $('ivHelp').hidden=on||!app;$('ivModeT').textContent=ivSyncTxt(ivChat());
     var b=on&&ivSt.bateria!=null?IV_BAT[ivSt.bateria]:null;
     $('ivBat').textContent=b?b[0]:'—';$('ivBatBar').style.width=(b&&b[1]!=null?b[1]:0)+'%';
@@ -1782,7 +1800,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     }else{$('ivSto').textContent='—';$('ivStoBar').style.width='0%';$('ivStoSub').textContent=''}
   }
   function ivLiveOpen(){
-    if(!(NATIVE&&NATIVE.ivueLive)){toast('Para ver ao vivo, instale o APK novo por cima (link nos Ajustes).');return}
+    if(!(NATIVE&&NATIVE.ivueLive)){toast('Para ver ao vivo, atualize o app.');apkCheck(true);return}
     if(ivSt&&!ivSt.ok)toast('Conecte o celular no Wi-Fi "iVUE" do óculos');
     NATIVE.ivueLive();
   }
@@ -1810,6 +1828,47 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   function ivDropFile(path){if(!ivueFiles)return;['videos','fotos'].forEach(function(k){ivueFiles[k]=(ivueFiles[k]||[]).filter(function(x){return x.path!==path})});if(ivSt&&ivSt.ok){ivSt.videos=ivueFiles.videos;ivSt.fotos=ivueFiles.fotos}ivuePaint();ivHomePaint()}
   window.jjIvueDel=function(r){if(r&&r.ok)ivDropFile(r.path);else if(r)ivFail[r.path]=(ivFail[r.path]||0)+1;setTimeout(ivHomeAsk,800)};
   $('ivMode').onclick=function(){var c=ivChat();if(!c){c=newChat('ivue');prefs.glChatBy=prefs.glChatBy||{};prefs.glChatBy.ivue=c.id;persist();renderAll();glChats()}openChatMenu(c.id,'ocsync')};
+  /* ---------- Atualização do APK pelo próprio app ----------
+     O robô do GitHub publica apk.json. Se o número for maior que o do APK instalado, mostra esta tela
+     (e o Android já mostrou a notificação). A pessoa autoriza, o app baixa (1% a 100%) e instala por cima. */
+  var APK_BASE='https://timeplayta.github.io/JJGlasses/',apkInfo=null,apkAsked=false,apkRun=false;
+  function apkMine(){if(NATIVE&&NATIVE.apkCode)return Number(NATIVE.apkCode())||0;var m=/^1\.(\d+)/.exec(NATIVE&&NATIVE.shellVersion?NATIVE.shellVersion():'');return m?1000+Number(m[1]):0}
+  function apkCheck(force){
+    if(!NATIVE)return;
+    fetch(APK_BASE+'apk.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(i){
+      if(!i||!(Number(i.code)>apkMine()))return;apkInfo=i;if(force||!apkAsked){apkAsked=true;apkShow()}
+    }).catch(function(){});
+  }
+  window.jjApkOffer=function(){apkCheck(true)};
+  function apkMsg(t){$('updMsg').hidden=!t;$('updMsg').textContent=t||''}
+  function apkBtns(go,later,goTxt){$('updGo').hidden=!go;$('updLater').hidden=!later;if(goTxt)$('updGo').textContent=goTxt}
+  function apkShow(){
+    var n=(apkInfo&&apkInfo.notes)||{};apkRun=false;
+    $('updIc').textContent='⬆️';$('updT').textContent='Nova atualização do seu JJGlasses';
+    $('updN').textContent='Autorize para atualizar. Suas conversas, login e ajustes continuam salvos.';
+    $('updB').innerHTML=(n.b||[]).filter(function(x){return !/instale o apk/i.test(x)}).slice(0,4).map(function(x){return '<li>'+esc(x)+'</li>'}).join('');
+    $('updProg').hidden=true;apkMsg('');apkBtns(true,true,'Autorizar e atualizar');$('upd').hidden=false;
+  }
+  function apkPct(p){p=Math.max(1,Math.min(100,Math.round(p||1)));$('updProg').hidden=false;$('updPct').textContent=p+'%';$('updBar').style.width=p+'%'}
+  $('updLater').onclick=function(){if(!apkRun)$('upd').hidden=true};
+  $('updGo').onclick=function(){
+    if(!(NATIVE&&NATIVE.apkUpdate)){ // APK antigo (sem atualizador): baixa pelo navegador uma última vez
+      if(NATIVE&&NATIVE.openExternal)NATIVE.openExternal(APK_BASE+'JJGlasses.apk');
+      apkMsg('Baixe e instale por cima. É a última vez: depois disso o JJGlasses se atualiza sozinho.');return}
+    apkRun=true;$('updT').textContent='Atualizando o JJGlasses…';$('updN').textContent='Pode demorar alguns segundos ou de 1 a 5 minutos.';$('updB').innerHTML='';
+    apkPct(1);apkMsg('Não feche o app.');apkBtns(false,false);NATIVE.apkUpdate();
+  };
+  window.jjApkProg=function(p){
+    if(!p)return;$('upd').hidden=false;var f=p.fase;
+    if(f==='baixando'){apkRun=true;apkPct(p.pct);apkMsg('Baixando… não feche o app.');apkBtns(false,false)}
+    else if(f==='instalando'){apkPct(p.pct);apkMsg('Instalando…')}
+    else if(f==='confirmar'){apkPct(p.pct);apkMsg('Toque em "Atualizar" na janela do Android.')}
+    else if(f==='pronto'){apkPct(100);$('updIc').textContent='✅';$('updT').textContent='Pronto!';apkMsg('O JJGlasses vai fechar e abrir já atualizado.')}
+    else if(f==='permissao'){apkRun=false;$('updProg').hidden=true;apkMsg('Na próxima tela, ative "Permitir desta fonte" para o JJGlasses e volte aqui. A atualização continua sozinha (só na primeira vez).');apkBtns(false,true)}
+    else{apkRun=false;$('updProg').hidden=true;$('updIc').textContent='⚠️';$('updT').textContent=f==='cancelado'?'Atualização cancelada':f==='semPermissao'?'Falta a permissão':'Não deu certo';
+      apkMsg(f==='semPermissao'?'Sem "Permitir desta fonte" o JJGlasses não consegue se atualizar.':f==='cancelado'?'Você pode atualizar quando quiser.':'Confira a internet e tente de novo.');apkBtns(true,true,'Tentar de novo')}
+  };
+  setTimeout(function(){apkCheck(false)},3000);setInterval(function(){if(!document.hidden)apkCheck(false)},30*60000);
   /* ---------- Gravação: óculos, qualidade e contexto de uso ---------- */
   var REC_CTX=['Paraquedismo / esporte','Trabalho pesado','Loja / atendimento','Obra','Linha de produção','Outro'];
   function recPaint(){

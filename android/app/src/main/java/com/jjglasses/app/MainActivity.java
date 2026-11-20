@@ -59,6 +59,8 @@ import java.util.Locale;
  */
 public class MainActivity extends Activity {
     private Ivue ivue;
+    private final Updater.Out updOut = this::js;   // barra de progresso da atualização do APK
+    private boolean wantUpdate;                    // abriu pela notificação "Nova atualização"
 
     // Site (GitHub Pages) de onde vêm o app e o version.json.
     static final String BASE = "https://timeplayta.github.io/JJGlasses/";
@@ -125,6 +127,9 @@ public class MainActivity extends Activity {
             @Override public void tap() { main.post(() -> { if (web != null) web.evaluateJavascript("window.jjGlassesTap&&window.jjGlassesTap()", null); }); }
         });
         ivue = new Ivue(this, this::js);   // óculos iVUE Denali pelo Wi-Fi dele
+        Updater.out = updOut;              // atualização automática do APK
+        Updater.schedule(this);
+        wantUpdate = getIntent() != null && getIntent().getBooleanExtra("jjAtualizar", false);
         web.addJavascriptInterface(new Bridge(), "JJ");
         web.setWebViewClient(new ShellClient());
         web.setWebChromeClient(new ShellChrome());
@@ -189,8 +194,16 @@ public class MainActivity extends Activity {
         }
     };
 
+    @Override protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        if (intent != null && intent.getBooleanExtra("jjAtualizar", false)) js("window.jjApkOffer&&window.jjApkOffer(true)");
+    }
+
     @Override protected void onResume() {
         super.onResume();
+        Updater.out = updOut;
+        Updater.resume(this);   // voltou da tela "instalar apps desta fonte": continua a atualização
         if (web != null) web.onResume();
         main.removeCallbacks(periodic);
         main.postDelayed(periodic, 30_000);
@@ -205,6 +218,7 @@ public class MainActivity extends Activity {
 
     @Override protected void onDestroy() {
         main.removeCallbacksAndMessages(null);
+        if (Updater.out == updOut) Updater.out = null;
         if (glasses != null) glasses.release();
         keepAlive(false);
         if (recognizer != null) recognizer.destroy();
@@ -352,6 +366,7 @@ public class MainActivity extends Activity {
 
         @Override public void onPageFinished(WebView view, String url) {
             splash.setVisibility(View.GONE);
+            if (wantUpdate) { wantUpdate = false; view.evaluateJavascript("setTimeout(function(){window.jjApkOffer&&window.jjApkOffer(true)},600)", null); }
             if (notesToShow != null && !"null".equals(notesToShow)) {
                 String notes = notesToShow;
                 notesToShow = null;
@@ -534,6 +549,10 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void ready() { }
 
         @JavascriptInterface public void applyUpdate() { main.post(MainActivity.this::applyStaged); }
+
+        // atualização do APK pelo próprio app (sem mandar link)
+        @JavascriptInterface public String apkCode() { return String.valueOf(Updater.installedCode(MainActivity.this)); }
+        @JavascriptInterface public void apkUpdate() { main.post(() -> Updater.start(MainActivity.this)); }
 
         @JavascriptInterface public void openExternal(String url) { main.post(() -> openOutside(url)); }
 

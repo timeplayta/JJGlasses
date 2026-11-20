@@ -79,7 +79,12 @@ public class Reminders extends BroadcastReceiver {
 
     @Override public void onReceive(Context ctx, Intent intent) {
         String a = intent.getAction();
-        if (Intent.ACTION_BOOT_COMPLETED.equals(a) || "android.intent.action.MY_PACKAGE_REPLACED".equals(a)) { rescheduleAll(ctx); return; }
+        if (Intent.ACTION_BOOT_COMPLETED.equals(a) || "android.intent.action.MY_PACKAGE_REPLACED".equals(a)) {
+            rescheduleAll(ctx);
+            if ("android.intent.action.MY_PACKAGE_REPLACED".equals(a)) Updater.notifyDone(ctx);   // "JJGlasses atualizado ✓"
+            Updater.schedule(ctx);
+            return;
+        }
         try {
             JSONObject r = new JSONObject(intent.getStringExtra("r"));
             boolean alarm = "alarme".equals(r.optString("type"));

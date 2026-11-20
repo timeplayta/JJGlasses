@@ -66,9 +66,10 @@ jobs:
           mkdir -p apk
           cp android/app/build/outputs/apk/release/app-release.apk apk/JJGlasses.apk
           cp apk/JJGlasses.apk web/JJGlasses.apk
+          python3 .github/scripts/apk.py
           git config user.name "github-actions[bot]"
           git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
-          git add apk/JJGlasses.apk web/version.json
+          git add apk/JJGlasses.apk web/version.json web/apk.json
           git commit -m "APK ${VERSION_NAME} e versão ${V} [skip ci]" || echo "nada novo"
           git push
 
