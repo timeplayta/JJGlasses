@@ -101,7 +101,7 @@ const TOOLS = [
 ];
 
 type Turn = { role: "user" | "assistant"; text: string; image?: string };
-type Body = { audio?: string; stt?: string; sttCtx?: string; turns?: Turn[]; name?: string; live?: boolean; stream?: boolean; lang?: string; lock?: boolean; tz?: string; task?: string; text?: string; a?: string; b?: string; place?: { lat: number; lon: number; label?: string } };
+type Body = { audio?: string; stt?: string; sttCtx?: string; turns?: Turn[]; name?: string; live?: boolean; stream?: boolean; lang?: string; lock?: boolean; tz?: string; oculos?: { nome?: string; ia?: boolean; falante?: boolean; mic?: boolean; camera?: boolean; grava?: boolean; res?: string[] }; task?: string; text?: string; a?: string; b?: string; place?: { lat: number; lon: number; label?: string } };
 
 // Login já conferido fica guardado por 5 min (a resposta começa mais rápido).
 const okTokens = new Map<string, number>();
@@ -327,6 +327,17 @@ Deno.serve(async (req: Request) => {
     extra += " Você TEM acesso à internet pelas ferramentas buscar_na_internet e clima. Use-as para clima, notícias, preços e tudo que muda com o tempo. Nunca diga que não tem acesso à internet.";
     if (body.live) extra += "\n\n" + LIVE;
     if (body.name) extra += `\n\nPessoa: ${String(body.name).slice(0, 60)}.`;
+    // óculos escolhido para ESTE chat: a IA responde de acordo com o que ele consegue fazer
+    const oc = body.oculos;
+    if (oc && oc.nome) {
+      const tem = [oc.ia ? "IA própria" : "", oc.camera ? "câmera" : "", oc.mic ? "microfone" : "", oc.falante ? "alto-falante" : ""].filter(Boolean);
+      const sem = [!oc.ia ? "IA" : "", !oc.falante ? "alto-falante" : ""].filter(Boolean);
+      const res = Array.isArray(oc.res) && oc.res.length ? `, grava em ${oc.res.slice(0, 4).map((r) => String(r).slice(0, 8)).join(" e ")}` : "";
+      extra += `\n\nÓculos deste chat: ${String(oc.nome).slice(0, 40)} (${tem.length ? "tem " + tem.join(", ") : "só o celular"}${sem.length ? "; sem " + sem.join(" e ") : ""}${oc.grava ? res : ""}).`;
+      extra += oc.falante
+        ? " As respostas podem ser ouvidas no óculos."
+        : " A pessoa lê as respostas só na tela do celular: não diga para ouvir no óculos e não ofereça recursos que esse óculos não tem.";
+    }
     const lang = String(body.lang ?? "").slice(0, 40);
     // lock = a pessoa escolheu a língua DESTA conversa nos 3 pontinhos: responder sempre nela
     if (lang && body.lock) extra += `\n\nLÍNGUA OBRIGATÓRIA DESTA CONVERSA: ${lang}. Escreva TODAS as respostas somente em ${lang}, mesmo que a pessoa escreva em português ou em outra língua, e mesmo que as mensagens anteriores estejam em outra língua. Não explique isso, apenas responda em ${lang}.`;

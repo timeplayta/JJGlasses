@@ -49,7 +49,9 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 .icon.on{color:var(--accent)}
 .ttl{flex:1;min-width:0}
 .ttl b{display:block;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.st{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mute)}
+.st{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mute);min-width:0}
+.glchip{appearance:none;border:0;background:none;color:var(--mute);font:inherit;font-size:12px;padding:0 0 0 6px;border-left:1px solid var(--line);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46vw}
+.ocChip{margin-top:14px}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--ok)}
 .menuBtn{display:none}
 .msgs{flex:1;min-height:0;overflow-y:auto;padding:16px max(14px,env(safe-area-inset-right,0px)) 16px max(14px,env(safe-area-inset-left,0px))}
@@ -391,7 +393,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   <main class="main">
     <div class="bar">
       <button class="icon menuBtn" id="menuBtn" aria-label="Abrir chats"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
-      <div class="ttl"><b id="chatTitle">JJGlasses</b><div class="st"><span class="dot" id="dot"></span><span id="status">Pronto</span></div></div>
+      <div class="ttl"><b id="chatTitle">JJGlasses</b><div class="st"><span class="dot" id="dot"></span><span id="status">Pronto</span><button class="glchip" id="chatGl" aria-label="Trocar o óculos deste chat"></button></div></div>
       <button class="icon" id="speakToggle" aria-label="Ler respostas em voz alta"><svg class="i" viewBox="0 0 24 24"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></button>
       <button class="icon glbtn" id="glBtn" aria-label="Óculos"><svg class="i" viewBox="0 0 24 24"><rect x="2" y="8" width="8.5" height="7.5" rx="2.5"/><rect x="13.5" y="8" width="8.5" height="7.5" rx="2.5"/><path d="M10.5 11h3"/></svg><span class="gbadge" id="glBadge" hidden></span></button>
       <button class="icon" id="chatMore" aria-label="Mais opções desta conversa"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.6" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="12" cy="19" r="1.6" fill="currentColor" stroke="none"/></svg></button>
@@ -629,13 +631,13 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   var draft=null,busy=false,hlQuery=null;
 
   var lastSig={};chats.forEach(function(c){lastSig[c.id]=chatSig(c)});
-  function chatSig(c){var m=c.msgs.filter(function(x){return !x.pending}),l=m[m.length-1];return [c.title,c.lang||'',c.pinned?1:0,m.length,l?String(l.text||'').length:0,m.map(function(x){return x.fb?x.fb[0]:''}).join('')].join('|')}
+  function chatSig(c){var m=c.msgs.filter(function(x){return !x.pending}),l=m[m.length-1];return [c.title,c.lang||'',c.oculos||'',c.pinned?1:0,m.length,l?String(l.text||'').length:0,m.map(function(x){return x.fb?x.fb[0]:''}).join('')].join('|')}
   function persist(){
     // descobre o que mudou para mandar só isso para a nuvem
     var seen={};
     chats.forEach(function(c){seen[c.id]=1;if(c.msgs.some(function(m){return m.pending}))return;var g=chatSig(c);if(lastSig[c.id]!==g){lastSig[c.id]=g;c.up=Date.now();if(window.markDirty)markDirty(c.id)}});
     Object.keys(lastSig).forEach(function(id){if(!seen[id]){delete lastSig[id];if(window.markDirty)markDirty(id)}});
-    var slim=chats.slice(0,60).map(function(c){return {id:c.id,title:c.title,at:c.at,up:c.up||0,lang:c.lang||'',pinned:!!c.pinned,msgs:c.msgs.filter(function(m){return !m.pending}).slice(-80).map(function(m){return {role:m.role,text:m.text,img:(m.img&&m.img.length<300000)?m.img:null,file:m.file||null,ftext:m.ftext||null,src:m.src||undefined,fb:m.fb||undefined}})}});
+    var slim=chats.slice(0,60).map(function(c){return {id:c.id,title:c.title,at:c.at,up:c.up||0,lang:c.lang||'',oculos:c.oculos||'',pinned:!!c.pinned,msgs:c.msgs.filter(function(m){return !m.pending}).slice(-80).map(function(m){return {role:m.role,text:m.text,img:(m.img&&m.img.length<300000)?m.img:null,file:m.file||null,ftext:m.ftext||null,src:m.src||undefined,fb:m.fb||undefined}})}});
     save('jj_chats',slim);save('jj_prefs',prefs);
   }
   function chat(){for(var i=0;i<chats.length;i++)if(chats[i].id===cur)return chats[i];return null}
@@ -739,7 +741,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
         if(!inTitle&&!hit)return;
         if(hit){var raw=String(hit.text).replace(/\s+/g,' '),k=norm(raw).indexOf(q),st=Math.max(0,k-25);snip='<span class="snip">'+(st?'…':'')+hlText(raw.slice(st,st+90),q)+'</span>'}
       }
-      rows.push('<div class="ci'+(c.id===cur?' cur':'')+'" data-id="'+c.id+'" role="button" tabindex="0"><span class="t"><b>'+(c.pinned?'<span class="pin">📌</span>':'')+(q?hlText(c.title,q):esc(c.title))+'</b>'+(snip||'<small>'+when(c.at)+(c.lang?' · '+esc(langLocal(c.lang)):'')+'</small>')+'</span><button class="x" data-more="'+c.id+'" aria-label="Mais opções desta conversa">'+DOTS+'</button></div>');
+      rows.push('<div class="ci'+(c.id===cur?' cur':'')+'" data-id="'+c.id+'" role="button" tabindex="0"><span class="t"><b>'+(c.pinned?'<span class="pin">📌</span>':'')+(q?hlText(c.title,q):esc(c.title))+'</b>'+(snip||'<small>'+when(c.at)+' · '+esc(chatOculos(c).icone+' '+chatOculos(c).nome)+(c.lang?' · '+esc(langLocal(c.lang)):'')+'</small>')+'</span><button class="x" data-more="'+c.id+'" aria-label="Mais opções desta conversa">'+DOTS+'</button></div>');
     });
     $('convList').innerHTML=rows.join('')||'<p class="sub" style="padding:10px">'+(q?'Nada encontrado para essa busca.':'Suas conversas aparecem aqui.')+'</p>';
     $('sideWho').textContent=prefs.name?('Olá, '+prefs.name):'Assistente com IA';
@@ -747,8 +749,9 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   function renderChat(){
     var c=chat(),col=$('col');
     $('chatTitle').textContent=c?c.title:'JJGlasses';
+    var oc=chatOculos(c);$('chatGl').textContent=oc.icone+' '+oc.nome;$('speakToggle').hidden=!ouveNoOculos(c);
     if(!c||!c.msgs.length){
-      col.innerHTML='<div class="empty"><div class="mark" aria-hidden="true">JJ</div><h2>'+(prefs.name?'Oi, '+esc(prefs.name)+'!':'Oi! Como posso ajudar?')+'</h2><p>Escreva, fale pelo microfone, mande uma foto ou toque no botão de ligação para conversar por voz.</p><div class="sugs">'+
+      col.innerHTML='<div class="empty"><div class="mark" aria-hidden="true">JJ</div><h2>'+(prefs.name?'Oi, '+esc(prefs.name)+'!':'Oi! Como posso ajudar?')+'</h2><p>Escreva, fale pelo microfone, mande uma foto ou toque no botão de ligação para conversar por voz.</p>'+(c?'<button class="chip ocChip" data-ocpick="1">'+esc(oc.icone+' Óculos deste chat: '+oc.nome)+' · Trocar</button>':'')+'<div class="sugs">'+
         ['Como está o clima hoje?','Me dá uma receita rápida','Cria uma imagem de um óculos futurista'].map(function(s){return '<button class="chip" data-sug="'+esc(s)+'">'+esc(s)+'</button>'}).join('')+'</div></div>';
       return;
     }
@@ -774,11 +777,12 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     var q=norm(($('convSearch').value||'').trim());hlQuery=q||null;
     renderAll();closeDrawer();
   });
-  function newChat(){var c={id:'c'+Date.now(),title:'Novo chat',at:Date.now(),msgs:[]};chats.unshift(c);cur=c.id;persist();return c}
-  $('newChat').onclick=function(){newChat();renderAll();closeDrawer();$('msgIn').focus()};
+  function newChat(oc){var c={id:'c'+Date.now(),title:'Novo chat',at:Date.now(),oculos:oc||prefs.oculos||'jj',msgs:[]};chats.unshift(c);cur=c.id;persist();return c}
+  $('newChat').onclick=function(){var c=newChat();renderAll();closeDrawer();openChatMenu(c.id,'oculos')};
   $('menuBtn').onclick=function(){$('app').classList.add('open')};
   $('dim').onclick=closeDrawer;
   $('col').addEventListener('click',function(e){
+    if(e.target.closest('[data-ocpick]')){openChatMenu(cur,'oculos');return}
     var s=e.target.closest('[data-sug]');if(s){$('msgIn').value=s.getAttribute('data-sug');send();return}
     var say=e.target.closest('[data-say]');if(say){
       if(say.classList.contains('on')){stopSpeak();return}
@@ -925,7 +929,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   function ask(turns,live,onDelta,noStream,extra){
     var p=token().then(function(tk){
       return fetch(SB_URL+'/functions/v1/chat',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+tk,'Content-Type':'application/json'},
-        body:JSON.stringify({turns:turns,name:prefs.name||'',live:!!live,stream:!noStream,place:place,lang:langName(chatLang()),lock:langLocked(),tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||''),now:new Date().toString(),audio:extra&&extra.audio||undefined,stt:extra&&extra.stt||undefined,sttCtx:extra&&extra.sttCtx||undefined})});
+        body:JSON.stringify({turns:turns,name:prefs.name||'',live:!!live,stream:!noStream,place:place,lang:langName(chatLang()),lock:langLocked(),oculos:(function(o){return {nome:o.nome,ia:o.ia,falante:o.falante,mic:o.mic,camera:o.camera,grava:o.grava,res:o.res}})(chatOculos()),tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||''),now:new Date().toString(),audio:extra&&extra.audio||undefined,stt:extra&&extra.stt||undefined,sttCtx:extra&&extra.sttCtx||undefined})});
     }).then(function(r){
       var ct=r.headers.get('content-type')||'';
       if(!r.ok||ct.indexOf('ndjson')<0||!r.body||!r.body.getReader)return r.json().then(function(j){if(!r.ok||j.error)throw j;(j.lembretes||[]).forEach(function(x){window.jjAddReminder(x)});if(j.fontes&&j.fontes.length&&extra&&extra.onSources)extra.onSources(j.fontes);return j.text});
@@ -963,7 +967,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     extra=extra||{};extra.onSources=function(f){pending.src=(f||[]).filter(function(x){return x&&/^https?:\/\//.test(x.u)}).slice(0,10)};
     busy=true;setStatus('Respondendo...');renderAll();
     // falar enquanto a resposta ainda está chegando (ligação, óculos ou leitura automática)
-    if(!voiceOut&&prefs.speak&&!live)voiceOut={};
+    if(!voiceOut&&prefs.speak&&!live&&ouveNoOculos())voiceOut={};
     var ss=null,lastR=0,rT=null;
     function paint(){lastR=Date.now();rT=null;renderChat()}
     return ask(turnsOf(c),live,function(acc){
@@ -1012,6 +1016,28 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   }
   // língua da conversa aberta (dá pra mudar nos 3 pontinhos; a IA é obrigada a responder nela) e língua da voz (o tradutor troca na hora)
   var ttsLang='';
+  /* ---------- Óculos de cada chat ----------
+     Cadastro (lista) de óculos com as "capacidades" de cada um: tem IA? alto-falante? microfone? câmera? grava? em que resolução?
+     A lista vem da tabela oculos_modelos do Supabase (dá para adicionar óculos novos lá, sem mexer no código).
+     Se a internet falhar, usa esta lista de reserva. */
+  var OCULOS_PADRAO=[
+    {id:'jj',nome:'JJGlasses W AI 4',icone:'🕶️',descricao:'Com IA, câmera, microfone e alto-falante',ia:true,falante:true,mic:true,camera:true,grava:true,res:['1080p'],aoVivo:'bluetooth'},
+    {id:'ivue',nome:'iVUE',icone:'🎥',descricao:'Câmera e microfone: grava em 1080p e 2K. Sem IA e sem alto-falante',ia:false,falante:false,mic:true,camera:true,grava:true,res:['1080p','2K'],aoVivo:''},
+    {id:'nenhum',nome:'Sem óculos',icone:'📱',descricao:'Só o celular',ia:false,falante:false,mic:false,camera:false,grava:false,res:[],aoVivo:''}];
+  var oculosList=(function(){try{var x=JSON.parse(localStorage.getItem('jj_oculos')||'null');if(Array.isArray(x)&&x.length)return x}catch(e){}return OCULOS_PADRAO})(),oculosAt=0;
+  function oculosById(id){for(var i=0;i<oculosList.length;i++)if(oculosList[i].id===id)return oculosList[i];for(i=0;i<OCULOS_PADRAO.length;i++)if(OCULOS_PADRAO[i].id===id)return OCULOS_PADRAO[i];return null}
+  function chatOculos(c){c=c===undefined?chat():c;return oculosById((c&&c.oculos)||'jj')||OCULOS_PADRAO[0]}
+  // só os óculos com alto-falante deixam ouvir as respostas no óculos
+  function ouveNoOculos(c){return !!chatOculos(c).falante}
+  function loadOculos(){
+    if(!session||Date.now()-oculosAt<600000)return;oculosAt=Date.now();
+    rest('oculos_modelos?select=*&ativo=eq.true&order=ordem').then(function(r){return r.ok?r.json():null}).then(function(rows){
+      if(!rows||!rows.length)return;
+      oculosList=rows.map(function(r){return {id:r.id,nome:r.nome,icone:r.icone||'👓',descricao:r.descricao||'',ia:!!r.tem_ia,falante:!!r.tem_alto_falante,mic:!!r.tem_microfone,camera:!!r.tem_camera,grava:!!r.grava,res:r.resolucoes||[],aoVivo:r.ao_vivo||''}});
+      try{localStorage.setItem('jj_oculos',JSON.stringify(oculosList))}catch(e){}
+      renderAll();
+    }).catch(function(){});
+  }
   // ordem: língua da conversa (3 pontinhos) > língua da IA (Ajustes) > língua do app
   function chatLang(){var c=chat();return (c&&c.lang)||prefs.aiLang||prefs.lang||'pt-BR'}
   function langLocked(){var c=chat();return !!((c&&c.lang)||prefs.aiLang)}
@@ -1513,12 +1539,12 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     h.addEventListener('pointermove',function(e){if(glDragX==null)return;glShow(startF-Math.round((e.clientX-glDragX)/9))});
     var up=function(){if(glDragX==null)return;glDragX=null;glHold=Date.now()+2500};h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up);
   })();
-  function glChatId(){var id=prefs.glChat;if(id&&chats.some(function(c){return c.id===id}))return id;return chats.length?chats[0].id:null}
+  function glChatId(){var id=prefs.glChat,ok=chats.filter(function(c){return ouveNoOculos(c)});if(id&&ok.some(function(c){return c.id===id}))return id;return ok.length?ok[0].id:null}
   function glChats(){
     var sel=glChatId(),auto=!prefs.glChat||!chats.some(function(c){return c.id===prefs.glChat});
     $('glChatLbl').textContent=chats.length?(auto?'Automático: a fala vai para o último chat.':'A fala vai para o chat escolhido.'):'Ainda não tem chat. Quando você falar pelo óculos, um chat novo é criado.';
     var rows='<div class="opt gchat" role="button" data-glc="" aria-pressed="'+auto+'"><span class="av">⟳</span><span><b>Último chat (automático)</b><small>Sempre o chat mais recente</small></span></div>';
-    rows+=chats.slice(0,30).map(function(c){var last=c.msgs.filter(function(m){return !m.pending}).slice(-1)[0];var l=(c.title.match(/[A-Za-zÀ-ÿ0-9]/)||['•'])[0].toUpperCase();
+    rows+=chats.filter(function(c){return ouveNoOculos(c)}).slice(0,30).map(function(c){var last=c.msgs.filter(function(m){return !m.pending}).slice(-1)[0];var l=(c.title.match(/[A-Za-zÀ-ÿ0-9]/)||['•'])[0].toUpperCase();
       return '<div class="opt gchat" role="button" data-glc="'+c.id+'" aria-pressed="'+(!auto&&c.id===sel)+'"><span class="av">'+esc(l)+'</span><span><b>'+esc(c.title)+'</b><small>'+esc(last?String(last.text||'').replace(/\s+/g,' ').slice(0,70):when(c.at))+'</small></span></div>'}).join('');
     $('glChats').innerHTML=rows;
   }
@@ -1562,7 +1588,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   function glassesTalk(){
     if(rec||dictLoop){if(recFor==='oculos')stopRec(false);return}
     if(busy){toast('Espere a resposta anterior terminar.');return}
-    var id=glChatId();if(!id)id=newChat().id;cur=id;renderAll();
+    var id=glChatId();if(!id)id=newChat('jj').id;cur=id;renderAll();
     stopSpeak();stopBarge&&stopBarge();recFor='oculos';
     if(NATIVE&&NATIVE.glassesMic&&gs.connected)NATIVE.glassesMic(true);
     setTimeout(function(){startRec();setTimeout(paintGl,300)},gs.connected?600:0);
@@ -1644,7 +1670,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     dirty={};
     var rows=ids.map(function(id){var c=chats.filter(function(x){return x.id===id})[0];
       if(!c)return {id:id,title:'',at:0,lang:null,pinned:false,msgs:[],deleted:true,updated_at:new Date().toISOString()};
-      return {id:c.id,title:c.title,at:c.at,lang:c.lang||null,pinned:!!c.pinned,msgs:cloudMsgs(c),deleted:false,updated_at:new Date(c.up||Date.now()).toISOString()}});
+      return {id:c.id,title:c.title,at:c.at,lang:c.lang||null,oculos:c.oculos||null,pinned:!!c.pinned,msgs:cloudMsgs(c),deleted:false,updated_at:new Date(c.up||Date.now()).toISOString()}});
     cloudInfo('☁️ Salvando na nuvem...');
     rest('conversas?on_conflict=user_id,id',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(rows)}).then(function(r){
       if(r.ok){cloudInfo('☁️ Conversas salvas na nuvem');return}
@@ -1655,7 +1681,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   }
   function pullCloud(){
     if(!session||busy||cloudOff>Date.now())return;
-    rest('conversas?select=id,title,at,lang,pinned,msgs,deleted,updated_at&order=updated_at.desc&limit=300').then(function(r){
+    rest('conversas?select=id,title,at,lang,oculos,pinned,msgs,deleted,updated_at&order=updated_at.desc&limit=300').then(function(r){
       if(r.status===404){cloudOff=Date.now()+300000;cloudInfo('Conversas salvas neste aparelho');return null}
       return r.ok?r.json():null;
     }).then(function(rows){
@@ -1665,14 +1691,14 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
         inCloud[row.id]=1;var t=Date.parse(row.updated_at)||0,loc=chats.filter(function(x){return x.id===row.id})[0];
         if(row.deleted){if(loc&&(loc.up||0)<=t){chats=chats.filter(function(x){return x.id!==row.id});delete lastSig[row.id];if(cur===row.id)cur=chats.length?chats[0].id:null;changed=true}return}
         if(!loc){loc={id:row.id};chats.push(loc)}else if((loc.up||0)>=t)return;
-        loc.title=row.title;loc.at=row.at;loc.lang=row.lang||'';loc.pinned=!!row.pinned;loc.msgs=row.msgs||[];loc.up=t;lastSig[row.id]=chatSig(loc);changed=true;
+        loc.title=row.title;loc.at=row.at;loc.lang=row.lang||'';loc.oculos=row.oculos||loc.oculos||'';loc.pinned=!!row.pinned;loc.msgs=row.msgs||[];loc.up=t;lastSig[row.id]=chatSig(loc);changed=true;
       });
       chats.forEach(function(c){if(!inCloud[c.id]&&c.msgs.length)markDirty(c.id)}); // conversas antigas que ainda não estavam na nuvem
       chats.sort(function(a,b){return (b.at||0)-(a.at||0)});
       if(!cur&&chats.length)cur=chats[0].id;
       if(changed){persist();renderAll()}
       cloudInfo('☁️ Conversas salvas na nuvem');
-      pullRems();
+      pullRems();loadOculos();
     }).catch(function(){cloudInfo('Sem internet: salvas neste aparelho')});
   }
   document.addEventListener('visibilitychange',function(){if(!document.hidden)pullCloud()});
@@ -1686,11 +1712,16 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     if(view==='lang'){
       h+='<button class="it" data-cl="" aria-pressed="'+(!c.lang)+'">🌐<span>Mesma língua do app<small>'+esc(langLocal(prefs.lang||'pt-BR'))+'</small></span></button>';
       LANGS.forEach(function(x){var nm=langLocal(x[0]);h+='<button class="it" data-cl="'+x[0]+'" aria-pressed="'+(c.lang===x[0])+'"><span>'+esc(nm)+(nm.toLowerCase()!==x[1].toLowerCase()?'<small>'+esc(x[1])+'</small>':'')+'</span></button>'});
+    }else if(view==='oculos'){
+      $('cmTitle').textContent='Qual óculos você vai usar neste chat?';
+      h+='<p class="sub" style="margin:0 6px 8px">Assim a IA sabe o que o seu óculos consegue fazer e responde do jeito certo.</p>';
+      oculosList.forEach(function(o){h+='<button class="it" data-oc="'+esc(o.id)+'" aria-pressed="'+((c.oculos||'jj')===o.id)+'">'+esc(o.icone)+'<span>'+esc(o.nome)+'<small>'+esc(o.descricao)+'</small></span></button>'});
     }else if(view==='ren'){
       h+='<input class="field" id="cmName" value="'+esc(c.title)+'" maxlength="80"><button class="btn main" id="cmSave" style="margin-top:8px">Salvar nome</button>';
     }else{
       cmDel=false;
       h+='<button class="it" data-ca="lang">🌐<span>A IA fala em…<small>'+esc(c.lang?langLocal(c.lang):'Mesma língua do app ('+langLocal(prefs.lang||'pt-BR')+')')+'</small></span></button>';
+      h+='<button class="it" data-ca="oculos">👓<span>Óculos deste chat<small>'+esc(chatOculos(c).nome)+'</small></span></button>';
       h+='<button class="it" data-ca="ren">✏️<span>Renomear</span></button>';
       h+='<button class="it" data-ca="pin">📌<span>'+(c.pinned?'Desafixar do topo':'Fixar no topo')+'</span></button>';
       h+='<button class="it" data-ca="copy">📋<span>Copiar conversa inteira</span></button>';
@@ -1703,13 +1734,17 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   function closeChatMenu(){$('cm').hidden=true;cmId=null}
   $('cmX').onclick=closeChatMenu;$('cm').addEventListener('click',function(e){if(e.target===$('cm'))closeChatMenu()});
   $('chatMore').onclick=function(){openChatMenu(cur)};
+  $('chatGl').onclick=function(){if(!chat()){newChat();renderAll()}openChatMenu(cur,'oculos')};
   $('cmBody').addEventListener('click',function(e){
     var c=chats.filter(function(x){return x.id===cmId})[0];if(!c)return;
-    var b=e.target.closest('[data-cl]');
+    var b=e.target.closest('[data-oc]');
+    if(b){var oc=oculosById(b.getAttribute('data-oc'));c.oculos=oc.id;prefs.oculos=oc.id;persist();renderAll();closeChatMenu();
+      toast(oc.icone+' Neste chat: '+oc.nome+(oc.falante?'':' (as respostas ficam só na tela)'));if(c.id===cur)$('msgIn').focus();return}
+    b=e.target.closest('[data-cl]');
     if(b){c.lang=b.getAttribute('data-cl');persist();renderAll();closeChatMenu();toast(c.lang?'Nesta conversa a IA vai falar em '+langLocal(c.lang)+'.':'A IA volta a falar na língua do app.');return}
     if(e.target.id==='cmSave'){var v=$('cmName').value.trim();if(v){c.title=v.slice(0,80);persist();renderAll()}closeChatMenu();return}
     b=e.target.closest('[data-ca]');if(!b)return;var a=b.getAttribute('data-ca');
-    if(a==='lang'||a==='ren'){openChatMenu(c.id,a);return}
+    if(a==='lang'||a==='ren'||a==='oculos'){openChatMenu(c.id,a);return}
     if(a==='pin'){c.pinned=!c.pinned;persist();renderAll();closeChatMenu();toast(c.pinned?'Conversa fixada no topo':'Conversa desafixada');return}
     if(a==='copy'){var t=c.msgs.filter(function(m){return !m.pending}).map(function(m){return (m.role==='me'?(prefs.name||'Eu'):'IA')+': '+m.text}).join('\n\n');
       (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){toast('Conversa copiada')},function(){toast('Não consegui copiar')});closeChatMenu();return}
