@@ -1,14 +1,14 @@
 {
-  "v": 202611201719,
+  "v": 202611201738,
   "notes": {
-    "t": "Área do óculos iVUE e vídeo ao vivo",
+    "t": "Cada óculos com seus chats e baixar automático",
     "b": [
       "Instale o APK novo por cima do antigo (só desta vez).",
-      "No começo da aba do óculos agora tem a área do iVUE Denali: conexão, bateria, armazenamento e quantos vídeos e fotos ele tem.",
-      "\"▶ Ao vivo\" mostra a imagem do óculos em tempo real (celular no Wi-Fi \"iVUE\").",
-      "\"Vídeos e fotos\" leva direto para baixar os arquivos do óculos."
+      "Na aba do óculos, ao escolher o modelo 3D, só aparecem os chats daquele óculos.",
+      "Ao escolher o iVUE Denali num chat, você decide: baixar tudo sozinho e liberar espaço no óculos, ou só quando tocar em Baixar.",
+      "Botões que o óculos não tem (como Falar pelo óculos no iVUE) não aparecem mais."
     ]
   },
-  "bytes": 216337,
-  "sha256": "2f1b84f02ddd230341ab116dcf4e4986f089885d3a56de03b34dc5e79edf250c"
+  "bytes": 223003,
+  "sha256": "9516c550bdacb3ba3f4cd0675267cacbfa3ea03757082d9ebfd6b6a591b7f6cc"
 }
