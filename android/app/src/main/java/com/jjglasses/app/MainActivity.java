@@ -58,6 +58,7 @@ import java.util.Locale;
  * ao HTML o que só o Android faz bem (microfone com reconhecimento de voz, voz do celular, permissões).
  */
 public class MainActivity extends Activity {
+    private Ivue ivue;
 
     // Site (GitHub Pages) de onde vêm o app e o version.json.
     static final String BASE = "https://timeplayta.github.io/JJGlasses/";
@@ -123,6 +124,7 @@ public class MainActivity extends Activity {
             @Override public void state(String json) { main.post(() -> { keepAlive(glasses.isReady()); if (web != null) web.evaluateJavascript("window.jjGlasses&&window.jjGlasses(" + json + ")", null); }); }
             @Override public void tap() { main.post(() -> { if (web != null) web.evaluateJavascript("window.jjGlassesTap&&window.jjGlassesTap()", null); }); }
         });
+        ivue = new Ivue(this, this::js);   // óculos iVUE Denali pelo Wi-Fi dele
         web.addJavascriptInterface(new Bridge(), "JJ");
         web.setWebViewClient(new ShellClient());
         web.setWebChromeClient(new ShellChrome());
@@ -593,6 +595,12 @@ public class MainActivity extends Activity {
         @JavascriptInterface public String glassesState() { return glasses.stateJson(); }
         @JavascriptInterface public void glassesMic(boolean on) { main.post(() -> glasses.mic(on)); }
         @JavascriptInterface public void glassesFind() { main.post(() -> glasses.find()); }
+
+        // iVUE Denali (Wi-Fi): listar e baixar vídeos e fotos que estão no óculos
+        @JavascriptInterface public void ivueList() { ivue.listAll(); }
+        @JavascriptInterface public void ivueDownload(String path, String nome) { ivue.download(path, nome); }
+        @JavascriptInterface public void ivueCancel() { ivue.cancelDownload(); }
+        @JavascriptInterface public void ivueOpen(String uri, String mime) { main.post(() -> ivue.openFile(uri, mime)); }
 
         @JavascriptInterface public void stopSpeak() { main.post(() -> { if (tts != null) tts.stop(); }); }
     }

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Segurança de rede: tudo continua só em HTTPS (seguro), menos o óculos iVUE,
+     que fala HTTP simples dentro da rede Wi-Fi própria dele (192.168.1.254, sem internet). -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">192.168.1.254</domain>
+    </domain-config>
+</network-security-config>

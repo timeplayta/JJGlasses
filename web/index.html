@@ -293,6 +293,10 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 .gitem .dur{position:absolute;right:4px;bottom:4px;background:rgba(0,0,0,.62);color:#fff;font-size:11px;border-radius:6px;padding:1px 5px}
 .gitem .gst{position:absolute;inset:auto 0 0 0;background:rgba(0,0,0,.62);color:#fff;font-size:11px;padding:3px 4px}
 .gempty{color:var(--mute);font-size:14px;text-align:center;margin:8px 4px}
+.ivrow{display:flex;align-items:center;gap:10px;padding:9px 2px;border-top:1px solid var(--line)}.ivrow .e{font-size:22px}
+.ivrow .t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.ivrow .t b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ivrow small{color:var(--mute);font-size:12px}.ivbar{display:block;height:4px;border-radius:2px;background:var(--line);overflow:hidden}.ivbar i{display:block;height:100%;background:var(--accent);width:0}
+.ivsec{margin:12px 2px 2px;font-size:13px;font-weight:700;color:var(--mute)}
 .grec{display:flex;flex-direction:column;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
 .grec label,.glbl{font-size:13px;color:var(--mute);display:flex;flex-direction:column;gap:5px}.grec .gsub{margin:0}
 .recst{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600}
@@ -576,6 +580,11 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     </div>
     </section>
     <section class="glv" id="glv-gal" hidden>
+    <div class="glgal" id="ivueBox">
+      <div class="ghead"><span>📶 No óculos iVUE</span><button class="chip" id="ivueBtn">Ver o que está no óculos</button></div>
+      <p class="gsub" id="ivueSt" style="margin:0">Ligue o óculos, conecte o celular no Wi-Fi "iVUE" dele e toque em "Ver o que está no óculos".</p>
+      <div id="ivueList"></div>
+    </div>
     <p class="gsub" style="margin:0">Fotos e vídeos do óculos guardados na nuvem. Toque em um para assistir.</p>
     <div class="gltabs" id="glTabs" role="tablist" aria-label="Fotos e vídeos do óculos na nuvem"><button role="tab" data-gt="foto" aria-selected="false"><span class="e">📷</span>Fotos<small id="gtc-foto">—</small></button><button role="tab" data-gt="video" aria-selected="false"><span class="e">🎬</span>Vídeos<small id="gtc-video">—</small></button><button role="tab" data-gt="video_ia" aria-selected="false"><span class="e">✨</span>Vídeos com IA<small id="gtc-video_ia">—</small></button></div>
     <div class="glgal" id="glGal" hidden></div>
@@ -1658,6 +1667,45 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     if(v==='rec')recPaint();
   }
   $('glNav').addEventListener('click',function(e){var b=e.target.closest('[data-glv]');if(b)glView(b.getAttribute('data-glv'))});
+  /* ---------- Arquivos que estão no óculos iVUE (pelo Wi-Fi dele) ----------
+     O APK conversa com o óculos (192.168.1.254) e baixa os vídeos e fotos para a galeria do celular.
+     Nada é apagado do óculos. */
+  var ivueFiles=null,ivueDl=load('jj_ivue_dl',{}),ivueProg={};
+  function ivueSt(t){$('ivueSt').textContent=t}
+  $('ivueBtn').onclick=function(){
+    if(!(NATIVE&&NATIVE.ivueList)){ivueSt('Para ver os arquivos do óculos, instale o APK novo por cima (link nos Ajustes).');return}
+    ivueSt('Procurando o óculos no Wi-Fi…');$('ivueList').innerHTML='';NATIVE.ivueList();
+  };
+  window.jjIvue=function(r){
+    if(!r||!r.ok){ivueSt('Não achei o óculos. Confira se ele está ligado e se o celular está no Wi-Fi "iVUE" dele.');return}
+    ivueFiles=r;ivuePaint();
+  };
+  function ivueRow(f,video){
+    var pr=ivueProg[f.path],uri=ivueDl[f.path],pct=pr&&pr.total?Math.round(pr.feito/pr.total*100):0,btn;
+    if(uri)btn='<button class="chip" data-ivo="'+esc(uri)+'" data-mime="'+(video?'video/mp4':'image/jpeg')+'">'+(video?'▶ Assistir':'Ver')+'</button>';
+    else if(pr&&!pr.fim)btn='<button class="chip" data-ivc="1">Parar</button>';
+    else btn='<button class="chip" data-ivd="'+esc(f.path)+'" data-n="'+esc(f.nome)+'">Baixar</button>';
+    return '<div class="ivrow" data-ivp="'+esc(f.path)+'"><span class="e">'+(video?'🎬':'📷')+'</span><span class="t"><b>'+esc(f.nome)+'</b><small>'+esc([f.tamanho,f.data].filter(Boolean).join(' · '))+(uri?' · no celular ✓':'')+'</small>'+
+      (pr&&!pr.fim?'<i class="ivbar"><i style="width:'+pct+'%"></i></i><small>Baixando '+pct+'%</small>':'')+'</span>'+btn+'</div>';
+  }
+  function ivuePaint(){
+    if(!ivueFiles)return;var v=ivueFiles.videos||[],f=ivueFiles.fotos||[];
+    ivueSt(v.length+' vídeo'+(v.length===1?'':'s')+' e '+f.length+' foto'+(f.length===1?'':'s')+' no óculos. Baixe para assistir no celular.');
+    $('ivueList').innerHTML=(v.length?'<p class="ivsec">Vídeos</p>'+v.slice().reverse().map(function(x){return ivueRow(x,true)}).join(''):'')+
+      (f.length?'<p class="ivsec">Fotos</p>'+f.slice().reverse().map(function(x){return ivueRow(x,false)}).join(''):'')+
+      (!v.length&&!f.length?'<p class="gempty">O óculos ainda não tem vídeos nem fotos.</p>':'');
+  }
+  window.jjIvueProg=function(p){
+    if(!p)return;var pr=ivueProg[p.path]=ivueProg[p.path]||{};pr.feito=p.feito;pr.total=p.total;
+    if(p.uri){pr.fim=true;ivueDl[p.path]=p.uri;try{localStorage.setItem('jj_ivue_dl',JSON.stringify(ivueDl))}catch(e){}toast('Salvo na galeria do celular (pasta JJGlasses)')}
+    if(p.erro){pr.fim=true;delete ivueProg[p.path];toast(p.erro==='cancelado'?'Download parado':'Não consegui baixar. Confira o Wi-Fi do óculos.')}
+    ivuePaint();
+  };
+  $('ivueList').addEventListener('click',function(e){
+    var b=e.target.closest('[data-ivd]');if(b){ivueProg[b.getAttribute('data-ivd')]={feito:0,total:0};ivuePaint();NATIVE.ivueDownload(b.getAttribute('data-ivd'),b.getAttribute('data-n'));return}
+    b=e.target.closest('[data-ivo]');if(b){NATIVE.ivueOpen(b.getAttribute('data-ivo'),b.getAttribute('data-mime'));return}
+    if(e.target.closest('[data-ivc]'))NATIVE.ivueCancel();
+  });
   /* ---------- Gravação: óculos, qualidade e contexto de uso ---------- */
   var REC_CTX=['Paraquedismo / esporte','Trabalho pesado','Loja / atendimento','Obra','Linha de produção','Outro'];
   function recPaint(){
