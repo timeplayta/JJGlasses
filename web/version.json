@@ -1,14 +1,13 @@
 {
-  "v": 202611201738,
+  "v": 202611201752,
   "notes": {
-    "t": "Cada óculos com seus chats e baixar automático",
+    "t": "O JJGlasses agora se atualiza sozinho",
     "b": [
-      "Instale o APK novo por cima do antigo (só desta vez).",
-      "Na aba do óculos, ao escolher o modelo 3D, só aparecem os chats daquele óculos.",
-      "Ao escolher o iVUE Denali num chat, você decide: baixar tudo sozinho e liberar espaço no óculos, ou só quando tocar em Baixar.",
-      "Botões que o óculos não tem (como Falar pelo óculos no iVUE) não aparecem mais."
+      "Quando tiver versão nova, chega uma notificação: abra o app e toque em Autorizar e atualizar.",
+      "Uma barra de 1% a 100% mostra o andamento. Pode levar alguns segundos ou de 1 a 5 minutos.",
+      "Suas conversas, login e ajustes continuam salvos."
     ]
   },
-  "bytes": 223003,
-  "sha256": "9516c550bdacb3ba3f4cd0675267cacbfa3ea03757082d9ebfd6b6a591b7f6cc"
+  "bytes": 228320,
+  "sha256": "8de766a3cb256beb345ef88715b948fc262a22ea67b4b806ecf9936be09609bd"
 }
