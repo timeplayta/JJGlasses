@@ -1,17 +1,16 @@
 {
-  "code": 1057,
-  "name": "1.57",
-  "src": "be1353223701f0afe4c88e80e09ed2ae4f4ac83a36dc672f2b3736b56440587d",
+  "code": 1058,
+  "name": "1.58",
+  "src": "8a34b48a55ccf6cebfc721f0309befa81c90330ef2e036f9d7dde80140ab465b",
   "notes": {
-    "t": "Conectar o óculos direto pelo app",
+    "t": "Ao vivo: o app liga a transmissão no óculos",
     "b": [
-      "Todo óculos mostra de novo Conectar, Bateria, Sinal e Duração da bateria.",
-      "No topo de cada chat tem o botão Conectar: o app procura o óculos do chat e conecta direto.",
-      "Na aba do óculos, o ícone de cima (no lugar do sino) conecta o óculos escolhido.",
-      "Ao vivo: se um jeito não der, o app tenta outro sozinho."
+      "Ao tocar em Ao vivo, o JJGlasses pede ao óculos iVUE para ligar o modo vídeo e o ao vivo.",
+      "Ao sair da tela, o app desliga o ao vivo no óculos.",
+      "Se der erro, a tela mostra o código e o que o óculos respondeu."
     ]
   },
-  "bytes": 3836784,
-  "sha256": "e0a13cce6b1a2ca281a37379d5bace96665a268f5ba9abceef0921f73486c419",
-  "atual": 1057
+  "bytes": 3838780,
+  "sha256": "e73f50cecfce337c1eb1d6b3ee49109562b3c2af357bf271418d977489e115cf",
+  "atual": 1058
 }
