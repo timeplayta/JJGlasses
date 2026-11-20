@@ -16,6 +16,9 @@ if (-not $adb) { "ADB nao encontrado no PC." | Add-Content $o; "Pronto: $o"; exi
 "`n== 1) Celular ligado no cabo? ==" | Add-Content $o
 & $adb devices -l 2>&1 | Out-String | Add-Content $o
 
+"`n== 1b) Versao do JJGlasses instalada no celular ==" | Add-Content $o
+& $adb shell "dumpsys package com.jjglasses.app | grep -m 2 -E 'versionName|lastUpdateTime'" 2>&1 | Out-String | Add-Content $o
+
 "`n== 2) Wi-Fi do celular (nome da rede e endereco) ==" | Add-Content $o
 & $adb shell "dumpsys wifi | grep -m 3 -E 'mWifiInfo|SSID:'" 2>&1 | Out-String | Add-Content $o
 & $adb shell "ip route" 2>&1 | Out-String | Add-Content $o
@@ -39,14 +42,15 @@ foreach ($ip in $ips) {
 
 "`n== 4) Perguntas HTTP ao oculos (pelo celular) - so leitura ==" | Add-Content $o
 # comandos de LEITURA do chip Novatek: 3012 versao, 3014 todas as configuracoes, 3015 lista de arquivos,
-# 3016 "esta vivo?", 3017 estado do cartao, 3019 bateria, 3029 nome do Wi-Fi. Nada de gravar/apagar/mudar modo.
-foreach ($cam in '/', '/?custom=1&cmd=3012', '/?custom=1&cmd=3014', '/?custom=1&cmd=3016', '/?custom=1&cmd=3017', '/?custom=1&cmd=3019', '/?custom=1&cmd=3029', '/?custom=1&cmd=3015', '/DCIM/', '/NOVATEK/') {
+# 3016 "esta vivo?", 3017 estado do cartao, 3019 bateria, 3029 nome do Wi-Fi, 3002 lista de comandos, 3024 espaco livre.
+# Status -22 = "estado errado" (o oculos esta num modo que nao aceita o pedido, ex.: gravando ou ligado no PC). Nada de gravar/apagar/mudar modo.
+foreach ($cam in '/', '/?custom=1&cmd=3012', '/?custom=1&cmd=3014', '/?custom=1&cmd=3016', '/?custom=1&cmd=3017', '/?custom=1&cmd=3019', '/?custom=1&cmd=3029', '/?custom=1&cmd=3015', '/?custom=1&cmd=3002', '/?custom=1&cmd=3024', '/DCIM/', '/DCIM/Movie', '/DCIM/Photo', '/NOVATEK/') {
   "--- http://$($gw)$cam" | Add-Content $o
   $r = & $adb shell "printf 'GET $cam HTTP/1.0\r\nHost: $gw\r\n\r\n' | nc -w 3 $gw 80 | head -c 2500" 2>&1 | Out-String
   $r | Add-Content $o
 }
 "`n== 5) Video ao vivo (RTSP) ==" | Add-Content $o
-foreach ($cam in '/', '/xxx.mov', '/live', '/stream', '/liveRTSP/av4', '/av0') {
+foreach ($cam in '/', '/xxx.mov', '/xxx.mp4', '/live', '/live.sdp', '/stream', '/liveRTSP/av4', '/av0', '/H264', '/1', '/main', '/preview') {
   "--- RTSP DESCRIBE rtsp://$($gw):554$cam" | Add-Content $o
   & $adb shell "printf 'DESCRIBE rtsp://$($gw):554$cam RTSP/1.0\r\nCSeq: 2\r\nAccept: application/sdp\r\n\r\n' | nc -w 3 $gw 554 | head -c 900" 2>&1 | Out-String | Add-Content $o
 }
