@@ -1,14 +1,13 @@
 {
-  "v": 202611201248,
+  "v": 202611201315,
   "notes": {
-    "t": "Barra embaixo na aba do óculos",
+    "t": "Modelo 3D do iVUE Denali",
     "b": [
-      "A aba do óculos agora tem uma barra embaixo com 3 partes: Óculos, Gravação e Galeria.",
-      "Óculos: o modelo 3D, bateria, sinal e falar pelo óculos.",
-      "Gravação: a tela do ao vivo e as escolhas de óculos, qualidade (1080p ou 2K) e contexto de uso.",
-      "Galeria: Fotos, Vídeos e Vídeos com IA guardados na nuvem."
+      "Na aba do óculos agora tem o modelo 3D do iVUE Denali: toque em \"iVUE Denali\" embaixo do óculos girando.",
+      "Ele é preto fosco, esportivo, com a câmera no meio da testa, lentes escuras e a haste esquerda um pouco mais grossa (onde ficam o botão e a entrada USB-C).",
+      "Arraste para girar e ver de todos os lados."
     ]
   },
-  "bytes": 207943,
-  "sha256": "795be8a564e11cd25140cc64ca27a0cb4050ef84820900888a4c5efbaa122622"
+  "bytes": 207989,
+  "sha256": "ce9f9cd09865440a3663a8afd5dd41cca2fc845272d165794b419aff4852d8e8"
 }
