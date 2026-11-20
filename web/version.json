@@ -1,14 +1,14 @@
 {
-  "v": 202611201646,
+  "v": 202611201719,
   "notes": {
-    "t": "Vídeos e fotos do óculos iVUE no celular",
+    "t": "Área do óculos iVUE e vídeo ao vivo",
     "b": [
-      "Instale o APK novo por cima do antigo (precisa só uma vez).",
-      "Ligue o óculos iVUE e conecte o celular no Wi-Fi \"iVUE\" dele.",
-      "Abra Óculos → Galeria → \"Ver o que está no óculos\" e toque em Baixar.",
-      "Os vídeos e fotos vão para a galeria do celular, na pasta JJGlasses. Nada é apagado do óculos."
+      "Instale o APK novo por cima do antigo (só desta vez).",
+      "No começo da aba do óculos agora tem a área do iVUE Denali: conexão, bateria, armazenamento e quantos vídeos e fotos ele tem.",
+      "\"▶ Ao vivo\" mostra a imagem do óculos em tempo real (celular no Wi-Fi \"iVUE\").",
+      "\"Vídeos e fotos\" leva direto para baixar os arquivos do óculos."
     ]
   },
-  "bytes": 212194,
-  "sha256": "d7c808044634e5eab43ec5a880d17858b94934e22335b1ca78a17680fdfcebd8"
+  "bytes": 216337,
+  "sha256": "2f1b84f02ddd230341ab116dcf4e4986f089885d3a56de03b34dc5e79edf250c"
 }
