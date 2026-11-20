@@ -8,3 +8,6 @@ android/app/src/main/assets/version.json
 *.keystore
 *.key
 .DS_Store
+
+# resultado do teste do iVUE (fica so no PC)
+ponte/ivue-teste.txt
