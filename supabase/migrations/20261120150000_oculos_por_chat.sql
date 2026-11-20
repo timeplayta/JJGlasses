@@ -29,6 +29,6 @@ grant select on public.oculos_modelos to authenticated;
 
 insert into public.oculos_modelos (id, nome, icone, descricao, tem_ia, tem_alto_falante, tem_microfone, tem_camera, grava, resolucoes, ao_vivo, ordem) values
   ('jj',     'JJGlasses W AI 4', '🕶️', 'Com IA, câmera, microfone e alto-falante', true,  true,  true,  true,  true,  '{1080p}',      'bluetooth', 10),
-  ('ivue',   'iVUE',             '🎥', 'Câmera e microfone: grava em 1080p e 2K. Sem IA e sem alto-falante', false, false, true, true, true, '{1080p,2K}', '', 20),
+  ('ivue',   'iVUE Denali',      '🎥', 'Câmera e microfone: grava em 2K e 1080p, Wi-Fi com prévia ao vivo. Sem IA e sem alto-falante', false, false, true, true, true, '{1080p,2K}', 'wifi', 20),
   ('nenhum', 'Sem óculos',       '📱', 'Só o celular', false, false, false, false, false, '{}', '', 90)
 on conflict (id) do nothing;

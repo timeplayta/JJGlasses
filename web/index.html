@@ -1052,7 +1052,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
      Se a internet falhar, usa esta lista de reserva. */
   var OCULOS_PADRAO=[
     {id:'jj',nome:'JJGlasses W AI 4',icone:'🕶️',descricao:'Com IA, câmera, microfone e alto-falante',ia:true,falante:true,mic:true,camera:true,grava:true,res:['1080p'],aoVivo:'bluetooth'},
-    {id:'ivue',nome:'iVUE',icone:'🎥',descricao:'Câmera e microfone: grava em 1080p e 2K. Sem IA e sem alto-falante',ia:false,falante:false,mic:true,camera:true,grava:true,res:['1080p','2K'],aoVivo:''},
+    {id:'ivue',nome:'iVUE Denali',icone:'🎥',descricao:'Câmera e microfone: grava em 2K e 1080p, Wi-Fi com prévia ao vivo. Sem IA e sem alto-falante',ia:false,falante:false,mic:true,camera:true,grava:true,res:['1080p','2K'],aoVivo:'wifi'},
     {id:'nenhum',nome:'Sem óculos',icone:'📱',descricao:'Só o celular',ia:false,falante:false,mic:false,camera:false,grava:false,res:[],aoVivo:''}];
   var oculosList=(function(){try{var x=JSON.parse(localStorage.getItem('jj_oculos')||'null');if(Array.isArray(x)&&x.length)return x}catch(e){}return OCULOS_PADRAO})(),oculosAt=0;
   function oculosById(id){for(var i=0;i<oculosList.length;i++)if(oculosList[i].id===id)return oculosList[i];for(i=0;i<OCULOS_PADRAO.length;i++)if(OCULOS_PADRAO[i].id===id)return OCULOS_PADRAO[i];return null}
@@ -1558,7 +1558,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   /* ---------- óculos ---------- */
   if(prefs.glLook===undefined)prefs.glLook=true;
   var gs={},glPoll=null,glFrames=48,glFrame=0,glSpin=null,glDragX=null,glHold=0;
-  function glModel(){return ['jj','redondo','quadrado'].indexOf(prefs.glModel)>=0?prefs.glModel:'jj'}
+  function glModel(){return ['jj','redondo','quadrado','denali'].indexOf(prefs.glModel)>=0?prefs.glModel:'jj'}
   function glSrc(i){return 'oculos/'+glModel()+'/g'+String(i).padStart(2,'0')+'.webp'+'?v=2'}
   function glLoad(){for(var i=0;i<glFrames;i++){var im=new Image();im.src=glSrc(i)}[].forEach.call($('glMods').children,function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-glm')===glModel()))})}
   $('glMods').addEventListener('click',function(e){var b=e.target.closest('[data-glm]');if(!b)return;prefs.glModel=b.getAttribute('data-glm');persist();glLoad();glShow(glFrame)});
