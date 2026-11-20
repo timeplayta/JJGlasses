@@ -1,13 +1,13 @@
 {
-  "v": 202611201315,
+  "v": 202611201446,
   "notes": {
-    "t": "Modelo 3D do iVUE Denali",
+    "t": "Modelo 3D do iVUE Denali corrigido",
     "b": [
-      "Na aba do óculos agora tem o modelo 3D do iVUE Denali: toque em \"iVUE Denali\" embaixo do óculos girando.",
-      "Ele é preto fosco, esportivo, com a câmera no meio da testa, lentes escuras e a haste esquerda um pouco mais grossa (onde ficam o botão e a entrada USB-C).",
-      "Arraste para girar e ver de todos os lados."
+      "A frente do iVUE Denali agora fica na frente, como num óculos de verdade.",
+      "As hastes saem de trás dos cantos da armação e não aparecem mais na frente.",
+      "Toque em \"iVUE Denali\" na aba do óculos e arraste para girar."
     ]
   },
-  "bytes": 207989,
-  "sha256": "ce9f9cd09865440a3663a8afd5dd41cca2fc845272d165794b419aff4852d8e8"
+  "bytes": 208088,
+  "sha256": "c4c1eb06c4ed8c27889cf2b62a51cb2916265b0c297596297556f3c83082a56f"
 }
