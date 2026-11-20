@@ -1,16 +1,17 @@
 {
-  "code": 1055,
-  "name": "1.55",
-  "src": "28434a24439ee12a57246777bc4e52c721b9428fffb5986e7c467740cd2ce483",
+  "code": 1057,
+  "name": "1.57",
+  "src": "be1353223701f0afe4c88e80e09ed2ae4f4ac83a36dc672f2b3736b56440587d",
   "notes": {
-    "t": "O JJGlasses agora se atualiza sozinho",
+    "t": "Conectar o óculos direto pelo app",
     "b": [
-      "Quando tiver versão nova, chega uma notificação: abra o app e toque em Autorizar e atualizar.",
-      "Uma barra de 1% a 100% mostra o andamento. Pode levar alguns segundos ou de 1 a 5 minutos.",
-      "Suas conversas, login e ajustes continuam salvos."
+      "Todo óculos mostra de novo Conectar, Bateria, Sinal e Duração da bateria.",
+      "No topo de cada chat tem o botão Conectar: o app procura o óculos do chat e conecta direto.",
+      "Na aba do óculos, o ícone de cima (no lugar do sino) conecta o óculos escolhido.",
+      "Ao vivo: se um jeito não der, o app tenta outro sozinho."
     ]
   },
-  "bytes": 3833304,
-  "sha256": "df58718519dfe7fbda746a5fe0f4de7cfc028892a62ff16ab496a03e5484aa33",
-  "atual": 1056
+  "bytes": 3836784,
+  "sha256": "e0a13cce6b1a2ca281a37379d5bace96665a268f5ba9abceef0921f73486c419",
+  "atual": 1057
 }
