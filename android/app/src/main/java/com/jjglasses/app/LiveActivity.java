@@ -3,6 +3,7 @@ package com.jjglasses.app;
 import android.app.Activity;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
+import android.net.ConnectivityManager;
 import android.net.Network;
 import android.os.Bundle;
 import android.util.TypedValue;
@@ -40,6 +41,9 @@ public class LiveActivity extends Activity {
     private PlayerView view;
     private TextView msg;
     private Button again;
+    private TextView detail;
+    private int attempt;          // 0 = vídeo pela conexão TCP; 1 = vídeo por UDP (o app inteiro preso no Wi-Fi do óculos)
+    private boolean bound;
 
     private int dp(int v) { return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, v, getResources().getDisplayMetrics()); }
 
@@ -92,22 +96,29 @@ public class LiveActivity extends Activity {
         msg.setGravity(Gravity.CENTER);
         msg.setPadding(dp(24), 0, dp(24), dp(12));
         mid.addView(msg);
+        detail = new TextView(this);
+        detail.setTextColor(0x99FFFFFF);
+        detail.setTextSize(11);
+        detail.setGravity(Gravity.CENTER);
+        detail.setPadding(dp(24), 0, dp(24), dp(12));
+        mid.addView(detail);
         again = new Button(this);
         again.setText("Tentar de novo");
         again.setAllCaps(false);
-        again.setOnClickListener(v -> start());
+        again.setOnClickListener(v -> { attempt = 0; start(); });
         mid.addView(again);
         root.addView(mid, new FrameLayout.LayoutParams(-1, -2, Gravity.CENTER));
 
         setContentView(root);
     }
 
-    @Override protected void onStart() { super.onStart(); start(); }
+    @Override protected void onStart() { super.onStart(); attempt = 0; start(); }
     @Override protected void onStop() { super.onStop(); stop(); }
 
     private void show(String t, boolean retry) {
         msg.setText(t == null ? "" : t);
         msg.setVisibility(t == null ? View.GONE : View.VISIBLE);
+        if (t == null || !retry) detail.setText("");
         again.setVisibility(retry ? View.VISIBLE : View.GONE);
     }
 
@@ -117,23 +128,28 @@ public class LiveActivity extends Activity {
         Network n = Ivue.wifiNet(this);
         if (n == null) { show("O celular não está no Wi-Fi do óculos.\nConecte no Wi-Fi \"iVUE\" e tente de novo.", true); return; }
         SocketFactory sf = n.getSocketFactory();
+        if (attempt == 1) {   // 2ª tentativa: prende o app inteiro no Wi-Fi do óculos e deixa o vídeo vir por UDP
+            ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+            if (cm != null) bound = cm.bindProcessToNetwork(n);
+        }
 
         // pouco "estoque" de vídeo (buffer) para o atraso ficar pequeno
         DefaultLoadControl lc = new DefaultLoadControl.Builder().setBufferDurationsMs(800, 2000, 200, 400).build();
         player = new ExoPlayer.Builder(this).setLoadControl(lc).build();
         view.setPlayer(player);
-        RtspMediaSource src = new RtspMediaSource.Factory()
-            .setForceUseRtpTcp(true)      // vídeo vem pela mesma conexão (TCP), que fica presa no Wi-Fi do óculos
-            .setSocketFactory(sf)
-            .setTimeoutMs(8000)
-            .createMediaSource(MediaItem.fromUri(URL));
+        RtspMediaSource.Factory f = new RtspMediaSource.Factory().setTimeoutMs(8000);
+        if (attempt == 0) f.setForceUseRtpTcp(true).setSocketFactory(sf);   // vídeo pela mesma conexão (TCP), presa no Wi-Fi do óculos
+        RtspMediaSource src = f.createMediaSource(MediaItem.fromUri(URL));
         player.addListener(new Player.Listener() {
             @Override public void onPlaybackStateChanged(int st) {
                 if (st == Player.STATE_READY) show(null, false);
                 else if (st == Player.STATE_BUFFERING) show("Carregando…", false);
             }
             @Override public void onPlayerError(PlaybackException e) {
+                if (attempt == 0) { attempt = 1; main().post(() -> start()); return; }   // tenta o outro jeito
                 show("Não consegui ver o óculos ao vivo.\nConfira se ele está ligado e se o celular está no Wi-Fi \"iVUE\".", true);
+                Throwable c = e.getCause();
+                detail.setText("Código: " + e.getErrorCodeName() + (c != null && c.getMessage() != null ? "\n" + c.getMessage() : ""));
             }
         });
         player.setMediaSource(src);
@@ -141,8 +157,15 @@ public class LiveActivity extends Activity {
         player.prepare();
     }
 
+    private android.os.Handler main() { return new android.os.Handler(android.os.Looper.getMainLooper()); }
+
     private void stop() {
         if (player != null) { player.release(); player = null; }
+        if (bound) {
+            ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+            if (cm != null) cm.bindProcessToNetwork(null);   // devolve a internet normal para o app
+            bound = false;
+        }
         if (view != null) view.setPlayer(null);
     }
 }

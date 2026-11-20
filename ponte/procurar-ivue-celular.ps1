@@ -69,4 +69,19 @@ Cmds "B) logo depois de pedir o video ao vivo (RTSP)"
 Cmds "C) com a porta 3333 (avisos) conectada"
 "--- avisos recebidos na porta 3333:" | Add-Content $o
 & $adb shell "sleep 3; head -c 600 /data/local/tmp/ivue3333.txt; rm -f /data/local/tmp/ivue3333.txt" 2>&1 | Out-String | Add-Content $o
+"`n== 7) Video ao vivo agora (RTSP) ==" | Add-Content $o
+& $adb shell "printf 'DESCRIBE rtsp://$($gw):554/xxx.mov RTSP/1.0\r\nCSeq: 2\r\nAccept: application/sdp\r\n\r\n' | nc -w 3 $gw 554 | head -c 900" 2>&1 | Out-String | Add-Content $o
+
+"`n== 8) App oficial do oculos no celular (so o nome e o APK dele, para ler quais comandos ele usa) ==" | Add-Content $o
+$pk = (& $adb shell "pm list packages -3" 2>&1 | Out-String) -split "`n" | ForEach-Object { $_.Trim() -replace '^package:','' } | Where-Object { $_ -match 'ivue|novatek|dvr|glass|eyewear|wificam|camglass|vision|denali' }
+if (-not $pk) { "nenhum app oficial encontrado" | Add-Content $o }
+$dest = Join-Path $PSScriptRoot "app-oficial"
+foreach ($k in $pk) {
+  "app: $k" | Add-Content $o
+  $path = ((& $adb shell "pm path $k" 2>&1 | Out-String) -split "`n" | Where-Object { $_ -match 'base.apk' } | Select-Object -First 1)
+  if ($path) { $path = $path.Trim() -replace '^package:',''; New-Item -ItemType Directory -Force $dest | Out-Null; & $adb pull $path (Join-Path $dest "$k.apk") 2>&1 | Out-String | Add-Content $o }
+}
+
+"`n== 9) Registro do celular (logcat): ao vivo do app oficial e do JJGlasses ==" | Add-Content $o
+& $adb logcat -d -t 4000 2>&1 | Select-String -Pattern '192\.168\.1\.254|rtsp|cmd=|ExoPlayer|RtspClient|RtspMedia|LiveActivity|PlaybackException' | Select-Object -Last 120 | Out-String -Width 400 | Add-Content $o
 "Pronto: $o"

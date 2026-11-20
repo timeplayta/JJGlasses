@@ -621,6 +621,10 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void ivueCancel() { ivue.cancelDownload(); }
         @JavascriptInterface public void ivueOpen(String uri, String mime) { main.post(() -> ivue.openFile(uri, mime)); }
         @JavascriptInterface public void ivueStatus() { ivue.status(); }   // bateria, espaço, vídeos e fotos
+        // Conectar direto no Wi-Fi do óculos (o app procura e conecta, sem ir nas configurações)
+        @JavascriptInterface public void ivueConnect(String ssid, String senha) { main.post(() -> ivue.connect(ssid, senha)); }
+        @JavascriptInterface public void ivueDisconnect() { main.post(() -> ivue.disconnect(true)); }
+        @JavascriptInterface public void ivueNetState() { ivue.netState(); }
         // baixa e, se apagar = true, apaga do óculos depois de conferir que baixou tudo (modo automático)
         @JavascriptInterface public void ivueBaixar(String path, String nome, boolean apagar) { ivue.download(path, nome, apagar); }
         @JavascriptInterface public void ivueApagar(String path) { ivue.apagar(path); }   // só no modo automático, para arquivo já baixado

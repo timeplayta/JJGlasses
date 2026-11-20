@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
+import android.net.NetworkRequest;
+import android.net.wifi.WifiNetworkSpecifier;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
@@ -50,7 +52,66 @@ public class Ivue {
     /** A rede Wi-Fi em que o celular está (a do óculos). */
     private Network wifi() { return wifiNet(ctx); }
 
+    // ------------------------------------------------------------ Conectar direto pelo app
+    // O app procura o Wi-Fi do óculos e conecta só ele (o resto do celular continua na internet normal).
+    static volatile Network direct;                     // rede do óculos aberta pelo "Conectar"
+    private ConnectivityManager.NetworkCallback cb;
+    private volatile String estado = "desligado";
+
+    private void net(String st) {
+        estado = st;
+        out.js("window.jjIvueNet&&window.jjIvueNet({estado:'" + st + "',rssi:" + rssi() + "})");
+    }
+
+    /** Força do sinal do Wi-Fi do óculos (em dBm, ex.: -55 é bom, -80 é fraco). 0 = não sei. */
+    private int rssi() {
+        try {
+            Network n = wifiNet(ctx);
+            ConnectivityManager cm = (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkCapabilities nc = n == null || cm == null ? null : cm.getNetworkCapabilities(n);
+            if (nc != null && Build.VERSION.SDK_INT >= 29) { int r = nc.getSignalStrength(); return r == Integer.MIN_VALUE ? 0 : r; }
+        } catch (Exception ignored) { }
+        return 0;
+    }
+
+    /** Toque em "Conectar": o Android procura a rede (ssid) e mostra "Conectar ao iVUE?". */
+    public void connect(String ssid, String senha) {
+        if (Build.VERSION.SDK_INT < 29) { net("antigo"); return; }      // Android 9 ou menos: conectar pelas configurações
+        if (wifiNet(ctx) != null && "conectado".equals(estado)) { net("conectado"); return; }
+        disconnect(false);
+        ConnectivityManager cm = (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (cm == null) { net("naoAchou"); return; }
+        try {
+            WifiNetworkSpecifier.Builder sb = new WifiNetworkSpecifier.Builder().setSsid(ssid);
+            if (senha != null && senha.length() >= 8) sb.setWpa2Passphrase(senha);
+            NetworkRequest req = new NetworkRequest.Builder()
+                .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+                .removeCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)   // a rede do óculos não tem internet
+                .setNetworkSpecifier(sb.build())
+                .build();
+            cb = new ConnectivityManager.NetworkCallback() {
+                @Override public void onAvailable(Network n) { direct = n; net("conectado"); status(); }
+                @Override public void onUnavailable() { direct = null; net("naoAchou"); }
+                @Override public void onLost(Network n) { if (n.equals(direct)) direct = null; net("desligado"); }
+            };
+            net("procurando");
+            cm.requestNetwork(req, cb, 60000);   // procura por até 1 minuto
+        } catch (Exception e) { net("naoAchou"); }
+    }
+
+    public void disconnect(boolean avisar) {
+        ConnectivityManager cm = (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (cm != null && cb != null) { try { cm.unregisterNetworkCallback(cb); } catch (Exception ignored) { } }
+        cb = null; direct = null;
+        if (avisar) net("desligado");
+    }
+
+    /** Estado da conexão agora (para a tela): conectado se o celular está no Wi-Fi do óculos. */
+    public void netState() { net(direct != null ? "conectado" : "procurando".equals(estado) ? "procurando" : "desligado"); }
+
     static Network wifiNet(Context ctx) {
+        Network d = direct;
+        if (d != null) return d;
         ConnectivityManager cm = (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
         if (cm == null) return null;
         for (Network n : cm.getAllNetworks()) {
@@ -148,7 +209,7 @@ public class Ivue {
                 long usado = 0;
                 for (int i = 0; i < v.length(); i++) usado += bytes(v.getJSONObject(i).optString("tamanho"));
                 for (int i = 0; i < f.length(); i++) usado += bytes(f.getJSONObject(i).optString("tamanho"));
-                r.put("ok", true); r.put("videos", v); r.put("fotos", f); r.put("usado", usado);
+                r.put("ok", true); r.put("videos", v); r.put("fotos", f); r.put("usado", usado); r.put("rssi", rssi());
                 Long bat = cmd(3019);  if (bat != null) r.put("bateria", bat);   // 0 cheia ... 5 carregando
                 Long livre = cmd(3017); if (livre != null) r.put("livre", livre); // bytes livres no cartão
                 Long card = cmd(3024);  if (card != null) r.put("cartao", card);  // 1 = cartão colocado
