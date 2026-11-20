@@ -273,6 +273,23 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 .gsw{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.4;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
 .gsw input{width:20px;height:20px;accent-color:var(--accent);flex:none;margin:0}
 .glbody h3{margin:8px 0 0;font-size:17px}
+.gltabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.gltabs button{display:flex;flex-direction:column;align-items:center;gap:1px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:16px;padding:10px 4px 8px;font:inherit;font-size:13.5px;font-weight:650}
+.gltabs .e{font-size:22px;line-height:1.2}.gltabs small{color:var(--mute);font-weight:500;font-size:12px}
+.gltabs button[aria-selected="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1.5px var(--accent)}
+.glgal{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px}
+.glgal .ghead{display:flex;justify-content:space-between;align-items:center;margin:0 2px 10px;font-weight:650}
+.ggrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.gitem{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--bg);border:0;padding:0;display:grid;place-items:center;font-size:26px;color:var(--mute)}
+.gitem img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.gitem .dur{position:absolute;right:4px;bottom:4px;background:rgba(0,0,0,.62);color:#fff;font-size:11px;border-radius:6px;padding:1px 5px}
+.gitem .gst{position:absolute;inset:auto 0 0 0;background:rgba(0,0,0,.62);color:#fff;font-size:11px;padding:3px 4px}
+.gempty{color:var(--mute);font-size:14px;text-align:center;margin:8px 4px}
+.grec{display:flex;flex-direction:column;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
+.grec label,.glbl{font-size:13px;color:var(--mute);display:flex;flex-direction:column;gap:5px}.grec .gsub{margin:0}
+.recst{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600}
+.gview video{width:100%;border-radius:12px;background:#000;max-height:60vh}.gview img{width:100%;border-radius:12px}
+.gview .gmeta{color:var(--mute);font-size:13px;margin:8px 4px}
 .gchat .av{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:700;background:var(--line);flex:none}
 .gchat[aria-pressed="true"] .av{background:var(--accent);color:var(--on-accent)}
 .gchat span{min-width:0;overflow:hidden}.gchat b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
@@ -522,6 +539,8 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   <div class="glbody" id="glBody">
     <div class="glhero" id="glHero"><img id="glImg" src="oculos/jj/g00.webp" alt="Óculos JJGlasses" draggable="false"><span class="glhint">Arraste para girar</span></div>
     <div class="glmods" id="glMods"><button data-glm="jj">JJGlasses W AI 4</button><button data-glm="redondo">Redondo</button><button data-glm="quadrado">Quadrado</button></div>
+    <div class="gltabs" id="glTabs" role="tablist" aria-label="Fotos e vídeos do óculos na nuvem"><button role="tab" data-gt="foto" aria-selected="false"><span class="e">📷</span>Fotos<small id="gtc-foto">—</small></button><button role="tab" data-gt="video" aria-selected="false"><span class="e">🎬</span>Vídeos<small id="gtc-video">—</small></button><button role="tab" data-gt="video_ia" aria-selected="false"><span class="e">✨</span>Vídeos com IA<small id="gtc-video_ia">—</small></button></div>
+    <div class="glgal" id="glGal" hidden></div>
     <div class="glstat"><span class="gdot" id="glDot"></span><div><b id="glState">Desligado</b><small id="glErr"></small></div><button class="chip" id="glConn">Conectar</button></div>
     <div class="glgrid">
       <div class="gcard"><small>Bateria</small><b id="glBat">—</b><div class="gbar"><i id="glBatBar"></i></div></div>
@@ -535,6 +554,17 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     <h3>Chat do óculos</h3>
     <p class="gsub" id="glChatLbl">O que você falar pelo óculos vai para este chat.</p>
     <div class="opts" id="glChats"></div>
+    <h3>Gravação</h3>
+    <div class="grec">
+      <label>Óculos<select class="field" id="recOc"></select></label>
+      <div><small class="glbl">Qualidade</small><div class="pills" id="recRes"></div></div>
+      <label>Contexto de uso<select class="field" id="recCtx"></select></label>
+      <p class="gsub">A IA usa o contexto para entender o que é normal em cada situação: um salto de paraquedas é diferente de uma fábrica.</p>
+      <button class="btn main" id="recLive">▶ Ao vivo</button>
+      <div class="recst"><span class="gdot" id="recDot"></span><span id="recSt">Ponte do PC não conectada</span></div>
+      <p class="gsub" id="recInfo">Para ver ao vivo e gravar com o iVUE, ele precisa estar ligado no PC com a ponte do JJGlasses aberta. A ponte ainda está sendo feita.</p>
+      <p class="gsub">⚠️ Se for filmar pessoas no trabalho, avise antes que elas estão sendo filmadas (LGPD).</p>
+    </div>
   </div>
 </div>
 
@@ -1549,6 +1579,73 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     $('glChats').innerHTML=rows;
   }
   $('glChats').addEventListener('click',function(e){var b=e.target.closest('[data-glc]');if(!b)return;prefs.glChat=b.getAttribute('data-glc');persist();glChats()});
+  /* ---------- Galeria do óculos na nuvem: Fotos · Vídeos · Vídeos com IA ----------
+     A lista vem da tabela midias do Supabase (cada pessoa só vê as suas). */
+  var galTab=null,galRows={};
+  var GAL_TXT={foto:['Fotos','Nenhuma foto ainda. As fotos tiradas com o óculos vão aparecer aqui.'],
+    video:['Vídeos','Nenhum vídeo ainda. Os vídeos originais do óculos (sem alteração) chegam aqui pela ponte do PC.'],
+    video_ia:['Vídeos com IA','Nenhum vídeo analisado ainda. Cada vídeo ganha uma versão em que a IA circula e mostra os momentos mais importantes, sem apagar o original.']};
+  function hms(sec){sec=Math.max(0,Math.round(+sec||0));var h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),x=sec%60;return (h?h+':'+String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0')}
+  function galCounts(){
+    if(!session)return;
+    rest('midias?select=tipo&limit=2000').then(function(r){return r.ok?r.json():null}).then(function(rows){
+      if(!rows)return;var n={foto:0,video:0,video_ia:0};rows.forEach(function(x){if(n[x.tipo]!=null)n[x.tipo]++});
+      Object.keys(n).forEach(function(k){$('gtc-'+k).textContent=n[k]})}).catch(function(){});
+  }
+  function galOpen(t){
+    galTab=galTab===t?null:t;
+    [].forEach.call($('glTabs').children,function(b){b.setAttribute('aria-selected',String(b.getAttribute('data-gt')===galTab))});
+    if(!galTab){$('glGal').hidden=true;return}
+    $('glGal').hidden=false;$('glGal').innerHTML='<p class="gempty">Carregando…</p>';
+    rest('midias?select=id,tipo,titulo,oculos,contexto,resolucao,duracao_s,arquivo,miniatura,original_id,status,progresso,resumo,eventos,gravado_em&tipo=eq.'+t+'&order=gravado_em.desc&limit=90')
+      .then(function(r){return r.ok?r.json():[]}).then(function(rows){galRows[t]=rows||[];if(galTab===t)galPaint(t)})
+      .catch(function(){if(galTab===t)$('glGal').innerHTML='<p class="gempty">Sem internet agora. Tente de novo daqui a pouco.</p>'});
+  }
+  function galPaint(t){
+    var rows=galRows[t]||[],tx=GAL_TXT[t];
+    var h='<div class="ghead"><span>'+tx[0]+'</span><small class="gsub">'+rows.length+' na nuvem</small></div>';
+    if(!rows.length){$('glGal').innerHTML=h+'<p class="gempty">'+tx[1]+'</p>';return}
+    h+='<div class="ggrid">'+rows.map(function(x){
+      var st=x.status==='pronto'?'':'<span class="gst">'+(x.status==='processando'?'Analisando '+x.progresso+'%':x.status==='enviando'?'Enviando '+x.progresso+'%':'Erro')+'</span>';
+      return '<button class="gitem" data-mid="'+esc(x.id)+'" aria-label="'+esc((x.titulo||GAL_TXT[x.tipo][0])+' de '+new Date(x.gravado_em).toLocaleString('pt-BR'))+'">'+(t==='foto'?'📷':t==='video'?'🎬':'✨')+
+        (x.miniatura&&/^https?:/.test(x.miniatura)?'<img src="'+esc(x.miniatura)+'" alt="" loading="lazy">':'')+(x.duracao_s&&!st?'<span class="dur">'+hms(x.duracao_s)+'</span>':'')+st+'</button>'}).join('')+'</div>';
+    $('glGal').innerHTML=h;
+  }
+  function galFind(id){for(var k in galRows)for(var i=0;i<galRows[k].length;i++)if(galRows[k][i].id===id)return galRows[k][i];return null}
+  function galView(x){
+    var oc=oculosById(x.oculos),src=x.arquivo&&/^https?:/.test(x.arquivo)?x.arquivo:'';
+    var h='<div class="gview">'+(x.tipo==='foto'?(src?'<img src="'+esc(src)+'" alt="Foto do óculos">':''):(src?'<video id="gvVid" src="'+esc(src)+'" controls playsinline preload="metadata"></video>':''))+
+      (src?'':'<p class="gempty">O arquivo ainda está sendo enviado para a nuvem.</p>')+
+      '<p class="gmeta">'+esc(new Date(x.gravado_em).toLocaleString('pt-BR'))+(oc?' · '+esc(oc.icone+' '+oc.nome):'')+(x.resolucao?' · '+esc(x.resolucao):'')+(x.contexto?' · '+esc(x.contexto):'')+(x.duracao_s?' · '+hms(x.duracao_s):'')+'</p>';
+    if(x.resumo)h+='<p style="margin:6px 4px"><b>Resumo da IA:</b> '+esc(x.resumo)+'</p>';
+    (Array.isArray(x.eventos)?x.eventos:[]).forEach(function(ev){h+='<button class="it" data-seek="'+esc(ev.inicio||'0:00')+'">▶<span>'+esc((ev.inicio||'')+' · '+(ev.categoria||''))+'<small>'+esc(ev.descricao||'')+'</small></span></button>'});
+    if(x.tipo==='video'){var ia=(galRows.video_ia||[]).filter(function(y){return y.original_id===x.id})[0];if(ia)h+='<button class="it" data-mid="'+esc(ia.id)+'">✨<span>Ver a versão com IA</span></button>'}
+    if(x.tipo==='video_ia'&&x.original_id)h+='<button class="it" data-mid="'+esc(x.original_id)+'">🎬<span>Ver o vídeo original</span></button>';
+    $('mmTitle').textContent=x.titulo||GAL_TXT[x.tipo][0];$('mmBody').innerHTML=h+'</div>';$('mm').hidden=false;
+  }
+  function galGo(id){var x=galFind(id);if(x){galView(x);return}
+    rest('midias?select=*&id=eq.'+encodeURIComponent(id)).then(function(r){return r.ok?r.json():[]}).then(function(rows){if(rows&&rows[0]){var y=rows[0];(galRows[y.tipo]=galRows[y.tipo]||[]).push(y);galView(y)}})}
+  $('glTabs').addEventListener('click',function(e){var b=e.target.closest('[data-gt]');if(b)galOpen(b.getAttribute('data-gt'))});
+  $('glGal').addEventListener('click',function(e){var b=e.target.closest('[data-mid]');if(b)galGo(b.getAttribute('data-mid'))});
+  $('mmBody').addEventListener('click',function(e){
+    var b=e.target.closest('[data-seek]');if(b){var v=$('gvVid');if(v){var p=b.getAttribute('data-seek').split(':').map(Number),t=0;p.forEach(function(n){t=t*60+(n||0)});v.currentTime=t;v.play().catch(function(){})}return}
+    b=e.target.closest('.gview [data-mid]');if(b)galGo(b.getAttribute('data-mid'));
+  });
+  /* ---------- Gravação: óculos, qualidade e contexto de uso ---------- */
+  var REC_CTX=['Paraquedismo / esporte','Trabalho pesado','Loja / atendimento','Obra','Linha de produção','Outro'];
+  function recPaint(){
+    var r=prefs.rec||{},cams=oculosList.filter(function(o){return o.grava});if(!cams.length)cams=[OCULOS_PADRAO[1]];
+    var oc=cams.filter(function(o){return o.id===r.oc})[0]||cams.filter(function(o){return o.id==='ivue'})[0]||cams[0];
+    $('recOc').innerHTML=cams.map(function(o){return '<option value="'+esc(o.id)+'">'+esc(o.icone+' '+o.nome)+'</option>'}).join('');$('recOc').value=oc.id;
+    var res=oc.res&&oc.res.length?oc.res:['1080p'],cur=res.indexOf(r.res)>=0?r.res:res[res.length-1];
+    $('recRes').innerHTML=res.map(function(x){return '<button class="pill" data-rr="'+esc(x)+'" aria-pressed="'+(x===cur)+'">'+esc(x)+'</button>'}).join('');
+    $('recCtx').innerHTML=REC_CTX.map(function(x){return '<option>'+esc(x)+'</option>'}).join('');$('recCtx').value=REC_CTX.indexOf(r.ctx)>=0?r.ctx:REC_CTX[0];
+    prefs.rec={oc:oc.id,res:cur,ctx:$('recCtx').value};
+  }
+  $('recOc').onchange=function(){prefs.rec=Object.assign({},prefs.rec,{oc:this.value});persist();recPaint()};
+  $('recCtx').onchange=function(){prefs.rec=Object.assign({},prefs.rec,{ctx:this.value});persist()};
+  $('recRes').addEventListener('click',function(e){var b=e.target.closest('[data-rr]');if(!b)return;prefs.rec=Object.assign({},prefs.rec,{res:b.getAttribute('data-rr')});persist();recPaint()});
+  $('recLive').onclick=function(){toast('O ao vivo vai funcionar quando a ponte do PC estiver pronta. Falta só descobrir como o seu iVUE manda o vídeo.')};
   function fmtDur(ms){var m=Math.round(ms/60000);if(m<60)return m+' min';var h=Math.floor(m/60);return h+' h'+(m%60?' '+(m%60)+' min':'')}
   function paintGl(){
     var on=!!gs.connected,wait=!!(gs.connecting||gs.scanning);
@@ -1574,7 +1671,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   }
   window.jjGlasses=function(st){for(var k in st)gs[k]=st[k];paintGl()};
   function openGlasses(){
-    $('gl').hidden=false;glLoad();glAuto(true);$('glLook').checked=prefs.glLook!==false;glChats();
+    $('gl').hidden=false;glLoad();glAuto(true);$('glLook').checked=prefs.glLook!==false;glChats();galCounts();recPaint();
     if(NATIVE&&NATIVE.glassesStart){try{window.jjGlasses(JSON.parse(NATIVE.glassesState()))}catch(e){}NATIVE.glassesStart()}
     clearInterval(glPoll);glPoll=setInterval(function(){if(NATIVE&&NATIVE.glassesState){try{window.jjGlasses(JSON.parse(NATIVE.glassesState()))}catch(e){}}else paintGl()},1000);
     paintGl();
