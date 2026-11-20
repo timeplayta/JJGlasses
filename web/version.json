@@ -1,13 +1,14 @@
 {
-  "v": 202611141651,
+  "v": 202611201207,
   "notes": {
-    "t": "Botão Ouvir e vozes femininas bem diferentes",
+    "t": "Escolha o óculos de cada chat",
     "b": [
-      "O botão Ouvir (alto-falante) voltou a aparecer logo embaixo de cada resposta. Toque de novo para parar.",
-      "As vozes femininas agora são bem diferentes: Clara é grave, Rita é firme e rápida, Ana é calma, Lia é suave e lenta, Nina é animada e Bia é bem fina.",
-      "As vozes masculinas também ficaram mais separadas: do Davi (bem grave) até o Theo (leve)."
+      "Ao abrir um chat novo, o app pergunta qual óculos você vai usar nele: JJGlasses W AI 4, iVUE ou sem óculos.",
+      "A IA fica sabendo o que aquele óculos consegue fazer e responde do jeito certo.",
+      "Nos chats do iVUE (que não tem IA nem alto-falante), o botão de ouvir no óculos não aparece e as respostas ficam só na tela.",
+      "Para trocar, toque no nome do óculos embaixo do título do chat ou nos 3 pontinhos."
     ]
   },
-  "bytes": 190005,
-  "sha256": "3381d9ebbab67d6ba98875478edfeffa2120ccfb6569110deaeda2be4d704cf6"
+  "bytes": 194346,
+  "sha256": "52639d731048cb46fab91b569c0f1254df70ebf66c307a8bfa4372cbfda902b6"
 }
