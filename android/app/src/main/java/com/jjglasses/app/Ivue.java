@@ -160,7 +160,11 @@ public class Ivue {
     }
 
     /** Baixa um arquivo do óculos para a galeria do celular (Filmes/JJGlasses ou Imagens/JJGlasses). */
-    public void download(String path, String nome) {
+    public void download(String path, String nome) { download(path, nome, false); }
+
+    /** apagar = true: depois de baixar TUDO certinho (tamanho conferido), apaga o arquivo do óculos para liberar espaço.
+     *  Se o download falhar ou vier incompleto, NÃO apaga nada. */
+    public void download(String path, String nome, boolean apagar) {
         cancel = false;
         ex.submit(() -> {
             JSONObject p = new JSONObject();
@@ -195,9 +199,12 @@ public class Ivue {
                         if (now - last > 400) { last = now; prog(path, done, total, null, null); }
                     }
                 } finally { c.disconnect(); }
+                if (total > 0 && done != total) throw new Exception("incompleto");
                 if (Build.VERSION.SDK_INT >= 29) { ContentValues cv = new ContentValues(); cv.put(MediaStore.MediaColumns.IS_PENDING, 0); cr.update(uri, cv, null, null); }
                 else if (file != null) uri = Uri.fromFile(file);
-                prog(path, done, total, uri.toString(), null);
+                boolean apagado = false;
+                if (apagar && total > 0 && done == total) apagado = remove(path);
+                prog(path, done, total, uri.toString(), null, apagado);
             } catch (Exception e) {
                 if (uri != null && Build.VERSION.SDK_INT >= 29) { try { ctx.getContentResolver().delete(uri, null, null); } catch (Exception ignored) { } }
                 prog(path, 0, 0, null, String.valueOf(e.getMessage()));
@@ -207,12 +214,31 @@ public class Ivue {
 
     public void cancelDownload() { cancel = true; }
 
-    private void prog(String path, long done, long total, String uri, String erro) {
+    /** Apaga um arquivo do óculos (o mesmo "Remove" da página dele). Só é usado no modo automático. */
+    private boolean remove(String path) {
+        try {
+            HttpURLConnection c = open(path + "?del=1", 8000);
+            try { int code = c.getResponseCode(); return code >= 200 && code < 400; } finally { c.disconnect(); }
+        } catch (Exception e) { return false; }
+    }
+
+    /** Modo automático: o arquivo já tinha sido baixado inteiro antes; agora só libera o espaço no óculos. */
+    public void apagar(String path) {
+        exInfo.submit(() -> {
+            boolean ok = remove(path);
+            try { JSONObject r = new JSONObject(); r.put("path", path); r.put("ok", ok); out.js("window.jjIvueDel&&window.jjIvueDel(" + r + ")"); } catch (Exception ignored) { }
+        });
+    }
+
+    private void prog(String path, long done, long total, String uri, String erro) { prog(path, done, total, uri, erro, false); }
+
+    private void prog(String path, long done, long total, String uri, String erro, boolean apagado) {
         try {
             JSONObject p = new JSONObject();
             p.put("path", path); p.put("feito", done); p.put("total", total);
             if (uri != null) p.put("uri", uri);
             if (erro != null) p.put("erro", erro);
+            if (apagado) p.put("apagado", true);
             out.js("window.jjIvueProg&&window.jjIvueProg(" + p + ")");
         } catch (Exception ignored) { }
     }

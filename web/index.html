@@ -299,6 +299,8 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 .ivh{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:10px}
 .ivhtop{display:flex;align-items:center;gap:10px}.ivhtop div{flex:1;min-width:0}.ivhtop small{display:block;color:var(--mute);font-size:12.5px}
 .ivh .gcard{background:var(--bg)}.ivhact{display:grid;grid-template-columns:1fr 1fr;gap:10px}.ivhact .btn{margin:0;white-space:nowrap}
+.glbt{display:flex;flex-direction:column;gap:14px}.glbt[hidden],.gsw[hidden],.ivh[hidden]{display:none}
+.ivmode{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;border:1px dashed var(--line);background:none;color:var(--ink);border-radius:12px;padding:9px 12px;font:inherit;font-size:13.5px;text-align:left;cursor:pointer}.ivmode small{color:var(--accent);font-weight:650}
 .ivsec{margin:12px 2px 2px;font-size:13px;font-weight:700;color:var(--mute)}
 .grec{display:flex;flex-direction:column;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
 .grec label,.glbl{font-size:13px;color:var(--mute);display:flex;flex-direction:column;gap:5px}.grec .gsub{margin:0}
@@ -560,20 +562,25 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
         <div class="gcard"><small>Armazenamento</small><b id="ivSto">—</b><div class="gbar"><i id="ivStoBar"></i></div><span id="ivStoSub"></span></div>
       </div>
       <div class="ivhact"><button class="btn main" id="ivLive">▶ Ao vivo</button><button class="btn" id="ivGal">🎬 Vídeos e fotos</button></div>
+      <button class="ivmode" id="ivMode"><span id="ivModeT">✋ Baixar só quando eu mandar</span><small>Trocar</small></button>
       <p class="gsub" id="ivHelp" hidden>Ligue o óculos, aperte o botão do Wi-Fi dele e conecte o celular no Wi-Fi "iVUE". Depois toque em ⟳.</p>
     </div>
     <div class="glhero" id="glHero"><img id="glImg" src="oculos/jj/g00.webp" alt="Óculos JJGlasses" draggable="false"><span class="glhint">Arraste para girar</span></div>
     <div class="glmods" id="glMods"><button data-glm="jj">JJGlasses W AI 4</button><button data-glm="redondo">Redondo</button><button data-glm="quadrado">Quadrado</button><button data-glm="denali">iVUE Denali</button></div>
+    <div class="glbt" id="glBt">
     <div class="glstat"><span class="gdot" id="glDot"></span><div><b id="glState">Desligado</b><small id="glErr"></small></div><button class="chip" id="glConn">Conectar</button></div>
     <div class="glgrid">
       <div class="gcard"><small>Bateria</small><b id="glBat">—</b><div class="gbar"><i id="glBatBar"></i></div></div>
       <div class="gcard"><small>Sinal</small><b id="glSig">—</b><div class="gsig" id="glSigBars"><i></i><i></i><i></i><i></i></div></div>
       <div class="gcard"><small>Duração da bateria</small><b id="glLeft">—</b><span id="glSince"></span></div>
-      <div class="gcard"><small>Som e microfone</small><b id="glAudio">—</b><span id="glAudioSub">Fala da IA sai no óculos</span></div>
+      <div class="gcard" id="glAudioCard"><small>Som e microfone</small><b id="glAudio">—</b><span id="glAudioSub">Fala da IA sai no óculos</span></div>
     </div>
+    </div>
+    <div class="glbt" id="glTalkBox">
     <button class="btn main gtalk" id="glTalk">Falar pelo óculos</button>
     <p class="gsub" id="glTime">Toque no óculos ou aqui. Grava até você parar (máximo 5 min).</p>
-    <label class="gsw"><input type="checkbox" id="glLook"><span>Avisar pelo óculos quando precisar olhar o celular (fotos, tabelas, links e respostas longas)</span></label>
+    </div>
+    <label class="gsw" id="glLookBox"><input type="checkbox" id="glLook"><span>Avisar pelo óculos quando precisar olhar o celular (fotos, tabelas, links e respostas longas)</span></label>
     <h3>Chat do óculos</h3>
     <p class="gsub" id="glChatLbl">O que você falar pelo óculos vai para este chat.</p>
     <div class="opts" id="glChats"></div>
@@ -698,13 +705,13 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   var draft=null,busy=false,hlQuery=null;
 
   var lastSig={};chats.forEach(function(c){lastSig[c.id]=chatSig(c)});
-  function chatSig(c){var m=c.msgs.filter(function(x){return !x.pending}),l=m[m.length-1];return [c.title,c.lang||'',c.oculos||'',c.pinned?1:0,m.length,l?String(l.text||'').length:0,m.map(function(x){return x.fb?x.fb[0]:''}).join('')].join('|')}
+  function chatSig(c){var m=c.msgs.filter(function(x){return !x.pending}),l=m[m.length-1];return [c.title,c.lang||'',c.oculos||'',c.ivSync||'',c.pinned?1:0,m.length,l?String(l.text||'').length:0,m.map(function(x){return x.fb?x.fb[0]:''}).join('')].join('|')}
   function persist(){
     // descobre o que mudou para mandar só isso para a nuvem
     var seen={};
     chats.forEach(function(c){seen[c.id]=1;if(c.msgs.some(function(m){return m.pending}))return;var g=chatSig(c);if(lastSig[c.id]!==g){lastSig[c.id]=g;c.up=Date.now();if(window.markDirty)markDirty(c.id)}});
     Object.keys(lastSig).forEach(function(id){if(!seen[id]){delete lastSig[id];if(window.markDirty)markDirty(id)}});
-    var slim=chats.slice(0,60).map(function(c){return {id:c.id,title:c.title,at:c.at,up:c.up||0,lang:c.lang||'',oculos:c.oculos||'',pinned:!!c.pinned,msgs:c.msgs.filter(function(m){return !m.pending}).slice(-80).map(function(m){return {role:m.role,text:m.text,img:(m.img&&m.img.length<300000)?m.img:null,file:m.file||null,ftext:m.ftext||null,src:m.src||undefined,fb:m.fb||undefined}})}});
+    var slim=chats.slice(0,60).map(function(c){return {id:c.id,title:c.title,at:c.at,up:c.up||0,lang:c.lang||'',oculos:c.oculos||'',ivSync:c.ivSync||'',pinned:!!c.pinned,msgs:c.msgs.filter(function(m){return !m.pending}).slice(-80).map(function(m){return {role:m.role,text:m.text,img:(m.img&&m.img.length<300000)?m.img:null,file:m.file||null,ftext:m.ftext||null,src:m.src||undefined,fb:m.fb||undefined}})}});
     save('jj_chats',slim);save('jj_prefs',prefs);
   }
   function chat(){for(var i=0;i<chats.length;i++)if(chats[i].id===cur)return chats[i];return null}
@@ -1598,7 +1605,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   function glModel(){return ['jj','redondo','quadrado','denali'].indexOf(prefs.glModel)>=0?prefs.glModel:'jj'}
   function glSrc(i){return 'oculos/'+glModel()+'/g'+String(i).padStart(2,'0')+'.webp'+(glModel()==='denali'?'?v=3':'?v=2')} // v muda quando as imagens são refeitas (o celular baixa as novas)
   function glLoad(){for(var i=0;i<glFrames;i++){var im=new Image();im.src=glSrc(i)}[].forEach.call($('glMods').children,function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-glm')===glModel()))})}
-  $('glMods').addEventListener('click',function(e){var b=e.target.closest('[data-glm]');if(!b)return;prefs.glModel=b.getAttribute('data-glm');persist();glLoad();glShow(glFrame)});
+  $('glMods').addEventListener('click',function(e){var b=e.target.closest('[data-glm]');if(!b)return;prefs.glModel=b.getAttribute('data-glm');persist();glLoad();glShow(glFrame);glCaps();glChats();if(glOcId()==='ivue')ivHomeAsk()});
   function glShow(i){glFrame=((i%glFrames)+glFrames)%glFrames;$('glImg').src=glSrc(glFrame)}
   function glAuto(on){clearInterval(glSpin);if(on)glSpin=setInterval(function(){if(Date.now()>glHold)glShow(glFrame+1)},90)}
   (function(){var h=$('glHero'),startF=0;
@@ -1606,16 +1613,39 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     h.addEventListener('pointermove',function(e){if(glDragX==null)return;glShow(startF-Math.round((e.clientX-glDragX)/9))});
     var up=function(){if(glDragX==null)return;glDragX=null;glHold=Date.now()+2500};h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up);
   })();
-  function glChatId(){var id=prefs.glChat,ok=chats.filter(function(c){return ouveNoOculos(c)});if(id&&ok.some(function(c){return c.id===id}))return id;return ok.length?ok[0].id:null}
+  /* Cada modelo 3D é um óculos: JJGlasses W AI 4 (e os estilos Redondo e Quadrado) = 'jj'; iVUE Denali = 'ivue'.
+     Na aba do óculos só aparecem os chats daquele óculos, e só os botões que ele tem. */
+  function glOcId(m){return (m||glModel())==='denali'?'ivue':'jj'}
+  function ocChats(id){return chats.filter(function(c){return (c.oculos||'jj')===id})}
+  function glPicked(id){return id==='jj'?prefs.glChat:(prefs.glChatBy||{})[id]}
+  function glChatId(id){id=id||'jj';var p=glPicked(id),ok=ocChats(id);if(p&&ok.some(function(c){return c.id===p}))return p;return ok.length?ok[0].id:null}
+  function ivSyncTxt(c){return c&&c.ivSync==='auto'?'⚡ Automático: baixa e libera espaço no óculos':'✋ Baixar só quando eu mandar'}
   function glChats(){
-    var sel=glChatId(),auto=!prefs.glChat||!chats.some(function(c){return c.id===prefs.glChat});
-    $('glChatLbl').textContent=chats.length?(auto?'Automático: a fala vai para o último chat.':'A fala vai para o chat escolhido.'):'Ainda não tem chat. Quando você falar pelo óculos, um chat novo é criado.';
-    var rows='<div class="opt gchat" role="button" data-glc="" aria-pressed="'+auto+'"><span class="av">⟳</span><span><b>Último chat (automático)</b><small>Sempre o chat mais recente</small></span></div>';
-    rows+=chats.filter(function(c){return ouveNoOculos(c)}).slice(0,30).map(function(c){var last=c.msgs.filter(function(m){return !m.pending}).slice(-1)[0];var l=(c.title.match(/[A-Za-zÀ-ÿ0-9]/)||['•'])[0].toUpperCase();
-      return '<div class="opt gchat" role="button" data-glc="'+c.id+'" aria-pressed="'+(!auto&&c.id===sel)+'"><span class="av">'+esc(l)+'</span><span><b>'+esc(c.title)+'</b><small>'+esc(last?String(last.text||'').replace(/\s+/g,' ').slice(0,70):when(c.at))+'</small></span></div>'}).join('');
+    var id=glOcId(),oc=oculosById(id)||OCULOS_PADRAO[0],list=ocChats(id),p=glPicked(id),sel=glChatId(id),auto=!p||!list.some(function(c){return c.id===p}),wifi=oc.aoVivo==='wifi';
+    $('glChatLbl').textContent=!list.length?'Ainda não tem chat com o '+oc.nome+'. Crie um abaixo.':wifi?'Os vídeos e fotos do '+oc.nome+' seguem o jeito de baixar do chat escolhido.':(auto?'Automático: a fala vai para o último chat.':'A fala vai para o chat escolhido.');
+    var rows=list.length?'<div class="opt gchat" role="button" data-glc="" aria-pressed="'+auto+'"><span class="av">⟳</span><span><b>Último chat (automático)</b><small>Sempre o chat mais recente com o '+esc(oc.nome)+'</small></span></div>':'';
+    rows+=list.slice(0,30).map(function(c){var last=c.msgs.filter(function(m){return !m.pending}).slice(-1)[0];var l=(c.title.match(/[A-Za-zÀ-ÿ0-9]/)||['•'])[0].toUpperCase();
+      return '<div class="opt gchat" role="button" data-glc="'+c.id+'" aria-pressed="'+(!auto&&c.id===sel)+'"><span class="av">'+esc(l)+'</span><span><b>'+esc(c.title)+'</b><small>'+esc(wifi?ivSyncTxt(c):last?String(last.text||'').replace(/\s+/g,' ').slice(0,70):when(c.at))+'</small></span></div>'}).join('');
+    rows+='<div class="opt gchat" role="button" data-glnew="'+esc(id)+'"><span class="av">＋</span><span><b>Novo chat com o '+esc(oc.nome)+'</b><small>'+(wifi?'Você escolhe como baixar os vídeos e fotos':'A fala do óculos vai para ele')+'</small></span></div>';
     $('glChats').innerHTML=rows;
   }
-  $('glChats').addEventListener('click',function(e){var b=e.target.closest('[data-glc]');if(!b)return;prefs.glChat=b.getAttribute('data-glc');persist();glChats()});
+  $('glChats').addEventListener('click',function(e){
+    var n=e.target.closest('[data-glnew]');
+    if(n){var oid=n.getAttribute('data-glnew'),c=newChat(oid);if(oid==='jj')prefs.glChat=c.id;else{prefs.glChatBy=prefs.glChatBy||{};prefs.glChatBy[oid]=c.id}persist();renderAll();glChats();
+      if((oculosById(oid)||{}).aoVivo==='wifi')openChatMenu(c.id,'ocsync');else toast('Chat criado');return}
+    var b=e.target.closest('[data-glc]');if(!b)return;var v=b.getAttribute('data-glc'),id=glOcId();
+    if(id==='jj')prefs.glChat=v;else{prefs.glChatBy=prefs.glChatBy||{};prefs.glChatBy[id]=v}persist();glChats();ivHomePaint();
+  });
+  /* Mostra só o que o óculos escolhido tem (sem botões ocupando espaço à toa). */
+  function glCaps(){
+    var oc=oculosById(glOcId())||OCULOS_PADRAO[0],bt=oc.aoVivo==='bluetooth';
+    $('ivHome').hidden=oc.aoVivo!=='wifi';
+    $('glBt').hidden=!bt;
+    $('glTalkBox').hidden=!(bt&&oc.mic);
+    $('glAudioCard').hidden=!oc.falante;
+    $('glLookBox').hidden=!(bt&&oc.falante);
+    $('glFind').hidden=!bt;
+  }
   /* ---------- Galeria do óculos na nuvem: Fotos · Vídeos · Vídeos com IA ----------
      A lista vem da tabela midias do Supabase (cada pessoa só vê as suas). */
   var galTab=null,galRows={};
@@ -1677,7 +1707,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     glAuto(v==='home'); // o óculos 3D só gira quando está aparecendo (economiza bateria)
     if(v==='gal'&&!galTab)galOpen('video');
     if(v==='rec')recPaint();
-    if(v==='home')ivHomeAsk();
+    if(v==='home'&&glOcId()==='ivue')ivHomeAsk();
   }
   $('glNav').addEventListener('click',function(e){var b=e.target.closest('[data-glv]');if(b)glView(b.getAttribute('data-glv'))});
   /* ---------- Arquivos que estão no óculos iVUE (pelo Wi-Fi dele) ----------
@@ -1710,9 +1740,11 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   }
   window.jjIvueProg=function(p){
     if(!p)return;var pr=ivueProg[p.path]=ivueProg[p.path]||{};pr.feito=p.feito;pr.total=p.total;
-    if(p.uri){pr.fim=true;ivueDl[p.path]=p.uri;try{localStorage.setItem('jj_ivue_dl',JSON.stringify(ivueDl))}catch(e){}toast('Salvo na galeria do celular (pasta JJGlasses)')}
-    if(p.erro){pr.fim=true;delete ivueProg[p.path];toast(p.erro==='cancelado'?'Download parado':'Não consegui baixar. Confira o Wi-Fi do óculos.')}
-    ivuePaint();
+    if(p.uri){pr.fim=true;ivueDl[p.path]=p.uri;try{localStorage.setItem('jj_ivue_dl',JSON.stringify(ivueDl))}catch(e){}
+      var nm=p.path.split('/').pop();toast(p.apagado?'📥 '+nm+' foi para o celular e saiu do óculos':'Salvo na galeria do celular (pasta JJGlasses)');if(p.apagado){ivDropFile(p.path)}}
+    if(p.erro){pr.fim=true;var wasAuto=pr.auto;delete ivueProg[p.path];if(wasAuto)ivFail[p.path]=(ivFail[p.path]||0)+1;
+      if(p.erro==='cancelado'||!wasAuto)toast(p.erro==='cancelado'?'Download parado':'Não consegui baixar. Confira o Wi-Fi do óculos.')}
+    ivuePaint();if((p.uri||p.erro)&&ivMode()==='auto')setTimeout(ivHomeAsk,1000);
   };
   $('ivueList').addEventListener('click',function(e){
     var b=e.target.closest('[data-ivd]');if(b){ivueProg[b.getAttribute('data-ivd')]={feito:0,total:0};ivuePaint();NATIVE.ivueDownload(b.getAttribute('data-ivd'),b.getAttribute('data-n'));return}
@@ -1731,13 +1763,13 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   window.jjIvueSt=function(r){
     ivAsking=false;ivSt=r||{ok:false};
     if(ivSt.ok){ivueFiles={ok:true,videos:ivSt.videos||[],fotos:ivSt.fotos||[]};if(!$('glv-gal').hidden)ivuePaint()}
-    ivHomePaint();
+    ivHomePaint();ivAutoRun(ivSt);
   };
   function ivHomePaint(){
     var app=!!(NATIVE&&NATIVE.ivueStatus),on=!!(ivSt&&ivSt.ok);
     $('ivDot').className='gdot'+(on?' on':ivAsking?' wait':'');
     $('ivState').textContent=!app?'Instale o APK novo por cima para usar o iVUE':on?'Conectado pelo Wi-Fi':ivAsking?'Procurando o óculos no Wi-Fi…':'Não conectado';
-    $('ivHelp').hidden=on||!app;
+    $('ivHelp').hidden=on||!app;$('ivModeT').textContent=ivSyncTxt(ivChat());
     var b=on&&ivSt.bateria!=null?IV_BAT[ivSt.bateria]:null;
     $('ivBat').textContent=b?b[0]:'—';$('ivBatBar').style.width=(b&&b[1]!=null?b[1]:0)+'%';
     $('ivBatBar').style.background=b&&b[1]!=null&&b[1]<=30?'var(--warn)':'';
@@ -1757,7 +1789,27 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   $('ivRef').onclick=function(){ivAsking=false;ivHomeAsk()};
   $('ivLive').onclick=ivLiveOpen;
   $('ivGal').onclick=function(){glView('gal');if(ivueFiles)ivuePaint();else $('ivueBtn').click()};
-  setInterval(function(){if(!$('gl').hidden&&!$('glv-home').hidden)ivHomeAsk()},30000);
+  setInterval(function(){if(document.hidden||!(NATIVE&&NATIVE.ivueStatus))return;
+    if(ivMode()==='auto'||(!$('gl').hidden&&!$('glv-home').hidden&&glOcId()==='ivue'))ivHomeAsk()},20000);
+  /* ---------- Baixar automático: quando o óculos conecta, baixa um por um e apaga do óculos (só depois de conferir que baixou tudo) ---------- */
+  function ivChat(){var id=glChatId('ivue');return chats.filter(function(c){return c.id===id})[0]||null}
+  function ivMode(){var c=ivChat();return c&&c.ivSync==='auto'?'auto':'manual'}
+  var ivPrev={},ivFail={};
+  function ivBusy(){return Object.keys(ivueProg).some(function(k){return ivueProg[k]&&!ivueProg[k].fim})}
+  function ivAutoRun(r){
+    if(ivMode()!=='auto'||!(NATIVE&&NATIVE.ivueBaixar)||!r||!r.ok)return;
+    var all=(r.videos||[]).concat(r.fotos||[]),now={};all.forEach(function(f){now[f.path]=f.tamanho});
+    if(ivBusy()){ivPrev=now;return}
+    // só pega arquivo que não mudou de tamanho desde a última olhada (o que ainda está gravando fica para depois)
+    var ok=all.filter(function(f){return ivPrev[f.path]===f.tamanho&&(ivFail[f.path]||0)<2}).sort(function(a,b){return a.path<b.path?-1:1});
+    var first=!Object.keys(ivPrev).length;ivPrev=now;
+    var f=ok[0];if(!f){if(first&&all.length)setTimeout(ivHomeAsk,3000);return} // 1ª olhada: olha de novo em 3 s para conferir os tamanhos
+    if(ivueDl[f.path]&&NATIVE.ivueApagar){NATIVE.ivueApagar(f.path);return} // já estava no celular: só libera o espaço
+    ivueProg[f.path]={feito:0,total:0,auto:true};ivuePaint();NATIVE.ivueBaixar(f.path,f.nome,true);
+  }
+  function ivDropFile(path){if(!ivueFiles)return;['videos','fotos'].forEach(function(k){ivueFiles[k]=(ivueFiles[k]||[]).filter(function(x){return x.path!==path})});if(ivSt&&ivSt.ok){ivSt.videos=ivueFiles.videos;ivSt.fotos=ivueFiles.fotos}ivuePaint();ivHomePaint()}
+  window.jjIvueDel=function(r){if(r&&r.ok)ivDropFile(r.path);else if(r)ivFail[r.path]=(ivFail[r.path]||0)+1;setTimeout(ivHomeAsk,800)};
+  $('ivMode').onclick=function(){var c=ivChat();if(!c){c=newChat('ivue');prefs.glChatBy=prefs.glChatBy||{};prefs.glChatBy.ivue=c.id;persist();renderAll();glChats()}openChatMenu(c.id,'ocsync')};
   /* ---------- Gravação: óculos, qualidade e contexto de uso ---------- */
   var REC_CTX=['Paraquedismo / esporte','Trabalho pesado','Loja / atendimento','Obra','Linha de produção','Outro'];
   function recPaint(){
@@ -1798,7 +1850,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   }
   window.jjGlasses=function(st){for(var k in st)gs[k]=st[k];paintGl()};
   function openGlasses(){
-    $('gl').hidden=false;glLoad();glAuto(true);$('glLook').checked=prefs.glLook!==false;glChats();galCounts();recPaint();glView(prefs.glView||'home');
+    $('gl').hidden=false;glLoad();glAuto(true);$('glLook').checked=prefs.glLook!==false;glCaps();glChats();galCounts();recPaint();glView(prefs.glView||'home');
     if(NATIVE&&NATIVE.glassesStart){try{window.jjGlasses(JSON.parse(NATIVE.glassesState()))}catch(e){}NATIVE.glassesStart()}
     clearInterval(glPoll);glPoll=setInterval(function(){if(NATIVE&&NATIVE.glassesState){try{window.jjGlasses(JSON.parse(NATIVE.glassesState()))}catch(e){}}else paintGl()},1000);
     paintGl();
@@ -1894,7 +1946,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     dirty={};
     var rows=ids.map(function(id){var c=chats.filter(function(x){return x.id===id})[0];
       if(!c)return {id:id,title:'',at:0,lang:null,pinned:false,msgs:[],deleted:true,updated_at:new Date().toISOString()};
-      return {id:c.id,title:c.title,at:c.at,lang:c.lang||null,oculos:c.oculos||null,pinned:!!c.pinned,msgs:cloudMsgs(c),deleted:false,updated_at:new Date(c.up||Date.now()).toISOString()}});
+      return {id:c.id,title:c.title,at:c.at,lang:c.lang||null,oculos:c.oculos||null,oculos_baixar:c.ivSync||null,pinned:!!c.pinned,msgs:cloudMsgs(c),deleted:false,updated_at:new Date(c.up||Date.now()).toISOString()}});
     cloudInfo('☁️ Salvando na nuvem...');
     rest('conversas?on_conflict=user_id,id',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(rows)}).then(function(r){
       if(r.ok){cloudInfo('☁️ Conversas salvas na nuvem');return}
@@ -1905,7 +1957,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   }
   function pullCloud(){
     if(!session||busy||cloudOff>Date.now())return;
-    rest('conversas?select=id,title,at,lang,oculos,pinned,msgs,deleted,updated_at&order=updated_at.desc&limit=300').then(function(r){
+    rest('conversas?select=id,title,at,lang,oculos,oculos_baixar,pinned,msgs,deleted,updated_at&order=updated_at.desc&limit=300').then(function(r){
       if(r.status===404){cloudOff=Date.now()+300000;cloudInfo('Conversas salvas neste aparelho');return null}
       return r.ok?r.json():null;
     }).then(function(rows){
@@ -1915,7 +1967,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
         inCloud[row.id]=1;var t=Date.parse(row.updated_at)||0,loc=chats.filter(function(x){return x.id===row.id})[0];
         if(row.deleted){if(loc&&(loc.up||0)<=t){chats=chats.filter(function(x){return x.id!==row.id});delete lastSig[row.id];if(cur===row.id)cur=chats.length?chats[0].id:null;changed=true}return}
         if(!loc){loc={id:row.id};chats.push(loc)}else if((loc.up||0)>=t)return;
-        loc.title=row.title;loc.at=row.at;loc.lang=row.lang||'';loc.oculos=row.oculos||loc.oculos||'';loc.pinned=!!row.pinned;loc.msgs=row.msgs||[];loc.up=t;lastSig[row.id]=chatSig(loc);changed=true;
+        loc.title=row.title;loc.at=row.at;loc.lang=row.lang||'';loc.oculos=row.oculos||loc.oculos||'';loc.ivSync=row.oculos_baixar||loc.ivSync||'';loc.pinned=!!row.pinned;loc.msgs=row.msgs||[];loc.up=t;lastSig[row.id]=chatSig(loc);changed=true;
       });
       chats.forEach(function(c){if(!inCloud[c.id]&&c.msgs.length)markDirty(c.id)}); // conversas antigas que ainda não estavam na nuvem
       chats.sort(function(a,b){return (b.at||0)-(a.at||0)});
@@ -1940,12 +1992,18 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
       $('cmTitle').textContent='Qual óculos você vai usar neste chat?';
       h+='<p class="sub" style="margin:0 6px 8px">Assim a IA sabe o que o seu óculos consegue fazer e responde do jeito certo.</p>';
       oculosList.forEach(function(o){h+='<button class="it" data-oc="'+esc(o.id)+'" aria-pressed="'+((c.oculos||'jj')===o.id)+'">'+esc(o.icone)+'<span>'+esc(o.nome)+'<small>'+esc(o.descricao)+'</small></span></button>'});
+    }else if(view==='ocsync'){
+      $('cmTitle').textContent='Vídeos e fotos do '+chatOculos(c).nome;
+      h+='<p class="sub" style="margin:0 6px 8px">Quando o celular conectar no óculos (Wi-Fi), o que o app faz com os vídeos e fotos dele?</p>';
+      h+='<button class="it" data-sync="auto" aria-pressed="'+(c.ivSync==='auto')+'">⚡<span>Automático e libera espaço<small>Baixa tudo para a galeria do celular sozinho e apaga do óculos depois de conferir que baixou certinho.</small></span></button>';
+      h+='<button class="it" data-sync="manual" aria-pressed="'+(c.ivSync!=='auto')+'">✋<span>Só quando eu mandar<small>Nada sai do óculos. Você toca em "Baixar" no vídeo ou foto que quiser.</small></span></button>';
     }else if(view==='ren'){
       h+='<input class="field" id="cmName" value="'+esc(c.title)+'" maxlength="80"><button class="btn main" id="cmSave" style="margin-top:8px">Salvar nome</button>';
     }else{
       cmDel=false;
       h+='<button class="it" data-ca="lang">🌐<span>A IA fala em…<small>'+esc(c.lang?langLocal(c.lang):'Mesma língua do app ('+langLocal(prefs.lang||'pt-BR')+')')+'</small></span></button>';
       h+='<button class="it" data-ca="oculos">👓<span>Óculos deste chat<small>'+esc(chatOculos(c).nome)+'</small></span></button>';
+      if(chatOculos(c).aoVivo==='wifi')h+='<button class="it" data-ca="ocsync">📥<span>Vídeos e fotos do óculos<small>'+esc(ivSyncTxt(c))+'</small></span></button>';
       h+='<button class="it" data-ca="ren">✏️<span>Renomear</span></button>';
       h+='<button class="it" data-ca="pin">📌<span>'+(c.pinned?'Desafixar do topo':'Fixar no topo')+'</span></button>';
       h+='<button class="it" data-ca="copy">📋<span>Copiar conversa inteira</span></button>';
@@ -1962,13 +2020,19 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   $('cmBody').addEventListener('click',function(e){
     var c=chats.filter(function(x){return x.id===cmId})[0];if(!c)return;
     var b=e.target.closest('[data-oc]');
-    if(b){var oc=oculosById(b.getAttribute('data-oc'));c.oculos=oc.id;prefs.oculos=oc.id;persist();renderAll();closeChatMenu();
-      toast(oc.icone+' Neste chat: '+oc.nome+(oc.falante?'':' (as respostas ficam só na tela)'));if(c.id===cur)$('msgIn').focus();return}
+    if(b){var oc=oculosById(b.getAttribute('data-oc'));c.oculos=oc.id;prefs.oculos=oc.id;persist();renderAll();
+      if(oc.aoVivo==='wifi'){openChatMenu(c.id,'ocsync');return}
+      closeChatMenu();toast(oc.icone+' Neste chat: '+oc.nome+(oc.falante?'':' (as respostas ficam só na tela)'));if(c.id===cur)$('msgIn').focus();return}
+    b=e.target.closest('[data-sync]');
+    if(b){c.ivSync=b.getAttribute('data-sync');persist();renderAll();closeChatMenu();
+      if(chatOculos(c).aoVivo==='wifi'){prefs.glChatBy=prefs.glChatBy||{};prefs.glChatBy.ivue=c.id;persist()}
+      toast(c.ivSync==='auto'?'⚡ Quando o óculos conectar, os vídeos e fotos vão sozinhos para o celular':'✋ Os vídeos e fotos só saem do óculos quando você tocar em Baixar');
+      if(!$('gl').hidden){glChats();ivHomePaint()}if(c.ivSync==='auto')ivHomeAsk();return}
     b=e.target.closest('[data-cl]');
     if(b){c.lang=b.getAttribute('data-cl');persist();renderAll();closeChatMenu();toast(c.lang?'Nesta conversa a IA vai falar em '+langLocal(c.lang)+'.':'A IA volta a falar na língua do app.');return}
     if(e.target.id==='cmSave'){var v=$('cmName').value.trim();if(v){c.title=v.slice(0,80);persist();renderAll()}closeChatMenu();return}
     b=e.target.closest('[data-ca]');if(!b)return;var a=b.getAttribute('data-ca');
-    if(a==='lang'||a==='ren'||a==='oculos'){openChatMenu(c.id,a);return}
+    if(a==='lang'||a==='ren'||a==='oculos'||a==='ocsync'){openChatMenu(c.id,a);return}
     if(a==='pin'){c.pinned=!c.pinned;persist();renderAll();closeChatMenu();toast(c.pinned?'Conversa fixada no topo':'Conversa desafixada');return}
     if(a==='copy'){var t=c.msgs.filter(function(m){return !m.pending}).map(function(m){return (m.role==='me'?(prefs.name||'Eu'):'IA')+': '+m.text}).join('\n\n');
       (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){toast('Conversa copiada')},function(){toast('Não consegui copiar')});closeChatMenu();return}

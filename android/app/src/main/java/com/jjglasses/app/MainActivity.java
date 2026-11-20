@@ -602,6 +602,9 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void ivueCancel() { ivue.cancelDownload(); }
         @JavascriptInterface public void ivueOpen(String uri, String mime) { main.post(() -> ivue.openFile(uri, mime)); }
         @JavascriptInterface public void ivueStatus() { ivue.status(); }   // bateria, espaço, vídeos e fotos
+        // baixa e, se apagar = true, apaga do óculos depois de conferir que baixou tudo (modo automático)
+        @JavascriptInterface public void ivueBaixar(String path, String nome, boolean apagar) { ivue.download(path, nome, apagar); }
+        @JavascriptInterface public void ivueApagar(String path) { ivue.apagar(path); }   // só no modo automático, para arquivo já baixado
         @JavascriptInterface public void ivueLive() {                      // abre a tela "Ao vivo"
             main.post(() -> startActivity(new android.content.Intent(MainActivity.this, LiveActivity.class)));
         }
