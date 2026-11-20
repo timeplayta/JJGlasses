@@ -1,13 +1,14 @@
 {
-  "v": 202611201446,
+  "v": 202611201646,
   "notes": {
-    "t": "Modelo 3D do iVUE Denali corrigido",
+    "t": "Vídeos e fotos do óculos iVUE no celular",
     "b": [
-      "A frente do iVUE Denali agora fica na frente, como num óculos de verdade.",
-      "As hastes saem de trás dos cantos da armação e não aparecem mais na frente.",
-      "Toque em \"iVUE Denali\" na aba do óculos e arraste para girar."
+      "Instale o APK novo por cima do antigo (precisa só uma vez).",
+      "Ligue o óculos iVUE e conecte o celular no Wi-Fi \"iVUE\" dele.",
+      "Abra Óculos → Galeria → \"Ver o que está no óculos\" e toque em Baixar.",
+      "Os vídeos e fotos vão para a galeria do celular, na pasta JJGlasses. Nada é apagado do óculos."
     ]
   },
-  "bytes": 208088,
-  "sha256": "c4c1eb06c4ed8c27889cf2b62a51cb2916265b0c297596297556f3c83082a56f"
+  "bytes": 212194,
+  "sha256": "d7c808044634e5eab43ec5a880d17858b94934e22335b1ca78a17680fdfcebd8"
 }
