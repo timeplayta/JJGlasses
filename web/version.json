@@ -1,14 +1,14 @@
 {
-  "v": 202611201207,
+  "v": 202611201222,
   "notes": {
-    "t": "Escolha o óculos de cada chat",
+    "t": "Fotos, vídeos e gravação na aba Óculos",
     "b": [
-      "Ao abrir um chat novo, o app pergunta qual óculos você vai usar nele: JJGlasses W AI 4, iVUE ou sem óculos.",
-      "A IA fica sabendo o que aquele óculos consegue fazer e responde do jeito certo.",
-      "Nos chats do iVUE (que não tem IA nem alto-falante), o botão de ouvir no óculos não aparece e as respostas ficam só na tela.",
-      "Para trocar, toque no nome do óculos embaixo do título do chat ou nos 3 pontinhos."
+      "Logo abaixo dos modelos 3D agora tem uma linha com 3 opções: Fotos, Vídeos e Vídeos com IA. Cada uma mostra o que está guardado na nuvem.",
+      "Os vídeos com IA mostram o resumo e os momentos importantes; tocando num momento, o vídeo pula para ele. Cada vídeo tem link para a sua versão original ou com IA.",
+      "No fim da aba Óculos tem a área de Gravação: escolha o óculos, a qualidade (1080p ou 2K) e o contexto de uso (paraquedismo, trabalho pesado, loja, obra...).",
+      "O Ao vivo começa a funcionar quando a ponte do PC estiver pronta."
     ]
   },
-  "bytes": 194346,
-  "sha256": "52639d731048cb46fab91b569c0f1254df70ebf66c307a8bfa4372cbfda902b6"
+  "bytes": 204817,
+  "sha256": "971019892d2c7f5c1990410f0cca5a0b0770a95af1177c43cdf8bad5eb444926"
 }
