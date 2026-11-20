@@ -1,0 +1,23 @@
+tamanho KEYSTORE_BASE64 (sem espacos): 3631 (esperado 3520)
+tamanho KEYSTORE_PASSWORD: 84 (esperado 24)
+base64 INVALIDO
+senha NAO confere
+total 3760
+drwxr-xr-x 3 runner runner    4096 Nov 20 20:56 .
+drwxr-xr-x 3 runner runner    4096 Nov 20 20:56 ..
+-rw-r--r-- 1 runner runner 3833304 Nov 20 20:56 app-release.apk
+drwxr-xr-x 4 runner runner    4096 Nov 20 20:56 baselineProfiles
+-rw-r--r-- 1 runner runner     709 Nov 20 20:56 output-metadata.json
+{
+  "v": 202611201756,
+  "notes": {
+    "t": "O JJGlasses agora se atualiza sozinho",
+    "b": [
+      "Quando tiver versão nova, chega uma notificação: abra o app e toque em Autorizar e atualizar.",
+      "Uma barra de 1% a 100% mostra o andamento. Pode levar alguns segundos ou de 1 a 5 minutos.",
+      "Suas conversas, login e ajustes continuam salvos."
+    ]
+  },
+  "bytes": 228320,
+  "sha256": "8de766a3cb256beb345ef88715b948fc262a22ea67b4b806ecf9936be09609bd"
+}
