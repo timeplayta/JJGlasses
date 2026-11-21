@@ -1,16 +1,15 @@
 {
-  "code": 1062,
-  "name": "1.62",
-  "src": "8b96b0d9bbdf878fd1f19a534084e59f00b795b103830b1216ec19810eab2567",
+  "code": 1063,
+  "name": "1.63",
+  "src": "cf452ee876e02dfaa5f88f958cbc1d40889e5193212e25add8e4b0929db028f1",
   "notes": {
-    "t": "Baixar do óculos: janela ao conectar arrumada",
+    "t": "Ao vivo do iVUE: o app abre a sessão como o app oficial",
     "b": [
-      "Ao conectar o iVUE com fotos e vídeos novos, a janela de escolha aparece (o modo antigo que apagava do óculos foi retirado).",
-      "Novo botão 📥 Baixar do óculos na aba do óculos, e o selo ● Conectado no topo do chat também abre a escolha.",
-      "Se o app abrir já conectado no óculos, ele percebe sozinho."
+      "O JJGlasses agora abre a sessão com o óculos (como o app oficial faz) e a mantém viva a cada 5 segundos.",
+      "Com isso o ao vivo, a bateria e o espaço livre devem funcionar."
     ]
   },
-  "bytes": 3853704,
-  "sha256": "cbad35856ebc9f1599415555cdc1b42d37108b7591f3d180eb8b4e7f1bf9dc64",
-  "atual": 1062
+  "bytes": 3854344,
+  "sha256": "200b29f957be77fd3eae672c6f4ebfef10b58c7b92fc7a1906c44aaf8698d8b4",
+  "atual": 1063
 }
