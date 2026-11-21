@@ -1,13 +1,13 @@
 {
-  "v": 202611211411,
+  "v": 202611211417,
   "notes": {
-    "t": "Óculos: escolha o que baixar ao conectar",
+    "t": "Notificações de atualização arrumadas",
     "b": [
-      "Quando o iVUE conecta com fotos e vídeos novos, o app pergunta: carregar na conversa, enviar para Fotos/Galeria ou não baixar.",
-      "Você marca quais arquivos quer, vendo a miniatura do começo de cada vídeo, a duração, o tamanho, a data e a resolução. Dá para ver os 5 primeiros segundos antes.",
-      "Se a conexão cair, o download continua de onde parou. Nada é apagado do óculos."
+      "Ao abrir o app, ele pede para mostrar notificações (Android 13 ou mais novo só mostra com essa permissão).",
+      "Ajustes › Notificações mostra se estão ativadas, com botões Ativar e Testar.",
+      "O app procura atualização a cada 1 hora."
     ]
   },
-  "bytes": 256820,
-  "sha256": "3680fb9a5052e5a280002dc07496efb100a7e52ae113b3c8ebe1b177abf9759d"
+  "bytes": 259410,
+  "sha256": "de3318184a5e043f0753008ea2da2a38e27a1c17db4f950f27caf64f53f8b5e7"
 }

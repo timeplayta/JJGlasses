@@ -1,16 +1,16 @@
 {
-  "code": 1060,
-  "name": "1.60",
-  "src": "8cc8ad22a864cb60233c66e42611556e5570324fc388bfd50d656cd97c9913d9",
+  "code": 1061,
+  "name": "1.61",
+  "src": "c6e3f6ea5a04dc65957a353e7ec4a8244b0145791bd16b31c49d7ab13f407ca7",
   "notes": {
-    "t": "Óculos: escolha o que baixar ao conectar",
+    "t": "Notificações de atualização arrumadas",
     "b": [
-      "Quando o iVUE conecta com fotos e vídeos novos, o app pergunta: carregar na conversa, enviar para Fotos/Galeria ou não baixar.",
-      "Você marca quais arquivos quer, vendo a miniatura do começo de cada vídeo, a duração, o tamanho, a data e a resolução. Dá para ver os 5 primeiros segundos antes.",
-      "Se a conexão cair, o download continua de onde parou. Nada é apagado do óculos."
+      "Ao abrir o app, ele pede para mostrar notificações (Android 13 ou mais novo só mostra com essa permissão).",
+      "Ajustes › Notificações mostra se estão ativadas, com botões Ativar e Testar.",
+      "O app procura atualização a cada 1 hora."
     ]
   },
-  "bytes": 3851608,
-  "sha256": "74153ca56b4b67545cde1851086288d11e5d33c6d9e3907dbad326f88404a6d5",
-  "atual": 1060
+  "bytes": 3853068,
+  "sha256": "3137059aa4b77c2163fc8f36adc8b1f5ffacc019bb1593f760b67eadc3b1b894",
+  "atual": 1061
 }
