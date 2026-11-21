@@ -1,14 +1,13 @@
 {
-  "v": 202611201928,
+  "v": 202611211411,
   "notes": {
-    "t": "Conectar o óculos direto pelo app",
+    "t": "Óculos: escolha o que baixar ao conectar",
     "b": [
-      "Todo óculos mostra de novo Conectar, Bateria, Sinal e Duração da bateria.",
-      "No topo de cada chat tem o botão Conectar: o app procura o óculos do chat e conecta direto.",
-      "Na aba do óculos, o ícone de cima (no lugar do sino) conecta o óculos escolhido.",
-      "Ao vivo: se um jeito não der, o app tenta outro sozinho."
+      "Quando o iVUE conecta com fotos e vídeos novos, o app pergunta: carregar na conversa, enviar para Fotos/Galeria ou não baixar.",
+      "Você marca quais arquivos quer, vendo a miniatura do começo de cada vídeo, a duração, o tamanho, a data e a resolução. Dá para ver os 5 primeiros segundos antes.",
+      "Se a conexão cair, o download continua de onde parou. Nada é apagado do óculos."
     ]
   },
-  "bytes": 232750,
-  "sha256": "3c1d7578c9011a2ec10790ec73973d1db5ed77c897ea041503dc7b94dd1ae618"
+  "bytes": 256820,
+  "sha256": "3680fb9a5052e5a280002dc07496efb100a7e52ae113b3c8ebe1b177abf9759d"
 }

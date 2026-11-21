@@ -1,15 +1,16 @@
 {
-  "code": 1059,
-  "name": "1.59",
-  "src": "d44e0f518eeb7cf3526ceb3987c4a45598798b8998215889f31a06a6278c020d",
+  "code": 1060,
+  "name": "1.60",
+  "src": "8cc8ad22a864cb60233c66e42611556e5570324fc388bfd50d656cd97c9913d9",
   "notes": {
-    "t": "Ao vivo: o app se apresenta ao óculos",
+    "t": "Óculos: escolha o que baixar ao conectar",
     "b": [
-      "Antes de pedir o ao vivo, o JJGlasses se apresenta ao óculos iVUE, como o app oficial faz.",
-      "A bateria e o espaço livre do iVUE também usam essa apresentação."
+      "Quando o iVUE conecta com fotos e vídeos novos, o app pergunta: carregar na conversa, enviar para Fotos/Galeria ou não baixar.",
+      "Você marca quais arquivos quer, vendo a miniatura do começo de cada vídeo, a duração, o tamanho, a data e a resolução. Dá para ver os 5 primeiros segundos antes.",
+      "Se a conexão cair, o download continua de onde parou. Nada é apagado do óculos."
     ]
   },
-  "bytes": 3839104,
-  "sha256": "201e400839761f42972a82400d3933b4dd450441afdfb7a19cf0fe09f71d0bf7",
-  "atual": 1059
+  "bytes": 3851608,
+  "sha256": "74153ca56b4b67545cde1851086288d11e5d33c6d9e3907dbad326f88404a6d5",
+  "atual": 1060
 }
