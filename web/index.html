@@ -234,6 +234,27 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 /* cores das conversas */
 .cprev{display:flex;flex-direction:column;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:10px}
 .cprev .m{max-width:80%;font-size:14px;padding:7px 12px}
+.ivq{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}.ivq[hidden],.ivsel[hidden]{display:none}
+.ivqbox{background:var(--bg);width:min(520px,100%);border-radius:22px 22px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;max-height:92vh;overflow:auto}
+.ivqbox h3{margin:0 4px;font-size:19px}.ivqbox button.it{border:1px solid var(--line);background:var(--card);display:flex;align-items:center;gap:12px;padding:12px 12px;border-radius:14px;font:inherit;font-size:15.5px;text-align:left;color:var(--ink);cursor:pointer;width:100%}
+.ivqbox button.it>span{display:flex;flex-direction:column;gap:2px}.ivqbox button.it small{display:block;color:var(--mute);font-size:12.5px}
+.ivqbox .gsw small{display:block;color:var(--mute);font-size:12.5px}.ivqbox .sub{margin:0 4px 4px;color:var(--mute);font-size:14px}
+.ivsel{position:fixed;inset:0;z-index:58;background:var(--bg);display:flex;flex-direction:column}
+.ivselhd{display:flex;align-items:center;gap:8px;padding:calc(8px + env(safe-area-inset-top,0px)) 12px 6px}.ivselhd div{flex:1;min-width:0}.ivselhd small{display:block;color:var(--mute);font-size:12.5px}
+.ivselbar{display:flex;align-items:center;gap:8px;padding:4px 16px 8px;flex-wrap:wrap}.ivselbar span{flex:1;font-weight:650;font-size:14px;min-width:120px}
+.ivselgrid{flex:1;overflow:auto;padding:4px 16px 12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;align-content:start}
+.ivc{position:relative;border:2px solid var(--line);border-radius:16px;overflow:hidden;background:var(--card);cursor:pointer;display:flex;flex-direction:column}
+.ivc.on{border-color:var(--accent)}
+.ivth{position:relative;aspect-ratio:16/10;background:#111;display:flex;align-items:center;justify-content:center}.ivth img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ivload,.ivno{color:#bbb;font-size:12px;padding:0 8px;text-align:center}.ivth .dur{position:absolute;right:6px;bottom:6px;background:rgba(0,0,0,.7);color:#fff;font-size:11.5px;border-radius:6px;padding:1px 6px}
+.ivck{position:absolute;left:8px;top:8px;width:24px;height:24px;border-radius:50%;border:2px solid #fff;background:rgba(0,0,0,.35);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:14px}.ivc.on .ivck{background:var(--accent);border-color:var(--accent)}
+.ivmeta{padding:8px 10px 4px;display:flex;flex-direction:column;gap:2px}.ivmeta b{font-size:13px}.ivmeta small{color:var(--mute);font-size:12px;line-height:1.35}
+.ivok{color:var(--ok);font-size:12px;font-weight:650}.ivpv{margin:4px 10px 10px;align-self:flex-start}
+.ivselft{border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px}
+.ivselft small{color:var(--mute);font-size:12.5px}.ivselbtns{display:flex;gap:10px}.ivselbtns .btn{margin:0;flex:1}
+.ivm{position:relative;display:block;width:240px;max-width:100%;border:0;padding:0;border-radius:14px;overflow:hidden;background:#111;margin-bottom:6px;cursor:pointer}
+.ivm img{display:block;width:100%;margin:0;border-radius:0}.ivm .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:34px;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.6)}
+.ivm .dur{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.7);color:#fff;font-size:12px;border-radius:6px;padding:1px 6px}
 .upd{position:fixed;inset:0;z-index:80;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px max(20px,env(safe-area-inset-right,0px)) 24px max(20px,env(safe-area-inset-left,0px))}.upd[hidden]{display:none}
 .updbox{width:min(440px,100%);display:flex;flex-direction:column;gap:12px;text-align:center}
 .updic{font-size:44px;line-height:1}.updbox h2{margin:0;font-size:22px}.updbox .sub{margin:0;color:var(--mute);font-size:14px;line-height:1.45}
@@ -499,6 +520,11 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
       <select class="field" id="setAiLang" aria-label="Língua da IA"></select>
     </div>
     <div class="card">
+      <p class="label">Óculos: ao conectar com fotos e vídeos</p>
+      <p class="sub">O que fazer quando o iVUE Denali conectar com arquivos novos. Você sempre escolhe quais arquivos antes de baixar.</p>
+      <select class="field" id="setIvEscolha" aria-label="Ao conectar o iVUE Denali"><option value="">Perguntar toda vez</option><option value="conversa">Carregar na conversa</option><option value="galeria">Enviar para Fotos/Galeria</option><option value="nao">Não baixar</option></select>
+    </div>
+    <div class="card">
       <p class="label">Aparência</p>
       <div class="pills"><button class="pill" id="thLight">Claro</button><button class="pill" id="thDark">Escuro</button><button class="pill" id="thAuto">Automático</button></div>
     </div>
@@ -552,6 +578,28 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 <div class="ring" id="ring" hidden><div class="ringbox"><div class="ringic">⏰</div><b id="ringT">Lembrete</b><p id="ringTxt"></p><div class="nacts"><button class="btn" id="ringSnooze">Adiar 5 min</button><button class="btn main" id="ringOk">Ok</button></div></div></div>
 
 <!-- cores das conversas (abre pelos Ajustes ou segurando o dedo num balão) -->
+<!-- ao conectar um óculos com conteúdo: pergunta o que fazer -->
+<div class="ivq" id="ivAsk" hidden><div class="ivqbox" role="dialog" aria-modal="true" aria-labelledby="ivAskT">
+  <h3 id="ivAskT">📶 iVUE Denali conectado</h3>
+  <p class="sub" id="ivAskN"></p>
+  <button class="it" data-ivq="conversa">💬<span>Carregar os arquivos na conversa<small id="ivAskChat"></small></span></button>
+  <button class="it" data-ivq="galeria">🖼️<span>Enviar os arquivos para Fotos/Galeria<small>Galeria do celular (JJGlasses › iVUE Denali) e galeria do app</small></span></button>
+  <button class="it" data-ivq="nao">🚫<span>Não baixar agora<small>Nada é copiado</small></span></button>
+  <label class="gsw"><input type="checkbox" id="ivAskLembrar"><span>Lembrar esta escolha para este óculos<small>Dá para mudar depois nos Ajustes</small></span></label>
+  <p class="sub" style="margin:0">Você escolhe quais arquivos antes de baixar. Nada é apagado do óculos.</p>
+</div></div>
+<!-- escolher o que baixar do óculos: miniaturas, prévia e progresso -->
+<div class="ivsel" id="ivSel" hidden role="dialog" aria-modal="true" aria-labelledby="ivSelT">
+  <div class="ivselhd"><button class="icon" id="ivSelX" aria-label="Fechar"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <div><b id="ivSelT">Escolha o que baixar</b><small id="ivSelSub"></small></div></div>
+  <div class="ivselbar"><span id="ivSelCount"></span><button class="chip" id="ivSelAll">Selecionar tudo</button><button class="chip" id="ivSelNone">Limpar seleção</button></div>
+  <div class="ivselgrid" id="ivSelList"></div>
+  <div class="ivselft">
+    <div id="ivSelTot" hidden><div class="updbar"><i id="ivSelTotBar"></i></div><small id="ivSelTotTxt"></small></div>
+    <div class="ivselbtns"><button class="btn" id="ivSelStop" hidden>Parar</button><button class="btn main" id="ivSelGo" disabled>Baixar selecionados</button></div>
+  </div>
+</div>
+
 <!-- atualização do APK: chega a notificação, a pessoa abre e autoriza; barra de 1% a 100% -->
 <div class="upd" id="upd" hidden><div class="updbox" role="dialog" aria-label="Atualização do JJGlasses">
   <div class="updic" id="updIc">⬆️</div>
@@ -726,7 +774,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     var seen={};
     chats.forEach(function(c){seen[c.id]=1;if(c.msgs.some(function(m){return m.pending}))return;var g=chatSig(c);if(lastSig[c.id]!==g){lastSig[c.id]=g;c.up=Date.now();if(window.markDirty)markDirty(c.id)}});
     Object.keys(lastSig).forEach(function(id){if(!seen[id]){delete lastSig[id];if(window.markDirty)markDirty(id)}});
-    var slim=chats.slice(0,60).map(function(c){return {id:c.id,title:c.title,at:c.at,up:c.up||0,lang:c.lang||'',oculos:c.oculos||'',ivSync:c.ivSync||'',pinned:!!c.pinned,msgs:c.msgs.filter(function(m){return !m.pending}).slice(-80).map(function(m){return {role:m.role,text:m.text,img:(m.img&&m.img.length<300000)?m.img:null,file:m.file||null,ftext:m.ftext||null,src:m.src||undefined,fb:m.fb||undefined}})}});
+    var slim=chats.slice(0,60).map(function(c){return {id:c.id,title:c.title,at:c.at,up:c.up||0,lang:c.lang||'',oculos:c.oculos||'',ivSync:c.ivSync||'',pinned:!!c.pinned,msgs:c.msgs.filter(function(m){return !m.pending}).slice(-80).map(function(m){return {role:m.role,text:m.text,img:(m.img&&m.img.length<300000)?m.img:null,ivm:m.ivm||undefined,file:m.file||null,ftext:m.ftext||null,src:m.src||undefined,fb:m.fb||undefined}})}});
     save('jj_chats',slim);save('jj_prefs',prefs);
   }
   function chat(){for(var i=0;i<chats.length;i++)if(chats[i].id===cur)return chats[i];return null}
@@ -846,7 +894,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     }
     var h='<div class="date">Começou em '+when(c.at)+'</div>';
     c.msgs.forEach(function(m,idx){
-      if(m.role==='me') h+='<div class="m me">'+(m.img?'<img src="'+m.img+'" alt="Foto enviada">':'')+(m.file?'<div class="fchip">📎 '+esc(m.file)+'</div><br>':'')+esc(m.text)+'</div>';
+      if(m.role==='me') h+='<div class="m me">'+(m.ivm?ivmHtml(m):m.img?'<img src="'+m.img+'" alt="Foto enviada">':'')+(m.file?'<div class="fchip">📎 '+esc(m.file)+'</div><br>':'')+esc(m.text)+'</div>';
       else if(m.pending) h+='<div class="m ai">'+(m.text?md(m.text,m.src,idx)+'<span class="caret"></span>':'<span class="typing" aria-label="Respondendo"><i></i><i></i><i></i></span>')+'</div>';
       else h+='<div class="m ai">'+md(m.text,m.src,idx)+actsHtml(m,idx)+'</div>';
     });
@@ -856,6 +904,10 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     requestAnimationFrame(function(){box.scrollTop=box.scrollHeight});setTimeout(function(){box.scrollTop=box.scrollHeight},250);
   }
   function renderAll(){renderList();renderChat();paintSpeak()}
+  /* Foto ou vídeo do óculos dentro da conversa: miniatura; tocar abre o arquivo no celular. */
+  function ivmHtml(m){var x=m.ivm,img=x.tipo==='foto'&&m.img?m.img:x.thumb;
+    return '<button class="ivm" data-ivmu="'+esc(x.uri||'')+'" data-ivmt="'+(x.tipo==='video'?'video/mp4':'image/jpeg')+'" aria-label="'+(x.tipo==='video'?'Abrir o vídeo':'Abrir a foto')+'">'+(img?'<img src="'+img+'" alt="">':'<span class="play" style="position:static;padding:40px">'+(x.tipo==='video'?'🎥':'📷')+'</span>')+
+      (x.tipo==='video'?'<span class="play">▶</span>'+(x.dur?'<span class="dur">'+hms(x.dur)+'</span>':''):'')+'</button>'}
   function setStatus(t,ok){$('status').textContent=t;$('dot').style.background=ok===false?'var(--warn)':'var(--ok)'}
   function closeDrawer(){$('app').classList.remove('open')}
 
@@ -872,6 +924,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   $('dim').onclick=closeDrawer;
   $('col').addEventListener('click',function(e){
     if(e.target.closest('[data-ocpick]')){openChatMenu(cur,'oculos');return}
+    var ivb=e.target.closest('[data-ivmu]');if(ivb){var u=ivb.getAttribute('data-ivmu');if(u&&NATIVE&&NATIVE.ivueOpen)NATIVE.ivueOpen(u,ivb.getAttribute('data-ivmt'));else toast('Este arquivo está no celular que baixou do óculos.');return}
     var s=e.target.closest('[data-sug]');if(s){$('msgIn').value=s.getAttribute('data-sug');send();return}
     var say=e.target.closest('[data-say]');if(say){
       if(say.classList.contains('on')){stopSpeak();return}
@@ -1664,8 +1717,8 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   /* ---------- Galeria do óculos na nuvem: Fotos · Vídeos · Vídeos com IA ----------
      A lista vem da tabela midias do Supabase (cada pessoa só vê as suas). */
   var galTab=null,galRows={};
-  var GAL_TXT={foto:['Fotos','Nenhuma foto ainda. As fotos tiradas com o óculos vão aparecer aqui.'],
-    video:['Vídeos','Nenhum vídeo ainda. Os vídeos originais do óculos (sem alteração) chegam aqui pela ponte do PC.'],
+  var GAL_TXT={foto:['Fotos','Nenhuma foto ainda. Ao conectar o óculos, escolha "Enviar para Fotos/Galeria" e marque as fotos: elas aparecem aqui.'],
+    video:['Vídeos','Nenhum vídeo ainda. Ao conectar o óculos, escolha "Enviar para Fotos/Galeria" e marque os vídeos: eles aparecem aqui (o original fica no celular).'],
     video_ia:['Vídeos com IA','Nenhum vídeo analisado ainda. Cada vídeo ganha uma versão em que a IA circula e mostra os momentos mais importantes, sem apagar o original.']};
   function hms(sec){sec=Math.max(0,Math.round(+sec||0));var h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),x=sec%60;return (h?h+':'+String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0')}
   function galCounts(){
@@ -1679,25 +1732,37 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     [].forEach.call($('glTabs').children,function(b){b.setAttribute('aria-selected',String(b.getAttribute('data-gt')===galTab))});
     if(!galTab){$('glGal').hidden=true;return}
     $('glGal').hidden=false;$('glGal').innerHTML='<p class="gempty">Carregando…</p>';
-    rest('midias?select=id,tipo,titulo,oculos,contexto,resolucao,duracao_s,arquivo,miniatura,original_id,status,progresso,resumo,eventos,gravado_em&tipo=eq.'+t+'&order=gravado_em.desc&limit=90')
+    rest('midias?select=id,tipo,titulo,oculos,contexto,resolucao,duracao_s,arquivo,miniatura,original_id,status,progresso,resumo,eventos,gravado_em,origem&tipo=eq.'+t+'&order=gravado_em.desc&limit=90')
       .then(function(r){return r.ok?r.json():[]}).then(function(rows){galRows[t]=rows||[];if(galTab===t)galPaint(t)})
       .catch(function(){if(galTab===t)$('glGal').innerHTML='<p class="gempty">Sem internet agora. Tente de novo daqui a pouco.</p>'});
   }
+  /* O armazenamento é privado: para mostrar, pede links temporários (1 h) ao Supabase. */
+  var galSigned={};
+  function galUrl(p){return !p?'':/^https?:/.test(p)?p:galSigned[p]||''}
+  function galSign(paths){
+    paths=paths.filter(function(p){return p&&!/^https?:/.test(p)&&!galSigned[p]});
+    if(!paths.length)return Promise.resolve();
+    return token().then(function(tk){return fetch(SB_URL+'/storage/v1/object/sign/midias',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+tk,'Content-Type':'application/json'},body:JSON.stringify({expiresIn:3600,paths:paths})})})
+      .then(function(r){return r.ok?r.json():[]}).then(function(a){(a||[]).forEach(function(x){if(x&&x.path&&x.signedURL)galSigned[x.path]=SB_URL+'/storage/v1'+x.signedURL})}).catch(function(){});
+  }
   function galPaint(t){
     var rows=galRows[t]||[],tx=GAL_TXT[t];
+    var need=[];rows.forEach(function(x){[x.miniatura,x.arquivo].forEach(function(p){if(p&&!/^https?:/.test(p)&&!galSigned[p])need.push(p)})});
+    if(need.length){galSign(need).then(function(){if(galTab===t)galPaint(t)});need=null}
     var h='<div class="ghead"><span>'+tx[0]+'</span><small class="gsub">'+rows.length+' na nuvem</small></div>';
     if(!rows.length){$('glGal').innerHTML=h+'<p class="gempty">'+tx[1]+'</p>';return}
     h+='<div class="ggrid">'+rows.map(function(x){
       var st=x.status==='pronto'?'':'<span class="gst">'+(x.status==='processando'?'Analisando '+x.progresso+'%':x.status==='enviando'?'Enviando '+x.progresso+'%':'Erro')+'</span>';
       return '<button class="gitem" data-mid="'+esc(x.id)+'" aria-label="'+esc((x.titulo||GAL_TXT[x.tipo][0])+' de '+new Date(x.gravado_em).toLocaleString('pt-BR'))+'">'+(t==='foto'?'📷':t==='video'?'🎬':'✨')+
-        (x.miniatura&&/^https?:/.test(x.miniatura)?'<img src="'+esc(x.miniatura)+'" alt="" loading="lazy">':'')+(x.duracao_s&&!st?'<span class="dur">'+hms(x.duracao_s)+'</span>':'')+st+'</button>'}).join('')+'</div>';
+        (galUrl(x.miniatura)?'<img src="'+esc(galUrl(x.miniatura))+'" alt="" loading="lazy">':'')+(x.duracao_s&&!st?'<span class="dur">'+hms(x.duracao_s)+'</span>':'')+st+'</button>'}).join('')+'</div>';
     $('glGal').innerHTML=h;
   }
   function galFind(id){for(var k in galRows)for(var i=0;i<galRows[k].length;i++)if(galRows[k][i].id===id)return galRows[k][i];return null}
   function galView(x){
-    var oc=oculosById(x.oculos),src=x.arquivo&&/^https?:/.test(x.arquivo)?x.arquivo:'';
+    var oc=oculosById(x.oculos),src=galUrl(x.arquivo),loc=x.origem&&ivLocal[x.origem];
+    if(x.arquivo&&!src){galSign([x.arquivo]).then(function(){if(galUrl(x.arquivo))galView(x)})}
     var h='<div class="gview">'+(x.tipo==='foto'?(src?'<img src="'+esc(src)+'" alt="Foto do óculos">':''):(src?'<video id="gvVid" src="'+esc(src)+'" controls playsinline preload="metadata"></video>':''))+
-      (src?'':'<p class="gempty">O arquivo ainda está sendo enviado para a nuvem.</p>')+
+      (src?'':x.tipo==='video'&&!x.arquivo?(galUrl(x.miniatura)?'<img src="'+esc(galUrl(x.miniatura))+'" alt="Começo do vídeo">':'')+(loc?'<button class="it" data-ivmu="'+esc(loc)+'" data-ivmt="video/mp4">▶<span>Assistir no celular<small>O vídeo original está na Galeria do celular (JJGlasses › iVUE Denali)</small></span></button>':'<p class="gempty">O vídeo original está na Galeria do celular em que foi baixado (pasta JJGlasses).</p>'):'<p class="gempty">O arquivo ainda está sendo enviado para a nuvem.</p>')+
       '<p class="gmeta">'+esc(new Date(x.gravado_em).toLocaleString('pt-BR'))+(oc?' · '+esc(oc.icone+' '+oc.nome):'')+(x.resolucao?' · '+esc(x.resolucao):'')+(x.contexto?' · '+esc(x.contexto):'')+(x.duracao_s?' · '+hms(x.duracao_s):'')+'</p>';
     if(x.resumo)h+='<p style="margin:6px 4px"><b>Resumo da IA:</b> '+esc(x.resumo)+'</p>';
     (Array.isArray(x.eventos)?x.eventos:[]).forEach(function(ev){h+='<button class="it" data-seek="'+esc(ev.inicio||'0:00')+'">▶<span>'+esc((ev.inicio||'')+' · '+(ev.categoria||''))+'<small>'+esc(ev.descricao||'')+'</small></span></button>'});
@@ -1711,7 +1776,8 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   $('glGal').addEventListener('click',function(e){var b=e.target.closest('[data-mid]');if(b)galGo(b.getAttribute('data-mid'))});
   $('mmBody').addEventListener('click',function(e){
     var b=e.target.closest('[data-seek]');if(b){var v=$('gvVid');if(v){var p=b.getAttribute('data-seek').split(':').map(Number),t=0;p.forEach(function(n){t=t*60+(n||0)});v.currentTime=t;v.play().catch(function(){})}return}
-    b=e.target.closest('.gview [data-mid]');if(b)galGo(b.getAttribute('data-mid'));
+    b=e.target.closest('.gview [data-mid]');if(b){galGo(b.getAttribute('data-mid'));return}
+    b=e.target.closest('.gview [data-ivmu]');if(b&&NATIVE&&NATIVE.ivueOpen)NATIVE.ivueOpen(b.getAttribute('data-ivmu'),b.getAttribute('data-ivmt'));
   });
   /* ---------- Barra de baixo da aba do óculos: Óculos · Gravação · Galeria ---------- */
   function glView(v){
@@ -1755,6 +1821,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   }
   window.jjIvueProg=function(p){
     if(!p)return;var pr=ivueProg[p.path]=ivueProg[p.path]||{};pr.feito=p.feito;pr.total=p.total;
+    if(pr.fila){if(p.uri){pr.fim=true;ivueDl[p.path]=p.uri;try{localStorage.setItem('jj_ivue_dl',JSON.stringify(ivueDl))}catch(e){}}if(p.erro){pr.fim=true;delete ivueProg[p.path]}ivQProg(p);ivuePaint();return}
     if(p.uri){pr.fim=true;ivueDl[p.path]=p.uri;try{localStorage.setItem('jj_ivue_dl',JSON.stringify(ivueDl))}catch(e){}
       var nm=p.path.split('/').pop();toast(p.apagado?'📥 '+nm+' foi para o celular e saiu do óculos':'Salvo na galeria do celular (pasta JJGlasses)');if(p.apagado){ivDropFile(p.path)}}
     if(p.erro){pr.fim=true;var wasAuto=pr.auto;delete ivueProg[p.path];if(wasAuto)ivFail[p.path]=(ivFail[p.path]||0)+1;
@@ -1777,6 +1844,10 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   }
   window.jjIvueSt=function(r){
     ivAsking=false;ivSt=r||{ok:false};
+    var was=ivWasOn;ivWasOn=!!ivSt.ok;
+    if(ivSt.ok&&!was)setTimeout(function(){ivOnConnect(ivSt)},400);    // acabou de conectar
+    if(!ivSt.ok){ivAskedNow=false;if(ivQ&&ivQ.items&&!ivQ.pausa&&ivBusy()){ivQ.pausa=true;ivSave()}}
+    if(!$('ivSel').hidden)ivSelPaint();
     if(ivSt.ok){ivueFiles={ok:true,videos:ivSt.videos||[],fotos:ivSt.fotos||[]};if(!$('glv-gal').hidden)ivuePaint()}
     ivHomePaint();ivAutoRun(ivSt);
   };
@@ -1855,7 +1926,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   $('ivLive').onclick=ivLiveOpen;
   $('ivGal').onclick=function(){glView('gal');if(ivueFiles)ivuePaint();else $('ivueBtn').click()};
   setInterval(function(){if(document.hidden||!(NATIVE&&NATIVE.ivueStatus))return;
-    if(ivMode()==='auto'||(!$('gl').hidden&&!$('glv-home').hidden&&glOcId()==='ivue')||($('gl').hidden&&chatOculos().id==='ivue'))ivHomeAsk()},20000);
+    if(ivMode()==='auto'||ivUses())ivHomeAsk()},20000);
   /* ---------- Baixar automático: quando o óculos conecta, baixa um por um e apaga do óculos (só depois de conferir que baixou tudo) ---------- */
   function ivChat(){var id=glChatId('ivue');return chats.filter(function(c){return c.id===id})[0]||null}
   function ivMode(){var c=ivChat();return c&&c.ivSync==='auto'?'auto':'manual'}
@@ -1916,6 +1987,186 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
       apkMsg(f==='semPermissao'?'Sem "Permitir desta fonte" o JJGlasses não consegue se atualizar.':f==='cancelado'?'Você pode atualizar quando quiser.':'Confira a internet e tente de novo.');apkBtns(true,true,'Tentar de novo')}
   };
   setTimeout(function(){apkCheck(false)},3000);setInterval(function(){if(!document.hidden)apkCheck(false)},30*60000);
+  /* ---------- Ao conectar um óculos com fotos e vídeos: perguntar, escolher com miniaturas e baixar ----------
+     A tela não sabe como cada óculos funciona: ela só chama o "adaptador" (OC_FILES). Um óculos novo só precisa
+     de um adaptador com as mesmas funções. Nada é baixado sem a pessoa escolher, e nada é apagado do óculos. */
+  var OC_FILES={
+    ivue:{
+      nome:'iVUE Denali',
+      pronto:function(){return !!(NATIVE&&NATIVE.ivueThumbs&&NATIVE.ivueBaixarPara)},
+      miniaturas:function(list){NATIVE.ivueThumbs(JSON.stringify(list))},
+      previa:function(f){NATIVE.ivuePrevia(f.path,f.nome)},
+      baixar:function(f,pasta){NATIVE.ivueBaixarPara(f.path,f.nome,pasta)},
+      parar:function(){NATIVE.ivueCancel()},
+      reduzir:function(uri,max,q,tag){NATIVE.ivueImagem(uri,max,q,tag)},
+      abrir:function(uri,mime){NATIVE.ivueOpen(uri,mime)}
+    }
+  };
+  var ivThumbs={},ivAskedNow=false,ivWasOn=false,ivSelDest='',ivSelOn={},ivQ=null,ivCloudQ=[];
+  try{ivQ=JSON.parse(localStorage.getItem('jj_ivq')||'null')}catch(e){ivQ=null}
+  try{ivCloudQ=JSON.parse(localStorage.getItem('jj_ivcloud')||'[]')||[]}catch(e){ivCloudQ=[]}
+  var ivLocal={};try{ivLocal=JSON.parse(localStorage.getItem('jj_ivlocal')||'{}')||{}}catch(e){}
+  function ivSave(){try{localStorage.setItem('jj_ivq',JSON.stringify(ivQ));localStorage.setItem('jj_ivcloud',JSON.stringify(ivCloudQ));localStorage.setItem('jj_ivlocal',JSON.stringify(ivLocal))}catch(e){}}
+  function ivIsVideo(f){return /\.(mp4|mov|avi|ts)$/i.test(f.nome||f.path||'')}
+  function ivBytes(t){var m=/([\d.]+)\s*([KMGT]?B)/i.exec(t||'');if(!m)return 0;var n=parseFloat(m[1]),u=m[2].toUpperCase();return n*({B:1,KB:1024,MB:1048576,GB:1073741824,TB:1099511627776}[u]||1)}
+  function ivWhen(d){var m=/(\d{4})\/(\d\d)\/(\d\d) (\d\d):(\d\d):?(\d\d)?/.exec(d||'');return m?new Date(+m[1],m[2]-1,+m[3],+m[4],+m[5],+(m[6]||0)):null}
+  function ivWhenTxt(d){var x=ivWhen(d);return x?x.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' '+x.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):''}
+  function ivAll(r){return ((r&&r.videos)||[]).concat((r&&r.fotos)||[]).sort(function(a,b){var x=ivWhen(a.data),y=ivWhen(b.data);return (y?y.getTime():0)-(x?x.getTime():0)||(a.path<b.path?1:-1)})}
+  function ivUses(){return glModel()==='denali'||chats.some(function(c){return c.oculos==='ivue'})}
+  function ivChoice(){return (prefs.ivEscolha||{}).ivue||''}
+  function ivDestChat(){var c=chat();if(c&&chatOculos(c).id==='ivue')return c;return ivChat()}
+
+  /* 1) Conectou: tem coisa nova? pergunta (ou segue a escolha lembrada). */
+  function ivOnConnect(r){
+    if(ivQ&&ivQ.items&&ivQ.items.some(function(x){return !ivQ.done[x.path]})){ivRunQ();toast('📶 '+OC_FILES.ivue.nome+' voltou: continuando de onde parou');return}
+    if(ivMode()==='auto'||ivAskedNow||!OC_FILES.ivue.pronto())return;    // modo automático antigo (escolhido no chat) já cuida
+    var novos=ivAll(r).filter(function(f){return !ivueDl[f.path]});
+    if(!novos.length)return;                                              // sem conteúdo novo: não pergunta
+    ivAskedNow=true;
+    var ch=ivChoice();
+    if(ch==='nao')return;
+    if(ch==='conversa'||ch==='galeria'){ivSelOpen(ch);return}
+    var nv=novos.filter(ivIsVideo).length,nf=novos.length-nv,c=ivDestChat();
+    $('ivAskN').textContent='Ele tem '+(nv?nv+' vídeo'+(nv>1?'s':''):'')+(nv&&nf?' e ':'')+(nf?nf+' foto'+(nf>1?'s':''):'')+' que ainda não estão no celular.';
+    $('ivAskChat').textContent=c?'Na conversa "'+c.title+'"':'Numa conversa nova com o '+OC_FILES.ivue.nome;
+    $('ivAskLembrar').checked=false;$('ivAsk').hidden=false;
+  }
+  $('ivAsk').addEventListener('click',function(e){
+    var b=e.target.closest('[data-ivq]');if(!b){if(e.target===$('ivAsk'))$('ivAsk').hidden=true;return}
+    var v=b.getAttribute('data-ivq');
+    if($('ivAskLembrar').checked){prefs.ivEscolha=prefs.ivEscolha||{};prefs.ivEscolha.ivue=v;persist();paintIvEscolha()}
+    $('ivAsk').hidden=true;
+    if(v==='nao'){toast('Nada foi copiado do óculos');return}
+    ivSelOpen(v);
+  });
+
+  /* 2) Tela de seleção: miniatura do começo, duração, tamanho, data, resolução e prévia de 5 s. */
+  function ivSelOpen(dest){
+    ivSelDest=dest;ivSelOn={};
+    $('ivSelSub').textContent=dest==='conversa'?'Vão para a conversa "'+((ivDestChat()||{}).title||'nova do '+OC_FILES.ivue.nome)+'"':'Vão para Fotos/Galeria do celular e para a galeria do app';
+    $('ivSel').hidden=false;ivSelPaint();
+    var all=ivAll(ivSt),need=all.filter(function(f){return !ivThumbs[f.path]}).map(function(f){return {path:f.path,nome:f.nome,tamanho:f.tamanho}});
+    if(need.length&&OC_FILES.ivue.pronto())OC_FILES.ivue.miniaturas(need);
+  }
+  function ivCard(f){
+    var t=ivThumbs[f.path]||{},v=ivIsVideo(f),on=!!ivSelOn[f.path],got=!!ivueDl[f.path],pr=ivueProg[f.path],q=ivQ&&ivQ.done&&ivQ.done[f.path];
+    var meta=[t.dur?hms(t.dur):'',f.tamanho||'',ivWhenTxt(f.data),t.res||''].filter(Boolean).join(' · ');
+    var st=q||got?'<span class="ivok">✓ no celular</span>':pr&&!pr.fim?'<span class="ivbar"><i style="width:'+(pr.total?Math.round(pr.feito/pr.total*100):2)+'%"></i></span>':'';
+    return '<div class="ivc'+(on?' on':'')+'" data-ivs="'+esc(f.path)+'" role="checkbox" aria-checked="'+on+'" tabindex="0" aria-label="'+esc((v?'Vídeo ':'Foto ')+ivWhenTxt(f.data))+'">'+
+      '<div class="ivth">'+(t.img?'<img src="'+t.img+'" alt="">':t.erro?'<span class="ivno">sem prévia</span>':'<span class="ivload">Carregando a prévia…</span>')+
+      (v&&t.dur?'<span class="dur">'+hms(t.dur)+'</span>':'')+'<span class="ivck">'+(on?'✓':'')+'</span></div>'+
+      '<div class="ivmeta"><b>'+(v?'🎥 Vídeo':'📷 Foto')+'</b><small>'+esc(meta)+'</small>'+st+'</div>'+
+      (v?'<button class="chip ivpv" data-ivpv="'+esc(f.path)+'">▶ Ver 5 s</button>':'')+'</div>';
+  }
+  function ivSelPaint(){
+    if($('ivSel').hidden)return;
+    var all=ivAll(ivSt),n=all.filter(function(f){return ivSelOn[f.path]}).length,running=ivQ&&ivQ.items&&ivQ.items.some(function(x){return !ivQ.done[x.path]});
+    $('ivSelCount').textContent=n+' de '+all.length+' selecionado'+(all.length===1?'':'s');
+    $('ivSelList').innerHTML=all.length?all.map(ivCard).join(''):'<p class="gempty">O óculos não tem fotos nem vídeos agora.</p>';
+    $('ivSelGo').textContent=running?'Baixando…':n?'Baixar selecionados ('+n+')':'Baixar selecionados';
+    $('ivSelGo').disabled=!n||running;$('ivSelStop').hidden=!running;
+    ivTotalPaint();
+  }
+  function ivTotalPaint(){
+    if(!ivQ||!ivQ.items||!ivQ.items.length){$('ivSelTot').hidden=true;return}
+    var tot=0,done=0;ivQ.items.forEach(function(x){var b=ivBytes(x.tamanho);tot+=b;if(ivQ.done[x.path])done+=b;else{var p=ivueProg[x.path];if(p&&p.total)done+=p.feito}});
+    var k=ivQ.items.filter(function(x){return ivQ.done[x.path]}).length,pct=tot?Math.min(100,Math.round(done/tot*100)):0;
+    $('ivSelTot').hidden=false;$('ivSelTotBar').style.width=pct+'%';
+    $('ivSelTotTxt').textContent=(k===ivQ.items.length?'✓ Pronto: ':'')+k+' de '+ivQ.items.length+' arquivos · '+pct+'%'+(ivQ.pausa&&k<ivQ.items.length?' · pausado: continua quando o óculos voltar':'');
+  }
+  $('ivSelList').addEventListener('click',function(e){
+    var pv=e.target.closest('[data-ivpv]');
+    if(pv){var p=pv.getAttribute('data-ivpv'),f=ivAll(ivSt).filter(function(x){return x.path===p})[0];if(f&&NATIVE&&NATIVE.ivuePrevia)OC_FILES.ivue.previa(f);else toast('Atualize o app para ver a prévia');return}
+    var c=e.target.closest('[data-ivs]');if(!c)return;var k=c.getAttribute('data-ivs');
+    if(ivSelOn[k])delete ivSelOn[k];else ivSelOn[k]=1;ivSelPaint();
+  });
+  $('ivSelList').addEventListener('keydown',function(e){if((e.key===' '||e.key==='Enter')&&e.target.matches('[data-ivs]')){e.preventDefault();e.target.click()}});
+  $('ivSelAll').onclick=function(){ivAll(ivSt).forEach(function(f){ivSelOn[f.path]=1});ivSelPaint()};
+  $('ivSelNone').onclick=function(){ivSelOn={};ivSelPaint()};
+  $('ivSelX').onclick=function(){$('ivSel').hidden=true};
+  $('ivSelStop').onclick=function(){if(ivQ){ivQ.parado=true;ivSave()}OC_FILES.ivue.parar();toast('Parado. O que já foi copiado continua no celular.')};
+  window.jjIvueThumb=function(r){if(!r||!r.path)return;ivThumbs[r.path]=r;
+    var el=document.querySelector('#ivSelList [data-ivs="'+(window.CSS&&CSS.escape?CSS.escape(r.path):r.path)+'"]');
+    if(el){var all=ivAll(ivSt),f=all.filter(function(x){return x.path===r.path})[0];if(f){var d=document.createElement('div');d.innerHTML=ivCard(f);el.replaceWith(d.firstChild)}}};
+
+  /* 3) Baixar os selecionados, um por vez. Se a conexão cair, para e continua depois de onde parou. */
+  $('ivSelGo').onclick=function(){
+    var all=ivAll(ivSt),sel=all.filter(function(f){return ivSelOn[f.path]}).reverse();   // do mais antigo para o mais novo
+    if(!sel.length)return;
+    var c=null;if(ivSelDest==='conversa'){c=ivDestChat();if(!c){c=newChat('ivue');prefs.glChatBy=prefs.glChatBy||{};prefs.glChatBy.ivue=c.id;persist();renderAll()}}
+    ivQ={dest:ivSelDest,chat:c?c.id:'',items:sel.map(function(f){return {path:f.path,nome:f.nome,tamanho:f.tamanho,data:f.data}}),done:{},pausa:false,parado:false};
+    ivSave();ivRunQ();
+  };
+  function ivRunQ(){
+    if(!ivQ||!ivQ.items)return;
+    if(Object.keys(ivueProg).some(function(k){return ivueProg[k]&&!ivueProg[k].fim}))return;   // já tem um baixando
+    var f=ivQ.items.filter(function(x){return !ivQ.done[x.path]})[0];
+    if(!f){ivFinishQ();return}
+    if(ivueDl[f.path]){ivQ.done[f.path]=ivueDl[f.path];ivSave();ivDeliver(f,ivueDl[f.path]);setTimeout(ivRunQ,50);return}   // já estava no celular
+    ivQ.pausa=false;ivQ.parado=false;ivueProg[f.path]={feito:0,total:0,fila:true};ivSave();
+    OC_FILES.ivue.baixar(f,OC_FILES.ivue.nome);ivSelPaint();
+  }
+  function ivQProg(p){
+    if(!ivQ||!ivQ.items||!ivQ.items.some(function(x){return x.path===p.path}))return false;
+    var f=ivQ.items.filter(function(x){return x.path===p.path})[0];
+    if(p.uri){ivQ.done[p.path]=p.uri;ivSave();ivDeliver(f,p.uri);setTimeout(ivRunQ,300)}
+    else if(p.erro){if(p.erro==='cancelado'||ivQ.parado){ivQ=null;ivSave()}else{ivQ.pausa=true;ivSave();toast('A conexão com o óculos caiu. Quando ele voltar, continua de onde parou.')}}
+    if(!$('ivSel').hidden){if(p.uri||p.erro)ivSelPaint();else{ivTotalPaint();var el=document.querySelector('#ivSelList [data-ivs="'+(window.CSS&&CSS.escape?CSS.escape(p.path):p.path)+'"] .ivbar i');if(el)el.style.width=(p.total?Math.round(p.feito/p.total*100):2)+'%';else ivSelPaint()}}
+    return true;
+  }
+  function ivFinishQ(){
+    if(!ivQ)return;var n=ivQ.items.length,d=ivQ.dest;
+    toast('✓ '+n+' arquivo'+(n>1?'s':'')+' do óculos '+(d==='conversa'?'na conversa':'na Galeria')+'. Nada foi apagado do óculos.');
+    ivQ=null;ivSave();ivSelPaint();
+  }
+
+  /* 4) Destinos: conversa (anexos) ou Fotos/Galeria (celular + galeria do app na nuvem). */
+  function ivDeliver(f,uri){
+    var t=ivThumbs[f.path]||{},v=ivIsVideo(f),dest=ivQ?ivQ.dest:'galeria';
+    ivLocal['ivue:'+f.path]=uri;ivSave();
+    if(dest==='conversa'){
+      var c=chats.filter(function(x){return x.id===(ivQ&&ivQ.chat)})[0]||ivDestChat();if(!c)return;
+      var m={role:'me',text:(v?'🎥 Vídeo':'📷 Foto')+' do óculos '+OC_FILES.ivue.nome+(f.data?' · '+ivWhenTxt(f.data):'')+(t.dur?' · '+hms(t.dur):'')+(t.res?' · '+t.res:''),
+        ivm:{tipo:v?'video':'foto',nome:f.nome,uri:uri,thumb:t.img||'',dur:t.dur||0,res:t.res||''}};
+      c.msgs.push(m);c.at=Date.now();persist();if(c.id===cur)renderChat();renderList();
+      if(!v)ivReduce(uri,900,70,function(img){m.img=img;persist();if(c.id===cur)renderChat()});   // a IA também enxerga a foto
+    }else{
+      ivCloudQ.push({path:f.path,nome:f.nome,tamanho:f.tamanho,data:f.data,video:v,uri:uri,thumb:t.img||'',dur:t.dur||0,res:t.res||''});ivSave();ivCloudRun();
+    }
+  }
+  var ivImgWait={},ivImgN=0;
+  function ivReduce(uri,max,q,cb){var tag='i'+(++ivImgN);ivImgWait[tag]=cb;OC_FILES.ivue.reduzir(uri,max,q,tag)}
+  window.jjIvueImg=function(r){var cb=r&&ivImgWait[r.tag];if(!cb)return;delete ivImgWait[r.tag];cb(r.img||'')};
+  function ivUid(){try{return JSON.parse(atob(session.access.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).sub}catch(e){return ''}}
+  function ivUuid(){return window.crypto&&crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-8xxx-xxxxxxxxxxxx'.replace(/x/g,function(){return (Math.random()*16|0).toString(16)})}
+  function ivBlob(d){var b=atob(d.split(',')[1]||''),a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return new Blob([a],{type:'image/jpeg'})}
+  function ivUp(path,dataUrl){return token().then(function(tk){return fetch(SB_URL+'/storage/v1/object/midias/'+path,{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+tk,'Content-Type':'image/jpeg','x-upsert':'true'},body:ivBlob(dataUrl)})}).then(function(r){if(!r.ok)throw new Error('upload '+r.status);return path})}
+  var ivCloudBusy=false;
+  function ivCloudRun(){
+    if(ivCloudBusy||!ivCloudQ.length||!session)return;ivCloudBusy=true;
+    var x=ivCloudQ[0],uid=ivUid(),id=ivUuid(),base=uid+'/'+id;
+    var foto=x.video?Promise.resolve(''):new Promise(function(ok){ivReduce(x.uri,1600,80,ok)});   // foto: cópia leve (máx. 1600 px) na nuvem
+    foto.then(function(img){
+      return Promise.all([x.thumb?ivUp(base+'-mini.jpg',x.thumb):'',img?ivUp(base+'.jpg',img):'']);
+    }).then(function(up){
+      var d=ivWhen(x.data);
+      return rest('midias?on_conflict=user_id,origem',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify([{
+        id:id,tipo:x.video?'video':'foto',titulo:x.nome,oculos:'ivue',resolucao:x.res||null,duracao_s:x.dur||null,miniatura:up[0]||null,arquivo:up[1]||null,
+        origem:'ivue:'+x.path,tamanho_bytes:Math.round(ivBytes(x.tamanho))||null,status:'pronto',progresso:100,gravado_em:(d||new Date()).toISOString()}])});
+    }).then(function(r){if(!r.ok)throw new Error('ficha '+r.status);ivCloudQ.shift();ivSave();ivCloudBusy=false;galCounts();if(galTab){var gt=galTab;galTab=null;galOpen(gt)}ivCloudRun()})
+    .catch(function(){ivCloudBusy=false;setTimeout(ivCloudRun,60000)});   // sem internet agora: tenta de novo daqui a 1 min
+  }
+  setTimeout(ivCloudRun,5000);
+
+  /* Ajustes: escolha lembrada por óculos */
+  function paintIvEscolha(){var s=$('setIvEscolha');if(s)s.value=ivChoice()}
+  $('setIvEscolha').onchange=function(){prefs.ivEscolha=prefs.ivEscolha||{};prefs.ivEscolha.ivue=this.value;persist();toast(this.value?'Escolha salva para o '+OC_FILES.ivue.nome:'Vai perguntar toda vez que conectar')};
+
+  /* Vigia do Wi-Fi: o celular entrou numa rede -> confere se é o óculos. Saiu -> marca desligado. */
+  window.jjIvueWifi=function(on){
+    if(on){setTimeout(function(){ivAsking=false;ivHomeAsk()},1500)}
+    else if(ivSt&&ivSt.ok){setTimeout(function(){ivAsking=false;ivHomeAsk()},800)}
+  };
   /* ---------- Gravação: óculos, qualidade e contexto de uso ---------- */
   var REC_CTX=['Paraquedismo / esporte','Trabalho pesado','Loja / atendimento','Obra','Linha de produção','Outro'];
   function recPaint(){
@@ -2047,7 +2298,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
       return fetch(SB_URL+'/rest/v1/'+path,{method:opt.method||'GET',headers:h,body:opt.body})});
   }
   function cloudInfo(t){cloudState=t;var el=$('cloudInfo');if(el)el.textContent=t}
-  function cloudMsgs(c){return c.msgs.filter(function(m){return !m.pending}).slice(-200).map(function(m){return {role:m.role,text:m.text,img:(m.img&&m.img.length<160000)?m.img:null,file:m.file||null,src:m.src||undefined,fb:m.fb||undefined}})}
+  function cloudMsgs(c){return c.msgs.filter(function(m){return !m.pending}).slice(-200).map(function(m){return {role:m.role,text:m.text,img:(m.img&&m.img.length<160000)?m.img:null,ivm:m.ivm&&(m.ivm.thumb||'').length<60000?m.ivm:undefined,file:m.file||null,src:m.src||undefined,fb:m.fb||undefined}})}
   window.markDirty=function(id){dirty[id]=1;clearTimeout(syncT);syncT=setTimeout(pushCloud,1500)};
   function pushCloud(){
     var ids=Object.keys(dirty);if(!ids.length||!session)return;
@@ -2331,7 +2582,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   function paintAiLang(){var sel=$('setAiLang');sel.innerHTML='<option value="">Automático (a mesma língua que você usar)</option>'+LANGS.map(function(x){return '<option value="'+x[0]+'">'+esc(langLocal(x[0]))+'</option>'}).join('');sel.value=prefs.aiLang||''}
   function applyTheme(){var r=document.documentElement;if(prefs.theme==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',prefs.theme)}
   ['Light','Dark','Auto'].forEach(function(n){$('th'+n).onclick=function(){prefs.theme=n.toLowerCase();applyTheme();persist();paintSettings()}});
-  function paintSettings(){
+  function paintSettings(){paintIvEscolha();
     var cv=voice(),cp=cv.label.split(' · ');$('setVoiceName').textContent=cp[0];$('setVoiceDesc').textContent=cp[1]||'';paintOrb($('setOrb'),cv.id);
     ['Light','Dark','Auto'].forEach(function(n){$('th'+n).setAttribute('aria-pressed',prefs.theme===n.toLowerCase()?'true':'false')});
     $('nameIn').value=prefs.name||'';paintVoiceTune();paintAiLang();

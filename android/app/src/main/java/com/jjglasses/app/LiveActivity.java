@@ -51,6 +51,8 @@ public class LiveActivity extends Activity {
     private boolean bound;
     private volatile String cmds = "";   // o que o óculos respondeu aos comandos (aparece se der erro)
     private int gen;                     // evita duas tentativas ao mesmo tempo
+    private String clip;                 // prévia: caminho do vídeo no óculos (toca só os primeiros 5 s)
+    private TextView tagView;
 
     private int dp(int v) { return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, v, getResources().getDisplayMetrics()); }
 
@@ -69,11 +71,13 @@ public class LiveActivity extends Activity {
 
         // selo "● AO VIVO" em cima, à esquerda
         TextView tag = new TextView(this);
-        tag.setText("●  AO VIVO  ·  iVUE Denali");
+        clip = getIntent().getStringExtra("clip");
+        tag.setText(clip != null ? "▶  PRÉVIA · 5 s  ·  " + getIntent().getStringExtra("nome") : "●  AO VIVO  ·  iVUE Denali");
+        tagView = tag;
         tag.setTextColor(Color.WHITE);
         tag.setTextSize(13);
         tag.setPadding(dp(12), dp(6), dp(12), dp(6));
-        GradientDrawable bg = new GradientDrawable(); bg.setColor(0xCCE53935); bg.setCornerRadius(dp(20));
+        GradientDrawable bg = new GradientDrawable(); bg.setColor(clip != null ? 0xCC2F6BFF : 0xCCE53935); bg.setCornerRadius(dp(20));
         tag.setBackground(bg);
         FrameLayout.LayoutParams tl = new FrameLayout.LayoutParams(-2, -2, Gravity.TOP | Gravity.START);
         tl.setMargins(dp(16), dp(40), 0, 0);
@@ -112,18 +116,19 @@ public class LiveActivity extends Activity {
         again = new Button(this);
         again.setText("Tentar de novo");
         again.setAllCaps(false);
-        again.setOnClickListener(v -> { attempt = 0; start(); });
+        again.setOnClickListener(v -> { attempt = 0; if (clip != null) preview(); else start(); });
         mid.addView(again);
         root.addView(mid, new FrameLayout.LayoutParams(-1, -2, Gravity.CENTER));
 
         setContentView(root);
     }
 
-    @Override protected void onStart() { super.onStart(); attempt = 0; start(); }
+    @Override protected void onStart() { super.onStart(); attempt = 0; if (clip != null) preview(); else start(); }
     @Override protected void onStop() {
         super.onStop();
         gen++;
         stop();
+        if (clip != null) return;
         Network n = Ivue.wifiNet(this);   // saiu da tela: desliga o ao vivo no óculos (volta como estava)
         if (n != null) new Thread(() -> cmd(n, "2015&par=0"), "jj-live-off").start();
     }
@@ -197,6 +202,32 @@ public class LiveActivity extends Activity {
             }
         });
         player.setMediaSource(src);
+        player.setPlayWhenReady(true);
+        player.prepare();
+    }
+
+    /** Prévia: toca os primeiros 5 segundos do vídeo direto do óculos (sem baixar o arquivo inteiro). */
+    private void preview() {
+        stop();
+        Network n = Ivue.wifiNet(this);
+        if (n == null) { show("O celular não está no Wi-Fi do óculos.", true); return; }
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+        if (cm != null) bound = cm.bindProcessToNetwork(n);   // o player vai buscar o vídeo pelo Wi-Fi do óculos
+        show("Carregando a prévia…", false);
+        player = new ExoPlayer.Builder(this).build();
+        view.setPlayer(player);
+        player.addListener(new Player.Listener() {
+            @Override public void onPlaybackStateChanged(int st) {
+                if (st == Player.STATE_READY) show(null, false);
+                else if (st == Player.STATE_ENDED) { show("Fim da prévia", true); again.setText("Ver de novo"); }
+            }
+            @Override public void onPlayerError(PlaybackException e) {
+                show("Não consegui tocar a prévia.", true);
+                detail.setText("Código: " + e.getErrorCodeName());
+            }
+        });
+        player.setMediaItem(new MediaItem.Builder().setUri(Ivue.HOST + clip)
+            .setClippingConfiguration(new MediaItem.ClippingConfiguration.Builder().setEndPositionMs(5000).build()).build());
         player.setPlayWhenReady(true);
         player.prepare();
     }

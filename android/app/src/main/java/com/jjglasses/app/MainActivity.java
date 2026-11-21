@@ -127,6 +127,7 @@ public class MainActivity extends Activity {
             @Override public void tap() { main.post(() -> { if (web != null) web.evaluateJavascript("window.jjGlassesTap&&window.jjGlassesTap()", null); }); }
         });
         ivue = new Ivue(this, this::js);   // óculos iVUE Denali pelo Wi-Fi dele
+        ivue.watch();                      // avisa a tela quando o celular entra/sai de um Wi-Fi (para achar o óculos)
         Updater.out = updOut;              // atualização automática do APK
         Updater.schedule(this);
         wantUpdate = getIntent() != null && getIntent().getBooleanExtra("jjAtualizar", false);
@@ -219,6 +220,7 @@ public class MainActivity extends Activity {
     @Override protected void onDestroy() {
         main.removeCallbacksAndMessages(null);
         if (Updater.out == updOut) Updater.out = null;
+        if (ivue != null) ivue.unwatch();
         if (glasses != null) glasses.release();
         keepAlive(false);
         if (recognizer != null) recognizer.destroy();
@@ -625,6 +627,13 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void ivueConnect(String ssid, String senha) { main.post(() -> ivue.connect(ssid, senha)); }
         @JavascriptInterface public void ivueDisconnect() { main.post(() -> ivue.disconnect(true)); }
         @JavascriptInterface public void ivueNetState() { ivue.netState(); }
+        // tela de escolher o que baixar: miniaturas, prévia de 5 s, baixar retomando, foto reduzida
+        @JavascriptInterface public void ivueThumbs(String json) { ivue.thumbs(json); }
+        @JavascriptInterface public void ivueBaixarPara(String path, String nome, String pasta) { ivue.download(path, nome, false, pasta); }
+        @JavascriptInterface public void ivueImagem(String uri, int max, int q, String tag) { ivue.imagem(uri, max, q, tag); }
+        @JavascriptInterface public void ivuePrevia(String path, String nome) {
+            main.post(() -> startActivity(new android.content.Intent(MainActivity.this, LiveActivity.class).putExtra("clip", path).putExtra("nome", nome)));
+        }
         // baixa e, se apagar = true, apaga do óculos depois de conferir que baixou tudo (modo automático)
         @JavascriptInterface public void ivueBaixar(String path, String nome, boolean apagar) { ivue.download(path, nome, apagar); }
         @JavascriptInterface public void ivueApagar(String path) { ivue.apagar(path); }   // só no modo automático, para arquivo já baixado

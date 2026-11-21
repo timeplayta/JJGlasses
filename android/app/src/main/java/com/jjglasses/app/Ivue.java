@@ -4,6 +4,17 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.media.ExifInterface;
+import android.media.MediaDataSource;
+import android.media.MediaMetadataRetriever;
+import android.util.Base64;
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
@@ -45,6 +56,7 @@ public class Ivue {
     private final Out out;
     private final ExecutorService ex = Executors.newSingleThreadExecutor();      // downloads (podem demorar)
     private final ExecutorService exInfo = Executors.newSingleThreadExecutor();  // lista e estado (rápidos)
+    private final ExecutorService exThumb = Executors.newSingleThreadExecutor(); // miniaturas (uma por vez)
     private volatile boolean cancel = false;
 
     Ivue(Context ctx, Out out) { this.ctx = ctx.getApplicationContext(); this.out = out; }
@@ -160,10 +172,16 @@ public class Ivue {
     }
 
     /** O app pede a lista: responde em window.jjIvue({ok, videos, fotos}) ou ({ok:false, erro}). */
+    /** Confirma que é mesmo o óculos (a página dele tem a pasta DCIM), e não outro aparelho no mesmo endereço. */
+    private void confirm() throws Exception {
+        if (!get("/").contains("DCIM")) throw new Exception("não é o óculos");
+    }
+
     public void listAll() {
         exInfo.submit(() -> {
             JSONObject r = new JSONObject();
             try {
+                confirm();
                 JSONArray v = new JSONArray(), f = new JSONArray();
                 list("/DCIM/Movie", v, 0);
                 try { list("/DCIM/Photo", f, 0); } catch (Exception ignored) { }
@@ -204,6 +222,7 @@ public class Ivue {
         exInfo.submit(() -> {
             JSONObject r = new JSONObject();
             try {
+                confirm();
                 JSONArray v = new JSONArray(), f = new JSONArray();
                 list("/DCIM/Movie", v, 0);
                 try { list("/DCIM/Photo", f, 0); } catch (Exception ignored) { }
@@ -224,36 +243,57 @@ public class Ivue {
     }
 
     /** Baixa um arquivo do óculos para a galeria do celular (Filmes/JJGlasses ou Imagens/JJGlasses). */
-    public void download(String path, String nome) { download(path, nome, false); }
+    public void download(String path, String nome) { download(path, nome, false, null); }
+    public void download(String path, String nome, boolean apagar) { download(path, nome, apagar, null); }
 
-    /** apagar = true: depois de baixar TUDO certinho (tamanho conferido), apaga o arquivo do óculos para liberar espaço.
-     *  Se o download falhar ou vier incompleto, NÃO apaga nada. */
-    public void download(String path, String nome, boolean apagar) {
+    private SharedPreferences dlPrefs() { return ctx.getSharedPreferences("ivue_dl", Context.MODE_PRIVATE); }
+
+    /**
+     * Baixa um arquivo do óculos para a Galeria do celular, em Filmes/JJGlasses/<pasta> ou Imagens/JJGlasses/<pasta>.
+     * RETOMA: se a conexão cair, o pedaço já copiado fica guardado; na próxima vez continua de onde parou
+     * (pede ao óculos só o resto, com "Range"). Só aparece na Galeria quando termina inteiro.
+     * apagar = true (só o modo automático antigo): depois de conferir o tamanho, apaga do óculos.
+     */
+    public void download(String path, String nome, boolean apagar, String pasta) {
         cancel = false;
         ex.submit(() -> {
-            JSONObject p = new JSONObject();
             Uri uri = null;
+            boolean video = nome.toLowerCase().matches(".*\\.(mp4|mov|avi|ts)$");
+            String mime = video ? "video/mp4" : "image/jpeg";
+            String sub = "JJGlasses" + (pasta != null && pasta.trim().length() > 0 ? "/" + pasta.trim().replaceAll("[\\\\/:*?\"<>|]", "") : "");
+            ContentResolver cr = ctx.getContentResolver();
+            SharedPreferences sp = dlPrefs();
             try {
-                p.put("path", path);
-                boolean video = nome.toLowerCase().matches(".*\\.(mp4|mov|avi|ts)$");
-                String mime = video ? "video/mp4" : "image/jpeg";
-                HttpURLConnection c = open(path, 30000);
-                long total = c.getContentLengthLong();
-                OutputStream os; File file = null;
-                ContentResolver cr = ctx.getContentResolver();
+                long have = 0; File file = null;
                 if (Build.VERSION.SDK_INT >= 29) {
-                    ContentValues cv = new ContentValues();
-                    cv.put(MediaStore.MediaColumns.DISPLAY_NAME, nome);
-                    cv.put(MediaStore.MediaColumns.MIME_TYPE, mime);
-                    cv.put(MediaStore.MediaColumns.RELATIVE_PATH, (video ? Environment.DIRECTORY_MOVIES : Environment.DIRECTORY_PICTURES) + "/JJGlasses");
-                    cv.put(MediaStore.MediaColumns.IS_PENDING, 1);
-                    uri = cr.insert(video ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI : MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cv);
-                    os = cr.openOutputStream(uri);
+                    String old = sp.getString(path, null);   // pedaço de uma tentativa anterior?
+                    if (old != null) {
+                        try (android.os.ParcelFileDescriptor fd = cr.openFileDescriptor(Uri.parse(old), "r")) { if (fd != null) { have = fd.getStatSize(); uri = Uri.parse(old); } }
+                        catch (Exception e) { sp.edit().remove(path).apply(); have = 0; uri = null; }
+                    }
+                    if (uri == null) {
+                        ContentValues cv = new ContentValues();
+                        cv.put(MediaStore.MediaColumns.DISPLAY_NAME, nome);
+                        cv.put(MediaStore.MediaColumns.MIME_TYPE, mime);
+                        cv.put(MediaStore.MediaColumns.RELATIVE_PATH, (video ? Environment.DIRECTORY_MOVIES : Environment.DIRECTORY_PICTURES) + "/" + sub);
+                        cv.put(MediaStore.MediaColumns.IS_PENDING, 1);
+                        uri = cr.insert(video ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI : MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cv);
+                        if (uri == null) throw new Exception("sem espaço na galeria");
+                        sp.edit().putString(path, uri.toString()).apply();
+                        have = 0;
+                    }
                 } else {
-                    File d = new File(ctx.getExternalFilesDir(video ? Environment.DIRECTORY_MOVIES : Environment.DIRECTORY_PICTURES), "JJGlasses");
-                    d.mkdirs(); file = new File(d, nome); os = new FileOutputStream(file);
+                    File d = new File(ctx.getExternalFilesDir(video ? Environment.DIRECTORY_MOVIES : Environment.DIRECTORY_PICTURES), sub);
+                    d.mkdirs(); file = new File(d, nome); have = file.exists() ? file.length() : 0;
                 }
-                long done = 0, last = 0;
+                HttpURLConnection c = open(path, 30000);
+                if (have > 0) c.setRequestProperty("Range", "bytes=" + have + "-");
+                int code = c.getResponseCode();
+                boolean resumed = have > 0 && code == 206;
+                if (!resumed) have = 0;                                   // o óculos mandou o arquivo inteiro: começa do zero
+                long total = resumed ? have + c.getContentLengthLong() : c.getContentLengthLong();
+                OutputStream os = Build.VERSION.SDK_INT >= 29 ? cr.openOutputStream(uri, resumed ? "wa" : "wt") : new FileOutputStream(file, resumed);
+                long done = have, last = 0;
                 try (InputStream in = c.getInputStream(); OutputStream o = os) {
                     byte[] buf = new byte[65536]; int k;
                     while ((k = in.read(buf)) > 0) {
@@ -265,18 +305,216 @@ public class Ivue {
                 } finally { c.disconnect(); }
                 if (total > 0 && done != total) throw new Exception("incompleto");
                 if (Build.VERSION.SDK_INT >= 29) { ContentValues cv = new ContentValues(); cv.put(MediaStore.MediaColumns.IS_PENDING, 0); cr.update(uri, cv, null, null); }
-                else if (file != null) uri = Uri.fromFile(file);
+                else uri = Uri.fromFile(file);
+                sp.edit().remove(path).apply();
                 boolean apagado = false;
                 if (apagar && total > 0 && done == total) apagado = remove(path);
                 prog(path, done, total, uri.toString(), null, apagado);
             } catch (Exception e) {
-                if (uri != null && Build.VERSION.SDK_INT >= 29) { try { ctx.getContentResolver().delete(uri, null, null); } catch (Exception ignored) { } }
-                prog(path, 0, 0, null, String.valueOf(e.getMessage()));
+                String msg = String.valueOf(e.getMessage());
+                if ("cancelado".equals(msg) && uri != null && Build.VERSION.SDK_INT >= 29) {   // a pessoa parou: joga fora o pedaço
+                    try { cr.delete(uri, null, null); } catch (Exception ignored) { }
+                    sp.edit().remove(path).apply();
+                }
+                prog(path, 0, 0, null, msg);   // caiu a conexão: o pedaço fica guardado para continuar depois
             }
         });
     }
 
     public void cancelDownload() { cancel = true; }
+
+    // ------------------------------------------------------------ Vigia do Wi-Fi
+    // Sempre que o celular entra (ou sai) de uma rede Wi-Fi, avisa a tela; ela confere se é o óculos.
+    private ConnectivityManager.NetworkCallback watchCb;
+
+    public void watch() {
+        ConnectivityManager cm = (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (cm == null || watchCb != null) return;
+        watchCb = new ConnectivityManager.NetworkCallback() {
+            @Override public void onAvailable(Network n) { out.js("window.jjIvueWifi&&window.jjIvueWifi(true)"); }
+            @Override public void onLost(Network n) { out.js("window.jjIvueWifi&&window.jjIvueWifi(false)"); }
+        };
+        try {
+            cm.registerNetworkCallback(new NetworkRequest.Builder()
+                .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+                .removeCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)   // a rede do óculos não tem internet
+                .build(), watchCb);
+        } catch (Exception e) { watchCb = null; }
+    }
+
+    public void unwatch() {
+        ConnectivityManager cm = (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (cm != null && watchCb != null) { try { cm.unregisterNetworkCallback(watchCb); } catch (Exception ignored) { } }
+        watchCb = null;
+    }
+
+    // ------------------------------------------------------------ Miniaturas (o começo de cada vídeo)
+    /** Lê pedaços do vídeo direto do óculos (com "Range"), sem baixar o arquivo inteiro. */
+    private class RangeSource extends MediaDataSource {
+        private static final int BLK = 512 * 1024;
+        private final String path;
+        private long size = -1;
+        private final LinkedHashMap<Long, byte[]> cache = new LinkedHashMap<Long, byte[]>(16, .75f, true) {
+            @Override protected boolean removeEldestEntry(Map.Entry<Long, byte[]> e) { return size() > 10; }
+        };
+        RangeSource(String path) { this.path = path; }
+
+        private byte[] range(long from, long to) throws Exception {
+            HttpURLConnection c = open(path, 15000);
+            c.setRequestProperty("Range", "bytes=" + from + "-" + to);
+            try (InputStream in = c.getInputStream(); ByteArrayOutputStream b = new ByteArrayOutputStream()) {
+                if (size < 0) {
+                    String cr = c.getHeaderField("Content-Range");   // "bytes 0-0/123456"
+                    if (cr != null && cr.contains("/")) size = Long.parseLong(cr.substring(cr.lastIndexOf('/') + 1).trim());
+                    else if (c.getResponseCode() == 200) size = c.getContentLengthLong();
+                }
+                byte[] buf = new byte[65536]; int k; long want = to - from + 1;
+                while (b.size() < want && (k = in.read(buf, 0, (int) Math.min(buf.length, want - b.size()))) > 0) b.write(buf, 0, k);
+                return b.toByteArray();
+            } finally { c.disconnect(); }
+        }
+        @Override public long getSize() throws java.io.IOException {
+            if (size < 0) { try { range(0, 0); } catch (Exception e) { throw new java.io.IOException(e); } }
+            return size;
+        }
+        @Override public int readAt(long pos, byte[] buf, int off, int len) throws java.io.IOException {
+            if (len == 0) return 0;
+            if (pos >= getSize()) return -1;
+            long b0 = pos / BLK * BLK;
+            byte[] blk = cache.get(b0);
+            if (blk == null) {
+                try { blk = range(b0, Math.min(size, b0 + BLK) - 1); } catch (Exception e) { throw new java.io.IOException(e); }
+                cache.put(b0, blk);
+            }
+            int o = (int) (pos - b0), n = Math.min(len, blk.length - o);
+            if (n <= 0) return -1;
+            System.arraycopy(blk, o, buf, off, n);
+            return n;
+        }
+        @Override public void close() { cache.clear(); }
+    }
+
+    private static boolean dark(Bitmap b) {   // quadro preto? (média de brilho muito baixa)
+        long sum = 0; int n = 0;
+        for (int y = 0; y < 12; y++) for (int x = 0; x < 12; x++) {
+            int p = b.getPixel(x * (b.getWidth() - 1) / 11, y * (b.getHeight() - 1) / 11);
+            sum += ((p >> 16 & 255) * 3 + (p >> 8 & 255) * 6 + (p & 255)) / 10; n++;
+        }
+        return sum / n < 22;
+    }
+
+    private static Bitmap fit(Bitmap b, int w) {
+        if (b == null || b.getWidth() <= w) return b;
+        return Bitmap.createScaledBitmap(b, w, Math.max(1, b.getHeight() * w / b.getWidth()), true);
+    }
+
+    private static String b64(byte[] d) { return "data:image/jpeg;base64," + Base64.encodeToString(d, Base64.NO_WRAP); }
+
+    private static byte[] jpeg(Bitmap b, int q) { ByteArrayOutputStream o = new ByteArrayOutputStream(); b.compress(Bitmap.CompressFormat.JPEG, q, o); return o.toByteArray(); }
+
+    private static String resLabel(int w, int h) {
+        int m = Math.min(w, h), M = Math.max(w, h);
+        if (M >= 2500 || m >= 1440) return "2K";
+        if (m >= 1080) return "1080p";
+        if (m >= 720) return "720p";
+        return m > 0 ? m + "p" : "";
+    }
+
+    private static byte[] readFile(File f) throws Exception {
+        try (InputStream in = new FileInputStream(f); ByteArrayOutputStream b = new ByteArrayOutputStream()) {
+            byte[] buf = new byte[16384]; int k; while ((k = in.read(buf)) > 0) b.write(buf, 0, k); return b.toByteArray();
+        }
+    }
+
+    /** Uma miniatura: vídeo = um quadro do começo (pula quadro preto); foto = miniatura da própria foto. */
+    private JSONObject thumb(JSONObject o) throws Exception {
+        String path = o.getString("path"), nome = o.optString("nome"), tam = o.optString("tamanho");
+        File dir = new File(ctx.getCacheDir(), "ivthumbs"); dir.mkdirs();
+        String key = (nome + "_" + tam).replaceAll("[^A-Za-z0-9._-]", "_");
+        File jpg = new File(dir, key + ".jpg"), meta = new File(dir, key + ".json");
+        if (jpg.exists() && meta.exists()) {
+            JSONObject r = new JSONObject(new String(readFile(meta), "UTF-8"));
+            r.put("path", path); r.put("img", b64(readFile(jpg))); return r;
+        }
+        JSONObject r = new JSONObject(); r.put("path", path);
+        Bitmap bm = null;
+        boolean video = nome.toLowerCase().matches(".*\\.(mp4|mov|avi|ts)$");
+        if (video) {
+            MediaMetadataRetriever mm = new MediaMetadataRetriever();
+            try {
+                mm.setDataSource(new RangeSource(path));
+                String d = mm.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+                String w = mm.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH), h = mm.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT);
+                if (d != null) r.put("dur", Math.round(Long.parseLong(d) / 1000.0));
+                if (w != null && h != null) { int W = Integer.parseInt(w), H = Integer.parseInt(h); r.put("w", W); r.put("h", H); r.put("res", resLabel(W, H)); }
+                for (long t : new long[]{1_000_000L, 3_000_000L, 300_000L, 6_000_000L}) {   // 1 s, 3 s, 0,3 s, 6 s
+                    Bitmap f = Build.VERSION.SDK_INT >= 27 ? mm.getScaledFrameAtTime(t, MediaMetadataRetriever.OPTION_CLOSEST_SYNC, 320, 320)
+                                                          : fit(mm.getFrameAtTime(t, MediaMetadataRetriever.OPTION_CLOSEST_SYNC), 320);
+                    if (f == null) continue;
+                    bm = f;
+                    if (!dark(f)) break;
+                }
+            } finally { try { mm.release(); } catch (Exception ignored) { } }
+        } else {
+            RangeSource rs = new RangeSource(path);
+            byte[] head = rs.range(0, 196607);                       // começo da foto: tem a miniatura do próprio óculos (EXIF)
+            ExifInterface ex = new ExifInterface(new ByteArrayInputStream(head));
+            int W = ex.getAttributeInt(ExifInterface.TAG_IMAGE_WIDTH, 0), H = ex.getAttributeInt(ExifInterface.TAG_IMAGE_LENGTH, 0);
+            byte[] t = ex.getThumbnail();
+            if (t != null) bm = BitmapFactory.decodeByteArray(t, 0, t.length);
+            if (bm == null) {                                        // sem miniatura: baixa a foto e reduz
+                byte[] all = rs.range(0, Math.max(0, rs.getSize() - 1));
+                BitmapFactory.Options op = new BitmapFactory.Options(); op.inSampleSize = 8;
+                bm = BitmapFactory.decodeByteArray(all, 0, all.length, op);
+                if (W == 0 && bm != null) { W = bm.getWidth() * 8; H = bm.getHeight() * 8; }
+            }
+            if (W > 0) { r.put("w", W); r.put("h", H); r.put("res", resLabel(W, H)); }
+        }
+        if (bm == null) throw new Exception("sem imagem");
+        byte[] j = jpeg(fit(bm, 320), 72);
+        try (FileOutputStream fo = new FileOutputStream(jpg)) { fo.write(j); }
+        try (FileOutputStream fo = new FileOutputStream(meta)) { JSONObject m = new JSONObject(r.toString()); m.remove("path"); fo.write(m.toString().getBytes("UTF-8")); }
+        r.put("img", b64(j));
+        return r;
+    }
+
+    /** A tela pede miniaturas: [{path,nome,tamanho}] -> window.jjIvueThumb({path,img,dur,w,h,res}) uma por uma. */
+    public void thumbs(String json) {
+        exThumb.submit(() -> {
+            try {
+                JSONArray a = new JSONArray(json);
+                for (int i = 0; i < a.length(); i++) {
+                    JSONObject o = a.getJSONObject(i), r;
+                    try { r = thumb(o); } catch (Throwable e) { r = new JSONObject(); r.put("path", o.optString("path")); r.put("erro", String.valueOf(e.getMessage())); }
+                    out.js("window.jjIvueThumb&&window.jjIvueThumb(" + r + ")");
+                }
+            } catch (Exception ignored) { }
+        });
+    }
+
+    /** Foto já baixada, reduzida (para a conversa ou para a nuvem): window.jjIvueImg({tag, img}). */
+    public void imagem(String uri, int max, int q, String tag) {
+        exThumb.submit(() -> {
+            JSONObject r = new JSONObject();
+            try {
+                r.put("tag", tag);
+                ContentResolver cr = ctx.getContentResolver();
+                BitmapFactory.Options op = new BitmapFactory.Options(); op.inJustDecodeBounds = true;
+                try (InputStream in = cr.openInputStream(Uri.parse(uri))) { BitmapFactory.decodeStream(in, null, op); }
+                int s = 1; while (Math.max(op.outWidth, op.outHeight) / (s * 2) >= max) s *= 2;
+                BitmapFactory.Options o2 = new BitmapFactory.Options(); o2.inSampleSize = s;
+                Bitmap b;
+                try (InputStream in = cr.openInputStream(Uri.parse(uri))) { b = BitmapFactory.decodeStream(in, null, o2); }
+                if (b == null) throw new Exception("foto ilegível");
+                if (Math.max(b.getWidth(), b.getHeight()) > max) {
+                    float k = max / (float) Math.max(b.getWidth(), b.getHeight());
+                    b = Bitmap.createScaledBitmap(b, Math.round(b.getWidth() * k), Math.round(b.getHeight() * k), true);
+                }
+                r.put("img", b64(jpeg(b, q)));
+            } catch (Exception e) { try { r.put("erro", String.valueOf(e.getMessage())); } catch (Exception ignored) { } }
+            out.js("window.jjIvueImg&&window.jjIvueImg(" + r + ")");
+        });
+    }
 
     /** Apaga um arquivo do óculos (o mesmo "Remove" da página dele). Só é usado no modo automático. */
     private boolean remove(String path) {
