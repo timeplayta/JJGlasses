@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JJGlasses Gestores</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#14181f;--mut:#667085;--bd:#e3e6ec;--ac:#2563eb;--ok:#16a34a;--er:#dc2626}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1218;--card:#181c25;--tx:#eef1f6;--mut:#98a2b3;--bd:#2a303c;--ac:#6ea0ff;--ok:#4ade80;--er:#f87171}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,sans-serif}
+header{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--card);border-bottom:1px solid var(--bd)}
+header h1{font-size:17px;margin:0;flex:1}main{max-width:980px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:16px}
+input,select,button{font:inherit;padding:10px 12px;border-radius:8px;border:1px solid var(--bd);background:var(--bg);color:var(--tx)}
+button{cursor:pointer}button.p{background:var(--ac);border-color:var(--ac);color:#fff}
+#login{max-width:360px;margin:12vh auto}#login input{width:100%;margin-bottom:10px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.mut{color:var(--mut);font-size:13px}.er{color:var(--er)}.ok{color:var(--ok)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.it{border:1px solid var(--bd);border-radius:10px;overflow:hidden;background:var(--bg);display:flex;flex-direction:column}
+.it .th{aspect-ratio:16/9;background:#0003 center/cover;display:flex;align-items:center;justify-content:center;font-size:30px;cursor:pointer}
+.it .in{padding:8px 10px;font-size:13px}.it .in b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.it a{color:var(--ac);text-decoration:none;font-size:13px}
+dialog{border:0;border-radius:12px;padding:0;max-width:94vw;background:#000}dialog video,dialog img{max-width:94vw;max-height:80vh;display:block}
+dialog form{padding:8px;text-align:right;background:var(--card)}
+label.sw{display:flex;gap:8px;align-items:center}
+</style>
+</head>
+<body>
+<div id="login" class="card" hidden>
+  <h1 style="margin-top:0">JJGlasses Gestores</h1>
+  <p class="mut">Entre com o e-mail e a senha de gestor.</p>
+  <input id="em" type="email" placeholder="E-mail" autocomplete="username">
+  <input id="pw" type="password" placeholder="Senha" autocomplete="current-password">
+  <button class="p" id="go" style="width:100%">Entrar</button>
+  <p id="lerr" class="er"></p>
+</div>
+<div id="app" hidden>
+  <header><h1>👓 JJGlasses Gestores</h1><span class="mut" id="eu"></span><button id="sair">Sair</button></header>
+  <main>
+    <div class="card row"><label>Colaborador <select id="col"></select></label><span class="mut" id="cnt"></span></div>
+    <div class="card" id="cfg">
+      <b>Envio para a nuvem (configurado por você)</b>
+      <div class="row" style="margin-top:10px">
+        <label class="sw"><input type="checkbox" id="cAtivo"> Envio ligado</label>
+        <label>A cada <select id="cInt"><option value="15">15 min</option><option value="30">30 min</option><option value="60">1 hora</option><option value="180">3 horas</option><option value="360">6 horas</option><option value="720">12 horas</option><option value="1440">1 dia</option></select></label>
+        <label class="sw"><input type="checkbox" id="cWifi"> Só com internet boa (Wi-Fi ou dados)</label>
+        <button class="p" id="cSalvar">Salvar</button><span id="cMsg" class="mut"></span>
+      </div>
+      <p class="mut" style="margin-bottom:0">O celular do colaborador lê esta regra e envia os vídeos de tempos em tempos. Nada é em tempo real.</p>
+    </div>
+    <div class="card"><div class="row" style="margin-bottom:12px"><b style="flex:1">Vídeos e fotos</b><select id="tipo"><option value="">Tudo</option><option value="video">Vídeos</option><option value="foto">Fotos</option></select></div><div class="grid" id="lista"></div><p class="mut" id="vazio" hidden>Nenhum arquivo enviado ainda.</p></div>
+  </main>
+</div>
+<dialog id="dlg"><div id="box"></div><form method="dialog"><button>Fechar</button></form></dialog>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+const sb=supabase.createClient('https://rfbrflmibivnajsbexeb.supabase.co','sb_publishable_tySEn5w1w0Yjp8nPnSGEdQ_abiNdqPR');
+const $=id=>document.getElementById(id);let cols=[];
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function fmt(b){if(!b)return'';return b>1e9?(b/1e9).toFixed(1)+' GB':(b/1e6).toFixed(1)+' MB'}
+async function start(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){$('login').hidden=false;$('app').hidden=true;return}
+  const {data:g}=await sb.from('gestores').select('user_id').maybeSingle();
+  if(!g){await sb.auth.signOut();$('login').hidden=false;$('app').hidden=true;$('lerr').textContent='Esta conta não é de gestor.';return}
+  $('login').hidden=true;$('app').hidden=false;$('eu').textContent=session.user.email;
+  const {data,error}=await sb.rpc('meus_colaboradores');cols=data||[];
+  $('col').innerHTML=cols.map(c=>`<option value="${c.id}">${esc(c.nome)} (${esc(c.email)})</option>`).join('');
+  $('cnt').textContent=cols.length?cols.length+' colaborador(es)':'Nenhum colaborador vinculado a você ainda.';
+  if(cols.length)carregar();else{$('lista').innerHTML='';$('cfg').hidden=true}
+}
+async function carregar(){
+  const id=$('col').value;$('cfg').hidden=false;
+  const {data:c}=await sb.from('config_envio').select('*').eq('user_id',id).maybeSingle();
+  $('cAtivo').checked=c?c.ativo:true;$('cInt').value=String(c?c.intervalo_min:60);$('cWifi').checked=c?c.so_wifi_com_internet:true;$('cMsg').textContent='';
+  let q=sb.from('midias').select('id,tipo,titulo,arquivo,miniatura,tamanho_bytes,duracao_s,gravado_em').eq('user_id',id).order('gravado_em',{ascending:false}).limit(200);
+  if($('tipo').value)q=q.eq('tipo',$('tipo').value);
+  const {data:m}=await q;const L=m||[];$('vazio').hidden=L.length>0;
+  const paths=L.map(x=>x.miniatura).filter(Boolean);
+  let urls={};if(paths.length){const {data:s}=await sb.storage.from('midias').createSignedUrls(paths,3600);(s||[]).forEach(x=>{if(x.path)urls[x.path]=x.signedUrl})}
+  $('lista').innerHTML=L.map(x=>`<div class="it"><div class="th" data-id="${x.id}" style="${urls[x.miniatura]?`background-image:url('${urls[x.miniatura]}')`:''}">${urls[x.miniatura]?'':(x.tipo==='foto'?'🖼️':'🎬')}</div><div class="in"><b>${esc(x.titulo||x.arquivo||'')}</b><span class="mut">${new Date(x.gravado_em).toLocaleString('pt-BR')} ${fmt(x.tamanho_bytes)}</span><br><a href="#" data-dl="${x.id}">Baixar</a></div></div>`).join('');
+  window._L=L;
+}
+async function url(x){const {data}=await sb.storage.from('midias').createSignedUrl(x.arquivo,3600);return data&&data.signedUrl}
+$('lista').addEventListener('click',async e=>{
+  const th=e.target.closest('.th'),dl=e.target.closest('[data-dl]');const id=(th&&th.dataset.id)||(dl&&dl.dataset.dl);if(!id)return;e.preventDefault();
+  const x=window._L.find(v=>v.id===id);const u=await url(x);if(!u){alert('Arquivo indisponível');return}
+  if(dl){const a=document.createElement('a');a.href=u;a.download=x.titulo||'arquivo';document.body.appendChild(a);a.click();a.remove();return}
+  $('box').innerHTML=x.tipo==='foto'?`<img src="${u}">`:`<video src="${u}" controls autoplay playsinline></video>`;$('dlg').showModal();
+});
+$('dlg').addEventListener('close',()=>{$('box').innerHTML=''});
+$('col').onchange=carregar;$('tipo').onchange=carregar;
+$('cSalvar').onclick=async()=>{
+  const {data:{user}}=await sb.auth.getUser();
+  const {error}=await sb.from('config_envio').upsert({user_id:$('col').value,ativo:$('cAtivo').checked,intervalo_min:+$('cInt').value,so_wifi_com_internet:$('cWifi').checked,atualizado_por:user.id,updated_at:new Date().toISOString()});
+  $('cMsg').className=error?'er':'ok';$('cMsg').textContent=error?'Erro: '+error.message:'Salvo ✓';
+};
+$('go').onclick=async()=>{
+  $('lerr').textContent='';
+  const {error}=await sb.auth.signInWithPassword({email:$('em').value.trim(),password:$('pw').value});
+  if(error){$('lerr').textContent='E-mail ou senha incorretos.';return}
+  $('pw').value='';start();
+};
+$('pw').addEventListener('keydown',e=>{if(e.key==='Enter')$('go').click()});
+$('sair').onclick=async()=>{await sb.auth.signOut();start()};
+start();
+</script>
+</body>
+</html>

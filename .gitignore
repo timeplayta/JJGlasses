@@ -14,3 +14,5 @@ ponte/ivue-teste.txt
 ponte/ivue-wifi.txt
 ponte/ivue-celular.txt
 ponte/app-oficial/
+gestor/node_modules/
+gestor/.wrangler/

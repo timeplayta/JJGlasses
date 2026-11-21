@@ -1,0 +1,6 @@
+{
+  // Página dos gestores do JJGlasses (só arquivos estáticos; os vídeos ficam no Supabase)
+  "name": "jjglasses-gestores",
+  "compatibility_date": "2026-11-01",
+  "assets": { "directory": "./public" }
+}
