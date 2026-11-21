@@ -1,7 +1,7 @@
 {
-  "code": 1064,
-  "name": "1.64",
-  "src": "fbb48a80eaf21aaee8b77dcd3521e49b5e2b486a0474b70d05c46ab963ac2bfc",
+  "code": 1065,
+  "name": "1.65",
+  "src": "2f6841e782e2c60f7fd8019ca960b8e870e0b08172c63bca2a4a12c95f292cf8",
   "notes": {
     "t": "Ao vivo do iVUE: o app abre a sessão como o app oficial",
     "b": [
@@ -9,7 +9,7 @@
       "Com isso o ao vivo, a bateria e o espaço livre devem funcionar."
     ]
   },
-  "bytes": 3854632,
-  "sha256": "1b46c283e0aefcbdc3be6bd8190b7fe50eae782d63f72c3fec3b805432047f34",
-  "atual": 1064
+  "bytes": 3854408,
+  "sha256": "4300623091896b741f064bbf679f0155942843364d52ad26aeba2600c3266cdf",
+  "atual": 1065
 }
