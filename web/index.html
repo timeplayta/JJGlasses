@@ -649,6 +649,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     </div>
     <div class="ivh" id="ivHome" aria-label="Vídeos do óculos iVUE Denali">
       <div class="ivhact"><button class="btn main" id="ivLive">▶ Ao vivo</button><button class="btn" id="ivGal">🎬 Vídeos e fotos</button></div>
+      <button class="btn main" id="ivPick">📥 Baixar do óculos</button>
       <button class="ivmode" id="ivMode"><span id="ivModeT">✋ Baixar só quando eu mandar</span><small>Trocar</small></button>
     </div>
     <div class="glbt" id="glTalkBox">
@@ -1699,13 +1700,15 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   function ocChats(id){return chats.filter(function(c){return (c.oculos||'jj')===id})}
   function glPicked(id){return id==='jj'?prefs.glChat:(prefs.glChatBy||{})[id]}
   function glChatId(id){id=id||'jj';var p=glPicked(id),ok=ocChats(id);if(p&&ok.some(function(c){return c.id===p}))return p;return ok.length?ok[0].id:null}
-  function ivSyncTxt(c){return c&&c.ivSync==='auto'?'⚡ Automático: baixa e libera espaço no óculos':'✋ Baixar só quando eu mandar'}
+  /* Como o iVUE baixa ao conectar (a escolha é por óculos; o antigo "automático que apaga do óculos" foi retirado). */
+  var IV_ESC={'':'❓ Ao conectar: perguntar o que fazer',conversa:'💬 Ao conectar: carregar na conversa',galeria:'🖼️ Ao conectar: enviar para Fotos/Galeria',nao:'🚫 Ao conectar: não baixar'};
+  function ivSyncTxt(){return IV_ESC[(prefs.ivEscolha||{}).ivue||'']||IV_ESC['']}
   function glChats(){
     var id=glOcId(),oc=oculosById(id)||OCULOS_PADRAO[0],list=ocChats(id),p=glPicked(id),sel=glChatId(id),auto=!p||!list.some(function(c){return c.id===p}),wifi=oc.aoVivo==='wifi';
     $('glChatLbl').textContent=!list.length?'Ainda não tem chat com o '+oc.nome+'. Crie um abaixo.':wifi?'Os vídeos e fotos do '+oc.nome+' seguem o jeito de baixar do chat escolhido.':(auto?'Automático: a fala vai para o último chat.':'A fala vai para o chat escolhido.');
     var rows=list.length?'<div class="opt gchat" role="button" data-glc="" aria-pressed="'+auto+'"><span class="av">⟳</span><span><b>Último chat (automático)</b><small>Sempre o chat mais recente com o '+esc(oc.nome)+'</small></span></div>':'';
     rows+=list.slice(0,30).map(function(c){var last=c.msgs.filter(function(m){return !m.pending}).slice(-1)[0];var l=(c.title.match(/[A-Za-zÀ-ÿ0-9]/)||['•'])[0].toUpperCase();
-      return '<div class="opt gchat" role="button" data-glc="'+c.id+'" aria-pressed="'+(!auto&&c.id===sel)+'"><span class="av">'+esc(l)+'</span><span><b>'+esc(c.title)+'</b><small>'+esc(wifi?ivSyncTxt(c):last?String(last.text||'').replace(/\s+/g,' ').slice(0,70):when(c.at))+'</small></span></div>'}).join('');
+      return '<div class="opt gchat" role="button" data-glc="'+c.id+'" aria-pressed="'+(!auto&&c.id===sel)+'"><span class="av">'+esc(l)+'</span><span><b>'+esc(c.title)+'</b><small>'+esc(last?String(last.text||'').replace(/\s+/g,' ').slice(0,70):when(c.at))+'</small></span></div>'}).join('');
     rows+='<div class="opt gchat" role="button" data-glnew="'+esc(id)+'"><span class="av">＋</span><span><b>Novo chat com o '+esc(oc.nome)+'</b><small>'+(wifi?'Você escolhe como baixar os vídeos e fotos':'A fala do óculos vai para ele')+'</small></span></div>';
     $('glChats').innerHTML=rows;
   }
@@ -1864,7 +1867,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     ivHomePaint();ivAutoRun(ivSt);
   };
   function ivHomePaint(){
-    var on=ivOn();$('ivModeT').textContent=ivSyncTxt(ivChat());
+    var on=ivOn();$('ivModeT').textContent=ivSyncTxt();
     if(on){
       var u=ivSt.usado||0,l=ivSt.livre,nv=(ivSt.videos||[]).length,nf=(ivSt.fotos||[]).length;
       $('ivSto').textContent=fmtBytes(u)+' usados';
@@ -1928,7 +1931,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     b.className='chconn'+(on?' on':w?' wait':'');b.textContent=on?'● Conectado':w?'Procurando…':'Conectar';
     b.setAttribute('aria-label',(on?'Conectado: ':'Conectar: ')+oc.nome);
   }
-  $('chatConn').onclick=function(){var oc=chatOculos();if(ocConnected(oc.id)){toast(oc.icone+' '+oc.nome+' está conectado');return}connectOc(oc.id)};
+  $('chatConn').onclick=function(){var oc=chatOculos();if(ocConnected(oc.id)){if(oc.id==='ivue'){ivPickOpen();return}toast(oc.icone+' '+oc.nome+' está conectado');return}connectOc(oc.id)};
   setInterval(function(){if(document.hidden||!$('gl').hidden)return;if(NATIVE&&NATIVE.glassesState){try{var st=JSON.parse(NATIVE.glassesState());for(var k in st)gs[k]=st[k]}catch(e){}}chatConnPaint()},3000);
   function ivLiveOpen(){
     if(!(NATIVE&&NATIVE.ivueLive)){toast('Para ver ao vivo, atualize o app.');apkCheck(true);return}
@@ -1941,7 +1944,8 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     if(ivMode()==='auto'||ivUses())ivHomeAsk()},20000);
   /* ---------- Baixar automático: quando o óculos conecta, baixa um por um e apaga do óculos (só depois de conferir que baixou tudo) ---------- */
   function ivChat(){var id=glChatId('ivue');return chats.filter(function(c){return c.id===id})[0]||null}
-  function ivMode(){var c=ivChat();return c&&c.ivSync==='auto'?'auto':'manual'}
+  function ivMode(){return 'manual'}   // o modo antigo "baixa sozinho e apaga do óculos" foi retirado: agora a janela ao conectar decide
+  chats.forEach(function(c){if(c.ivSync==='auto')c.ivSync=''});
   var ivPrev={},ivFail={};
   function ivBusy(){return Object.keys(ivueProg).some(function(k){return ivueProg[k]&&!ivueProg[k].fim})}
   function ivAutoRun(r){
@@ -2055,11 +2059,22 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     var ch=ivChoice();
     if(ch==='nao')return;
     if(ch==='conversa'||ch==='galeria'){ivSelOpen(ch);return}
+    ivAskShow(novos);
+  }
+  function ivAskShow(novos){
     var nv=novos.filter(ivIsVideo).length,nf=novos.length-nv,c=ivDestChat();
-    $('ivAskN').textContent='Ele tem '+(nv?nv+' vídeo'+(nv>1?'s':''):'')+(nv&&nf?' e ':'')+(nf?nf+' foto'+(nf>1?'s':''):'')+' que ainda não estão no celular.';
+    $('ivAskN').textContent=novos.length?'Ele tem '+(nv?nv+' vídeo'+(nv>1?'s':''):'')+(nv&&nf?' e ':'')+(nf?nf+' foto'+(nf>1?'s':''):'')+' que ainda não estão no celular.':'Tudo o que está nele já foi baixado. Você ainda pode escolher de novo.';
     $('ivAskChat').textContent=c?'Na conversa "'+c.title+'"':'Numa conversa nova com o '+OC_FILES.ivue.nome;
     $('ivAskLembrar').checked=false;$('ivAsk').hidden=false;
   }
+  /* Botão "Baixar do óculos" (e o chip "● Conectado" do chat): abre a janela a qualquer momento. */
+  function ivPickOpen(){
+    if(!OC_FILES.ivue.pronto()){toast('Atualize o app para baixar do óculos.');apkCheck(true);return}
+    if(!ivOn()){toast('Conecte o óculos primeiro (botão Conectar)');ivHomeAsk();return}
+    ivAskShow(ivAll(ivSt).filter(function(f){return !ivueDl[f.path]}));
+  }
+  $('ivPick').onclick=ivPickOpen;
+  setTimeout(function(){if(ivUses()){ivAsking=false;ivHomeAsk()}},2500);   // abriu o app já conectado no óculos
   $('ivAsk').addEventListener('click',function(e){
     var b=e.target.closest('[data-ivq]');if(!b){if(e.target===$('ivAsk'))$('ivAsk').hidden=true;return}
     var v=b.getAttribute('data-ivq');
@@ -2383,9 +2398,10 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
       oculosList.forEach(function(o){h+='<button class="it" data-oc="'+esc(o.id)+'" aria-pressed="'+((c.oculos||'jj')===o.id)+'">'+esc(o.icone)+'<span>'+esc(o.nome)+'<small>'+esc(o.descricao)+'</small></span></button>'});
     }else if(view==='ocsync'){
       $('cmTitle').textContent='Vídeos e fotos do '+chatOculos(c).nome;
-      h+='<p class="sub" style="margin:0 6px 8px">Quando o celular conectar no óculos (Wi-Fi), o que o app faz com os vídeos e fotos dele?</p>';
-      h+='<button class="it" data-sync="auto" aria-pressed="'+(c.ivSync==='auto')+'">⚡<span>Automático e libera espaço<small>Baixa tudo para a galeria do celular sozinho e apaga do óculos depois de conferir que baixou certinho.</small></span></button>';
-      h+='<button class="it" data-sync="manual" aria-pressed="'+(c.ivSync!=='auto')+'">✋<span>Só quando eu mandar<small>Nada sai do óculos. Você toca em "Baixar" no vídeo ou foto que quiser.</small></span></button>';
+      h+='<p class="sub" style="margin:0 6px 8px">Quando o óculos conectar com fotos e vídeos novos, o que o app faz? Você sempre escolhe quais arquivos antes de baixar, e nada é apagado do óculos.</p>';
+      var e0=(prefs.ivEscolha||{}).ivue||'';
+      [['','❓','Perguntar toda vez','Aparece a janela com as opções'],['conversa','💬','Carregar na conversa','Os arquivos escolhidos entram nesta conversa'],['galeria','🖼️','Enviar para Fotos/Galeria','Galeria do celular e galeria do app'],['nao','🚫','Não baixar','Nada é copiado']].forEach(function(o){
+        h+='<button class="it" data-ivesc="'+o[0]+'" aria-pressed="'+(e0===o[0])+'">'+o[1]+'<span>'+o[2]+'<small>'+o[3]+'</small></span></button>'});
     }else if(view==='ren'){
       h+='<input class="field" id="cmName" value="'+esc(c.title)+'" maxlength="80"><button class="btn main" id="cmSave" style="margin-top:8px">Salvar nome</button>';
     }else{
@@ -2412,11 +2428,9 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     if(b){var oc=oculosById(b.getAttribute('data-oc'));c.oculos=oc.id;prefs.oculos=oc.id;persist();renderAll();
       if(oc.aoVivo==='wifi'){openChatMenu(c.id,'ocsync');return}
       closeChatMenu();toast(oc.icone+' Neste chat: '+oc.nome+(oc.falante?'':' (as respostas ficam só na tela)'));if(c.id===cur)$('msgIn').focus();return}
-    b=e.target.closest('[data-sync]');
-    if(b){c.ivSync=b.getAttribute('data-sync');persist();renderAll();closeChatMenu();
-      if(chatOculos(c).aoVivo==='wifi'){prefs.glChatBy=prefs.glChatBy||{};prefs.glChatBy.ivue=c.id;persist()}
-      toast(c.ivSync==='auto'?'⚡ Quando o óculos conectar, os vídeos e fotos vão sozinhos para o celular':'✋ Os vídeos e fotos só saem do óculos quando você tocar em Baixar');
-      if(!$('gl').hidden){glChats();ivHomePaint()}if(c.ivSync==='auto')ivHomeAsk();return}
+    b=e.target.closest('[data-ivesc]');
+    if(b){prefs.ivEscolha=prefs.ivEscolha||{};prefs.ivEscolha.ivue=b.getAttribute('data-ivesc');prefs.glChatBy=prefs.glChatBy||{};prefs.glChatBy.ivue=c.id;persist();renderAll();closeChatMenu();
+      toast(ivSyncTxt());paintIvEscolha();if(!$('gl').hidden){glChats();ivHomePaint()}return}
     b=e.target.closest('[data-cl]');
     if(b){c.lang=b.getAttribute('data-cl');persist();renderAll();closeChatMenu();toast(c.lang?'Nesta conversa a IA vai falar em '+langLocal(c.lang)+'.':'A IA volta a falar na língua do app.');return}
     if(e.target.id==='cmSave'){var v=$('cmName').value.trim();if(v){c.title=v.slice(0,80);persist();renderAll()}closeChatMenu();return}

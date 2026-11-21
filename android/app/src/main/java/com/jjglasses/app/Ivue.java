@@ -174,7 +174,10 @@ public class Ivue {
     /** O app pede a lista: responde em window.jjIvue({ok, videos, fotos}) ou ({ok:false, erro}). */
     /** Confirma que é mesmo o óculos (a página dele tem a pasta DCIM), e não outro aparelho no mesmo endereço. */
     private void confirm() throws Exception {
-        if (!get("/").contains("DCIM")) throw new Exception("não é o óculos");
+        try { if (get("/").contains("DCIM")) return; } catch (Exception ignored) { }
+        String m = get("/DCIM/Movie");                       // 2ª checagem: a pasta de vídeos do óculos responde?
+        if (m.contains("/DCIM/Movie") || ROW.matcher(m).find()) return;
+        throw new Exception("não é o óculos");
     }
 
     public void listAll() {
