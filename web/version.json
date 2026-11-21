@@ -1,13 +1,13 @@
 {
-  "v": 202611211417,
+  "v": 202611211430,
   "notes": {
-    "t": "Notificações de atualização arrumadas",
+    "t": "Baixar do óculos: janela ao conectar arrumada",
     "b": [
-      "Ao abrir o app, ele pede para mostrar notificações (Android 13 ou mais novo só mostra com essa permissão).",
-      "Ajustes › Notificações mostra se estão ativadas, com botões Ativar e Testar.",
-      "O app procura atualização a cada 1 hora."
+      "Ao conectar o iVUE com fotos e vídeos novos, a janela de escolha aparece (o modo antigo que apagava do óculos foi retirado).",
+      "Novo botão 📥 Baixar do óculos na aba do óculos, e o selo ● Conectado no topo do chat também abre a escolha.",
+      "Se o app abrir já conectado no óculos, ele percebe sozinho."
     ]
   },
-  "bytes": 259410,
-  "sha256": "de3318184a5e043f0753008ea2da2a38e27a1c17db4f950f27caf64f53f8b5e7"
+  "bytes": 260493,
+  "sha256": "0b9d0243c7f926be3966285719a94411a8898c72270e9766955e0abb7874001d"
 }
