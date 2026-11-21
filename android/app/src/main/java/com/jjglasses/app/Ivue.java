@@ -356,7 +356,7 @@ public class Ivue {
                 OutputStream os = Build.VERSION.SDK_INT >= 29 ? cr.openOutputStream(uri, resumed ? "wa" : "wt") : new FileOutputStream(file, resumed);
                 long done = have, last = 0;
                 try (InputStream in = c.getInputStream(); OutputStream o = os) {
-                    byte[] buf = new byte[65536]; int k;
+                    byte[] buf = new byte[262144]; int k;
                     while ((k = in.read(buf)) > 0) {
                         if (cancel) throw new Exception("cancelado");
                         o.write(buf, 0, k); done += k;

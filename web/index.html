@@ -648,7 +648,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     </div>
     </div>
     <div class="ivh" id="ivHome" aria-label="Vídeos do óculos iVUE Denali">
-      <div class="ivhact"><button class="btn main" id="ivLive">▶ Ao vivo</button><button class="btn" id="ivGal">🎬 Vídeos e fotos</button></div>
+      <div class="ivhact"><button class="btn main" id="ivGal">🎬 Vídeos e fotos</button></div>
       <button class="btn main" id="ivPick">📥 Baixar do óculos</button>
       <button class="ivmode" id="ivMode"><span id="ivModeT">✋ Baixar só quando eu mandar</span><small>Trocar</small></button>
     </div>
@@ -662,15 +662,12 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     <div class="opts" id="glChats"></div>
     </section>
     <section class="glv" id="glv-rec" hidden>
-    <div class="glive" id="recPrev"><span class="gdot" id="recDot2"></span><b>Ao vivo</b><small>Toque em "▶ Ao vivo" para ver a imagem do óculos iVUE em tempo real (celular no Wi-Fi "iVUE").</small></div>
     <div class="grec">
       <label>Óculos<select class="field" id="recOc"></select></label>
       <div><small class="glbl">Qualidade</small><div class="pills" id="recRes"></div></div>
       <label>Contexto de uso<select class="field" id="recCtx"></select></label>
       <p class="gsub">A IA usa o contexto para entender o que é normal em cada situação: um salto de paraquedas é diferente de uma fábrica.</p>
-      <button class="btn main" id="recLive">▶ Ao vivo</button>
-      <div class="recst"><span class="gdot" id="recDot"></span><span id="recSt">Ao vivo pelo Wi-Fi do óculos</span></div>
-      <p class="gsub" id="recInfo">Ligue o óculos, conecte o celular no Wi-Fi "iVUE" dele e toque em "▶ Ao vivo". O vídeo gravado fica no óculos; baixe pela Galeria.</p>
+      <p class="gsub" id="recInfo">O vídeo gravado fica no óculos. Conecte o celular no Wi-Fi "iVUE" dele e baixe pela Galeria; o envio para a nuvem é feito de tempos em tempos.</p>
       <p class="gsub">⚠️ Se for filmar pessoas no trabalho, avise antes que elas estão sendo filmadas (LGPD).</p>
     </div>
     </section>
@@ -1177,7 +1174,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
      Se a internet falhar, usa esta lista de reserva. */
   var OCULOS_PADRAO=[
     {id:'jj',nome:'JJGlasses W AI 4',icone:'🕶️',descricao:'Com IA, câmera, microfone e alto-falante',ia:true,falante:true,mic:true,camera:true,grava:true,res:['1080p'],aoVivo:'bluetooth'},
-    {id:'ivue',nome:'iVUE Denali',icone:'🎥',descricao:'Câmera e microfone: grava em 2K e 1080p, Wi-Fi com prévia ao vivo. Sem IA e sem alto-falante',ia:false,falante:false,mic:true,camera:true,grava:true,res:['1080p','2K'],aoVivo:'wifi'},
+    {id:'ivue',nome:'iVUE Denali',icone:'🎥',descricao:'Câmera e microfone: grava em 2K e 1080p, Wi-Fi para baixar vídeos e fotos. Sem IA e sem alto-falante',ia:false,falante:false,mic:true,camera:true,grava:true,res:['1080p','2K'],aoVivo:'wifi'},
     {id:'nenhum',nome:'Sem óculos',icone:'📱',descricao:'Só o celular',ia:false,falante:false,mic:false,camera:false,grava:false,res:[],aoVivo:''}];
   var oculosList=(function(){try{var x=JSON.parse(localStorage.getItem('jj_oculos')||'null');if(Array.isArray(x)&&x.length)return x}catch(e){}return OCULOS_PADRAO})(),oculosAt=0;
   function oculosById(id){for(var i=0;i<oculosList.length;i++)if(oculosList[i].id===id)return oculosList[i];for(i=0;i<OCULOS_PADRAO.length;i++)if(OCULOS_PADRAO[i].id===id)return OCULOS_PADRAO[i];return null}
@@ -1933,12 +1930,6 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   }
   $('chatConn').onclick=function(){var oc=chatOculos();if(ocConnected(oc.id)){if(oc.id==='ivue'){ivPickOpen();return}toast(oc.icone+' '+oc.nome+' está conectado');return}connectOc(oc.id)};
   setInterval(function(){if(document.hidden||!$('gl').hidden)return;if(NATIVE&&NATIVE.glassesState){try{var st=JSON.parse(NATIVE.glassesState());for(var k in st)gs[k]=st[k]}catch(e){}}chatConnPaint()},3000);
-  function ivLiveOpen(){
-    if(!(NATIVE&&NATIVE.ivueLive)){toast('Para ver ao vivo, atualize o app.');apkCheck(true);return}
-    if(ivSt&&!ivSt.ok)toast('Conecte o celular no Wi-Fi "iVUE" do óculos');
-    NATIVE.ivueLive();
-  }
-  $('ivLive').onclick=ivLiveOpen;
   $('ivGal').onclick=function(){glView('gal');if(ivueFiles)ivuePaint();else $('ivueBtn').click()};
   setInterval(function(){if(document.hidden||!(NATIVE&&NATIVE.ivueStatus))return;
     if(ivMode()==='auto'||ivUses())ivHomeAsk()},20000);
@@ -2225,7 +2216,6 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   $('recOc').onchange=function(){prefs.rec=Object.assign({},prefs.rec,{oc:this.value});persist();recPaint()};
   $('recCtx').onchange=function(){prefs.rec=Object.assign({},prefs.rec,{ctx:this.value});persist()};
   $('recRes').addEventListener('click',function(e){var b=e.target.closest('[data-rr]');if(!b)return;prefs.rec=Object.assign({},prefs.rec,{res:b.getAttribute('data-rr')});persist();recPaint()});
-  $('recLive').onclick=ivLiveOpen;
   function fmtDur(ms){var m=Math.round(ms/60000);if(m<60)return m+' min';var h=Math.floor(m/60);return h+' h'+(m%60?' '+(m%60)+' min':'')}
   function paintGl(){
     var on=!!gs.connected,wait=!!(gs.connecting||gs.scanning);
