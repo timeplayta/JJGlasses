@@ -68,7 +68,7 @@ public class MainActivity extends Activity {
     static final String INDEX_URL = BASE + "index.html";
 
     private static final long CHECK_EVERY_MS = 10 * 60 * 1000L; // checa versão nova a cada 10 min com o app aberto
-    private static final int REQ_MEDIA = 31, REQ_LOCATION = 32, REQ_FILE = 33, REQ_MIC = 34, REQ_BT = 35;
+    private static final int REQ_MEDIA = 31, REQ_LOCATION = 32, REQ_FILE = 33, REQ_MIC = 34, REQ_BT = 35, REQ_NOTIF = 37;
 
     private final Handler main = new Handler(Looper.getMainLooper());
     private WebView web;
@@ -205,6 +205,7 @@ public class MainActivity extends Activity {
         super.onResume();
         Updater.out = updOut;
         Updater.resume(this);   // voltou da tela "instalar apps desta fonte": continua a atualização
+        if (notifFromSettings) { notifFromSettings = false; js("window.jjNotif&&window.jjNotif(" + notifOn() + ")"); }
         if (web != null) web.onResume();
         main.removeCallbacks(periodic);
         main.postDelayed(periodic, 30_000);
@@ -450,6 +451,10 @@ public class MainActivity extends Activity {
             pendingGeo = null;
         } else if (code == REQ_BT) {
             if (btAllowed()) glasses.start(); else js("window.jjGlasses&&window.jjGlasses({error:'Permita o Bluetooth para ligar o óculos'})");
+        } else if (code == REQ_NOTIF) {
+            boolean ok = notifOn();
+            js("window.jjNotif&&window.jjNotif(" + ok + ")");
+            if (ok) Updater.schedule(this);
         } else if (code == REQ_MIC) {
             int mode = pendingListenMode;
             pendingListenMode = -1;
@@ -474,6 +479,36 @@ public class MainActivity extends Activity {
         if (Build.VERSION.SDK_INT >= 31) return has(Manifest.permission.BLUETOOTH_SCAN) && has(Manifest.permission.BLUETOOTH_CONNECT);
         return has(Manifest.permission.ACCESS_FINE_LOCATION);
     }
+
+    // ------------------------------------------------------------ Notificações (atualizações e lembretes)
+    /** As notificações do app estão liberadas? (Android 13+ precisa da permissão; e a pessoa pode desligar nos ajustes.) */
+    private boolean notifOn() {
+        android.app.NotificationManager nm = getSystemService(android.app.NotificationManager.class);
+        boolean perm = Build.VERSION.SDK_INT < 33 || has(Manifest.permission.POST_NOTIFICATIONS);
+        return perm && (nm == null || nm.areNotificationsEnabled());
+    }
+
+    /** Pede para mostrar notificações. Se o Android não deixa pedir de novo (a pessoa já negou), abre os ajustes do app. */
+    private void askNotif() {
+        if (notifOn()) { js("window.jjNotif&&window.jjNotif(true)"); return; }
+        android.content.SharedPreferences sp = getSharedPreferences("perm", MODE_PRIVATE);
+        boolean askedBefore = sp.getBoolean("notifPedida", false);
+        if (Build.VERSION.SDK_INT >= 33 && !has(Manifest.permission.POST_NOTIFICATIONS)
+                && (!askedBefore || shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS))) {
+            sp.edit().putBoolean("notifPedida", true).apply();
+            requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQ_NOTIF);
+            return;
+        }
+        try {   // já negou antes (ou desligou nos ajustes): abre a tela de notificações do JJGlasses
+            startActivity(new Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                .putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, getPackageName()));
+            notifFromSettings = true;
+        } catch (Exception e) {
+            startActivity(new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + getPackageName())));
+            notifFromSettings = true;
+        }
+    }
+    private boolean notifFromSettings;
 
     private void askBluetooth() {
         ArrayList<String> need = new ArrayList<>();
@@ -553,6 +588,10 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void applyUpdate() { main.post(MainActivity.this::applyStaged); }
 
         // atualização do APK pelo próprio app (sem mandar link)
+        // notificações: está liberado? pedir; mandar uma de teste
+        @JavascriptInterface public boolean notifOk() { return notifOn(); }
+        @JavascriptInterface public void notifAsk() { main.post(MainActivity.this::askNotif); }
+        @JavascriptInterface public void notifTest() { Updater.notifyTest(MainActivity.this); }
         @JavascriptInterface public String apkCode() { return String.valueOf(Updater.installedCode(MainActivity.this)); }
         @JavascriptInterface public void apkUpdate() { main.post(() -> Updater.start(MainActivity.this)); }
 

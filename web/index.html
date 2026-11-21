@@ -236,7 +236,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 .cprev .m{max-width:80%;font-size:14px;padding:7px 12px}
 .ivq{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}.ivq[hidden],.ivsel[hidden]{display:none}
 .ivqbox{background:var(--bg);width:min(520px,100%);border-radius:22px 22px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;max-height:92vh;overflow:auto}
-.ivqbox h3{margin:0 4px;font-size:19px}.ivqbox button.it{border:1px solid var(--line);background:var(--card);display:flex;align-items:center;gap:12px;padding:12px 12px;border-radius:14px;font:inherit;font-size:15.5px;text-align:left;color:var(--ink);cursor:pointer;width:100%}
+.ivqbox .btn{margin:0;justify-content:center;text-align:center}.pill[hidden]{display:none}.ivqbox h3{margin:0 4px;font-size:19px}.ivqbox button.it{border:1px solid var(--line);background:var(--card);display:flex;align-items:center;gap:12px;padding:12px 12px;border-radius:14px;font:inherit;font-size:15.5px;text-align:left;color:var(--ink);cursor:pointer;width:100%}
 .ivqbox button.it>span{display:flex;flex-direction:column;gap:2px}.ivqbox button.it small{display:block;color:var(--mute);font-size:12.5px}
 .ivqbox .gsw small{display:block;color:var(--mute);font-size:12.5px}.ivqbox .sub{margin:0 4px 4px;color:var(--mute);font-size:14px}
 .ivsel{position:fixed;inset:0;z-index:58;background:var(--bg);display:flex;flex-direction:column}
@@ -520,6 +520,11 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
       <select class="field" id="setAiLang" aria-label="Língua da IA"></select>
     </div>
     <div class="card">
+      <p class="label">Notificações</p>
+      <p class="sub" id="ntState">Avisos de atualização do app e dos lembretes.</p>
+      <div class="pills"><button class="pill" id="ntOn">Ativar</button><button class="pill" id="ntTest">Testar</button></div>
+    </div>
+    <div class="card">
       <p class="label">Óculos: ao conectar com fotos e vídeos</p>
       <p class="sub">O que fazer quando o iVUE Denali conectar com arquivos novos. Você sempre escolhe quais arquivos antes de baixar.</p>
       <select class="field" id="setIvEscolha" aria-label="Ao conectar o iVUE Denali"><option value="">Perguntar toda vez</option><option value="conversa">Carregar na conversa</option><option value="galeria">Enviar para Fotos/Galeria</option><option value="nao">Não baixar</option></select>
@@ -578,6 +583,13 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 <div class="ring" id="ring" hidden><div class="ringbox"><div class="ringic">⏰</div><b id="ringT">Lembrete</b><p id="ringTxt"></p><div class="nacts"><button class="btn" id="ringSnooze">Adiar 5 min</button><button class="btn main" id="ringOk">Ok</button></div></div></div>
 
 <!-- cores das conversas (abre pelos Ajustes ou segurando o dedo num balão) -->
+<!-- logo depois de instalar: pede para mostrar notificações (atualizações e lembretes) -->
+<div class="ivq" id="ntAsk" hidden><div class="ivqbox" role="dialog" aria-modal="true" aria-labelledby="ntAskT">
+  <h3 id="ntAskT">🔔 Ativar as notificações?</h3>
+  <p class="sub">Assim o JJGlasses avisa quando tiver <b>atualização nova</b> e na hora dos seus <b>lembretes</b>. Na próxima tela, toque em <b>Permitir</b>.</p>
+  <button class="btn main" id="ntYes">Permitir notificações</button>
+  <button class="btn" id="ntNo">Agora não</button>
+</div></div>
 <!-- ao conectar um óculos com conteúdo: pergunta o que fazer -->
 <div class="ivq" id="ivAsk" hidden><div class="ivqbox" role="dialog" aria-modal="true" aria-labelledby="ivAskT">
   <h3 id="ivAskT">📶 iVUE Denali conectado</h3>
@@ -1946,6 +1958,23 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   function ivDropFile(path){if(!ivueFiles)return;['videos','fotos'].forEach(function(k){ivueFiles[k]=(ivueFiles[k]||[]).filter(function(x){return x.path!==path})});if(ivSt&&ivSt.ok){ivSt.videos=ivueFiles.videos;ivSt.fotos=ivueFiles.fotos}ivuePaint();ivHomePaint()}
   window.jjIvueDel=function(r){if(r&&r.ok)ivDropFile(r.path);else if(r)ivFail[r.path]=(ivFail[r.path]||0)+1;setTimeout(ivHomeAsk,800)};
   $('ivMode').onclick=function(){var c=ivChat();if(!c){c=newChat('ivue');prefs.glChatBy=prefs.glChatBy||{};prefs.glChatBy.ivue=c.id;persist();renderAll();glChats()}openChatMenu(c.id,'ocsync')};
+  /* ---------- Notificações: pedir logo depois de instalar (Android 13+ só mostra com permissão) ---------- */
+  function ntOk(){try{return !!(NATIVE&&NATIVE.notifOk&&NATIVE.notifOk())}catch(e){return false}}
+  function ntPaint(){var has=!!(NATIVE&&NATIVE.notifOk),on=ntOk();
+    $('ntState').textContent=!has?'Atualize o app para ativar os avisos de atualização.':on?'✓ Ativadas: você recebe os avisos de atualização e dos lembretes.':'⚠️ Desativadas: você não recebe avisos de atualização nem de lembretes.';
+    $('ntOn').hidden=!has||on;$('ntTest').hidden=!has||!on}
+  function ntMaybeAsk(){
+    if(!(NATIVE&&NATIVE.notifOk)||ntOk()||!session)return;
+    if(!$('upd').hidden||!$('ivAsk').hidden||!$('ivSel').hidden){setTimeout(ntMaybeAsk,8000);return}   // espera a outra tela fechar
+    var last=+prefs.ntPerguntou||0;if(last&&Date.now()-last<3*86400000)return;   // "Agora não": pergunta de novo em 3 dias
+    $('ntAsk').hidden=false;
+  }
+  $('ntYes').onclick=function(){$('ntAsk').hidden=true;prefs.ntPerguntou=Date.now();persist();NATIVE.notifAsk()};
+  $('ntNo').onclick=function(){$('ntAsk').hidden=true;prefs.ntPerguntou=Date.now();persist();toast('Dá para ativar depois em Ajustes › Notificações')};
+  $('ntOn').onclick=function(){NATIVE.notifAsk()};
+  $('ntTest').onclick=function(){NATIVE.notifTest();toast('Mandei uma notificação de teste')};
+  window.jjNotif=function(ok){ntPaint();if(ok){toast('🔔 Notificações ativadas');try{NATIVE.notifTest()}catch(e){}}else toast('As notificações continuam desligadas. Dá para ativar em Ajustes › Notificações.')};
+  setTimeout(ntMaybeAsk,2500);
   /* ---------- Atualização do APK pelo próprio app ----------
      O robô do GitHub publica apk.json. Se o número for maior que o do APK instalado, mostra esta tela
      (e o Android já mostrou a notificação). A pessoa autoriza, o app baixa (1% a 100%) e instala por cima. */
@@ -2582,7 +2611,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   function paintAiLang(){var sel=$('setAiLang');sel.innerHTML='<option value="">Automático (a mesma língua que você usar)</option>'+LANGS.map(function(x){return '<option value="'+x[0]+'">'+esc(langLocal(x[0]))+'</option>'}).join('');sel.value=prefs.aiLang||''}
   function applyTheme(){var r=document.documentElement;if(prefs.theme==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',prefs.theme)}
   ['Light','Dark','Auto'].forEach(function(n){$('th'+n).onclick=function(){prefs.theme=n.toLowerCase();applyTheme();persist();paintSettings()}});
-  function paintSettings(){paintIvEscolha();
+  function paintSettings(){paintIvEscolha();ntPaint();
     var cv=voice(),cp=cv.label.split(' · ');$('setVoiceName').textContent=cp[0];$('setVoiceDesc').textContent=cp[1]||'';paintOrb($('setOrb'),cv.id);
     ['Light','Dark','Auto'].forEach(function(n){$('th'+n).setAttribute('aria-pressed',prefs.theme===n.toLowerCase()?'true':'false')});
     $('nameIn').value=prefs.name||'';paintVoiceTune();paintAiLang();

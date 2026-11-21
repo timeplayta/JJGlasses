@@ -83,10 +83,12 @@ public class Updater {
     static void schedule(Context c) {
         try {
             JobScheduler js = c.getSystemService(JobScheduler.class);
-            if (js == null || js.getPendingJob(JOB_ID) != null) return;
+            if (js == null) return;
+            JobInfo old = js.getPendingJob(JOB_ID);
+            if (old != null && old.getIntervalMillis() == 60 * 60 * 1000L) return;   // já marcado (versões antigas marcavam de 4 em 4 h)
             js.schedule(new JobInfo.Builder(JOB_ID, new ComponentName(c, Job.class))
                 .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
-                .setPeriodic(4 * 60 * 60 * 1000L)
+                .setPeriodic(60 * 60 * 1000L)   // a cada 1 hora (o Android pode juntar com outras tarefas para poupar bateria)
                 .setPersisted(true)
                 .build());
         } catch (Exception e) { CrashReport.note(c, e); }
@@ -140,6 +142,20 @@ public class Updater {
             .build();
         NotificationManager nm = c.getSystemService(NotificationManager.class);
         try { if (nm != null) nm.notify(NOTIF_ID, nt); } catch (SecurityException ignored) { } // sem permissão de notificação
+    }
+
+    /** Notificação de teste (botão nos Ajustes), para a pessoa ver que está funcionando. */
+    static void notifyTest(Context c) {
+        channel(c);
+        Notification nt = new Notification.Builder(c, CH)
+            .setSmallIcon(android.R.drawable.stat_sys_download_done)
+            .setContentTitle("Notificações do JJGlasses funcionando ✓")
+            .setContentText("Você vai ser avisado das novas atualizações.")
+            .setContentIntent(openApp(c, false))
+            .setAutoCancel(true)
+            .build();
+        NotificationManager nm = c.getSystemService(NotificationManager.class);
+        try { if (nm != null) nm.notify(DONE_ID + 1, nt); } catch (SecurityException ignored) { }
     }
 
     /** Depois que o APK novo instalou (o Android avisa com MY_PACKAGE_REPLACED). */
