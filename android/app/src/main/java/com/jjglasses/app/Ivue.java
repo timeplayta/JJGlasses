@@ -121,16 +121,33 @@ public class Ivue {
     /** Estado da conexão agora (para a tela): conectado se o celular está no Wi-Fi do óculos. */
     public void netState() { net(direct != null ? "conectado" : "procurando".equals(estado) ? "procurando" : "desligado"); }
 
+    /** A rede tem um endereço 192.168.1.x (a rede do óculos)? */
+    private static boolean onGlassesNet(ConnectivityManager cm, Network n) {
+        try {
+            android.net.LinkProperties lp = cm.getLinkProperties(n);
+            if (lp == null) return false;
+            for (android.net.LinkAddress la : lp.getLinkAddresses()) {
+                java.net.InetAddress a = la.getAddress();
+                if (a instanceof java.net.Inet4Address && a.getHostAddress().startsWith("192.168.1.")) return true;
+            }
+        } catch (Exception ignored) { }
+        return false;
+    }
+
+    /** A rede Wi-Fi do óculos. Se o celular tiver mais de um Wi-Fi aberto, escolhe o que está na faixa do óculos (192.168.1.x). */
     static Network wifiNet(Context ctx) {
-        Network d = direct;
-        if (d != null) return d;
         ConnectivityManager cm = (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
-        if (cm == null) return null;
+        if (cm == null) return direct;
+        Network d = direct;
+        if (d != null && onGlassesNet(cm, d)) return d;
+        Network any = null;
         for (Network n : cm.getAllNetworks()) {
             NetworkCapabilities nc = cm.getNetworkCapabilities(n);
-            if (nc != null && nc.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) return n;
+            if (nc == null || !nc.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) continue;
+            if (onGlassesNet(cm, n)) return n;
+            if (any == null) any = n;
         }
-        return null;
+        return d != null ? d : any;
     }
 
     private HttpURLConnection open(String path, int readTimeout) throws Exception {
