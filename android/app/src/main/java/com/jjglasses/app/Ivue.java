@@ -196,7 +196,47 @@ public class Ivue {
         });
     }
 
-    private volatile Network apresentado;   // rede em que o app já mandou o "o app começou" (8001)
+    // ------------------------------------------------------------ Sessão do app (igual ao app oficial do iVUE)
+    // O óculos só aceita comandos de um celular com "sessão aberta". Sem sessão ele responde -22 a tudo.
+    // 3035 = abrir a sessão; 3016 = "está aí?" (responde -22 quando a sessão caiu). O app oficial confere a cada 5 s.
+    /** Comando para o óculos pela rede dele. Devolve o Status (0 ok, 1 ok no 3016, -22 sem sessão, "x" não chegou). */
+    static String cmdOn(Network n, String c) {
+        HttpURLConnection h = null;
+        try {
+            URL u = new URL(HOST + "/?custom=1&cmd=" + c);
+            h = (HttpURLConnection) (n != null ? n.openConnection(u) : u.openConnection());
+            h.setConnectTimeout(3000); h.setReadTimeout(4000); h.setUseCaches(false);
+            try (InputStream in = h.getInputStream(); ByteArrayOutputStream b = new ByteArrayOutputStream()) {
+                byte[] buf = new byte[2048]; int k;
+                while ((k = in.read(buf)) > 0 && b.size() < 8000) b.write(buf, 0, k);
+                Matcher m = Pattern.compile("<Status>(-?\\d+)</Status>").matcher(b.toString("UTF-8"));
+                return m.find() ? m.group(1) : "?";
+            }
+        } catch (Exception e) { return "x"; }
+        finally { if (h != null) h.disconnect(); }
+    }
+
+    /** Garante a sessão aberta: se o 3016 der -22, manda 3035 (abrir sessão) e confere de novo. */
+    static boolean ensureSession(Network n) {
+        String s = cmdOn(n, "3016");
+        if (!"-22".equals(s)) return !"x".equals(s);
+        cmdOn(n, "3035");
+        try { Thread.sleep(300); } catch (InterruptedException ignored) { }
+        return !"-22".equals(cmdOn(n, "3016"));
+    }
+
+    private final java.util.concurrent.ScheduledExecutorService beat = Executors.newSingleThreadScheduledExecutor();
+    private java.util.concurrent.ScheduledFuture<?> beatTask;
+
+    /** Mantém a sessão viva enquanto o óculos está conectado (a cada 5 s, como o app oficial). */
+    private synchronized void heartbeat(boolean on) {
+        if (on && beatTask == null) {
+            beatTask = beat.scheduleWithFixedDelay(() -> {
+                Network n = wifiNet(ctx);
+                if (n == null || !ensureSession(n)) heartbeat(false);
+            }, 5, 5, java.util.concurrent.TimeUnit.SECONDS);
+        } else if (!on && beatTask != null) { beatTask.cancel(false); beatTask = null; }
+    }
     private static final Pattern ST = Pattern.compile("<Status>(-?\\d+)</Status>");
     private static final Pattern VAL = Pattern.compile("<Value>(-?\\d+)</Value>");
 
@@ -234,11 +274,12 @@ public class Ivue {
                 for (int i = 0; i < f.length(); i++) usado += bytes(f.getJSONObject(i).optString("tamanho"));
                 r.put("ok", true); r.put("videos", v); r.put("fotos", f); r.put("usado", usado); r.put("rssi", rssi());
                 Network nw = wifi();
-                if (nw != null && !nw.equals(apresentado)) { get("/?custom=1&cmd=8001"); apresentado = nw; }   // o app se apresenta ao óculos (1 vez por conexão)
+                if (nw != null && ensureSession(nw)) { r.put("sessao", true); heartbeat(true); }   // abre a sessão (3035) e mantém viva
                 Long bat = cmd(3019);  if (bat != null) r.put("bateria", bat);   // 0 cheia ... 5 carregando
                 Long livre = cmd(3017); if (livre != null) r.put("livre", livre); // bytes livres no cartão
                 Long card = cmd(3024);  if (card != null) r.put("cartao", card);  // 1 = cartão colocado
             } catch (Exception e) {
+                heartbeat(false);
                 try { r.put("ok", false); r.put("erro", String.valueOf(e.getMessage())); } catch (Exception ignored) { }
             }
             out.js("window.jjIvueSt&&window.jjIvueSt(" + r + ")");
@@ -346,6 +387,7 @@ public class Ivue {
     }
 
     public void unwatch() {
+        heartbeat(false);
         ConnectivityManager cm = (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
         if (cm != null && watchCb != null) { try { cm.unregisterNetworkCallback(watchCb); } catch (Exception ignored) { } }
         watchCb = null;

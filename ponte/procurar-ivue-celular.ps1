@@ -83,7 +83,7 @@ function Rtsp($t) {
 }
 Rtsp "nada"
 Cmd "3016" "esta vivo? (antes de apresentar)"
-Cmd "8001" "o app se apresenta"
+Cmd "3035" "abrir a sessao do app (como o app oficial)"
 Cmd "3016" "esta vivo?"
 Cmd "3001&par=1" "modo video"; Start-Sleep 2; Rtsp "modo video"
 Cmd "2015&par=1" "ligar ao vivo"; Start-Sleep 2; Rtsp "ligar ao vivo"
@@ -99,7 +99,7 @@ $dest = Join-Path $PSScriptRoot "app-oficial"
 foreach ($k in $pk) {
   "app: $k" | Add-Content $o
   $path = ((& $adb shell "pm path $k" 2>&1 | Out-String) -split "`n" | Where-Object { $_ -match 'base.apk' } | Select-Object -First 1)
-  if ($path) { $path = $path.Trim() -replace '^package:',''; New-Item -ItemType Directory -Force $dest | Out-Null; & $adb pull $path (Join-Path $dest "$k.apk") 2>&1 | Out-String | Add-Content $o }
+  if ($path -and -not (Test-Path (Join-Path $dest "$k.apk"))) { $path = $path.Trim() -replace '^package:',''; New-Item -ItemType Directory -Force $dest | Out-Null; & $adb pull $path (Join-Path $dest "$k.apk") 2>&1 | Out-String | Add-Content $o }
 }
 
 "`n== 9) Registro do celular (logcat): ao vivo do app oficial e do JJGlasses ==" | Add-Content $o
