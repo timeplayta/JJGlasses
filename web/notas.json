@@ -1,1 +1,1 @@
-{"t":"Ao vivo: o app liga a transmissão no óculos","b":["Ao tocar em Ao vivo, o JJGlasses pede ao óculos iVUE para ligar o modo vídeo e o ao vivo.","Ao sair da tela, o app desliga o ao vivo no óculos.","Se der erro, a tela mostra o código e o que o óculos respondeu."]}
+{"t":"Ao vivo: o app se apresenta ao óculos","b":["Antes de pedir o ao vivo, o JJGlasses se apresenta ao óculos iVUE, como o app oficial faz.","A bateria e o espaço livre do iVUE também usam essa apresentação."]}

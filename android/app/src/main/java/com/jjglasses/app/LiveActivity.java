@@ -159,11 +159,12 @@ public class LiveActivity extends Activity {
         show("Ligando o ao vivo no óculos…", false);
         final int my = ++gen;
         new Thread(() -> {
+            String s0 = cmd(n, "8001");   // "o app começou": o óculos só aceita comandos depois de o app se apresentar
             String a = cmd(n, "3016"), b = cmd(n, "3001&par=1");
             try { Thread.sleep(800); } catch (InterruptedException ignored) { }
             String c = cmd(n, "2015&par=1");
             try { Thread.sleep(1200); } catch (InterruptedException ignored) { }
-            cmds = "vivo? " + a + " · modo vídeo " + b + " · ao vivo " + c;
+            cmds = "apresentar " + s0 + " · vivo? " + a + " · modo vídeo " + b + " · ao vivo " + c;
             main().post(() -> { if (my == gen && !isFinishing()) play(n); });
         }, "jj-live-cmd").start();
     }

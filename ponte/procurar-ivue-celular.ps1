@@ -82,6 +82,8 @@ function Rtsp($t) {
   "   ao vivo depois de '$t': $r" | Add-Content $o
 }
 Rtsp "nada"
+Cmd "3016" "esta vivo? (antes de apresentar)"
+Cmd "8001" "o app se apresenta"
 Cmd "3016" "esta vivo?"
 Cmd "3001&par=1" "modo video"; Start-Sleep 2; Rtsp "modo video"
 Cmd "2015&par=1" "ligar ao vivo"; Start-Sleep 2; Rtsp "ligar ao vivo"

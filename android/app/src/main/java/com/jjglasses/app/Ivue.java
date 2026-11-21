@@ -175,6 +175,7 @@ public class Ivue {
         });
     }
 
+    private volatile Network apresentado;   // rede em que o app já mandou o "o app começou" (8001)
     private static final Pattern ST = Pattern.compile("<Status>(-?\\d+)</Status>");
     private static final Pattern VAL = Pattern.compile("<Value>(-?\\d+)</Value>");
 
@@ -210,6 +211,8 @@ public class Ivue {
                 for (int i = 0; i < v.length(); i++) usado += bytes(v.getJSONObject(i).optString("tamanho"));
                 for (int i = 0; i < f.length(); i++) usado += bytes(f.getJSONObject(i).optString("tamanho"));
                 r.put("ok", true); r.put("videos", v); r.put("fotos", f); r.put("usado", usado); r.put("rssi", rssi());
+                Network nw = wifi();
+                if (nw != null && !nw.equals(apresentado)) { get("/?custom=1&cmd=8001"); apresentado = nw; }   // o app se apresenta ao óculos (1 vez por conexão)
                 Long bat = cmd(3019);  if (bat != null) r.put("bateria", bat);   // 0 cheia ... 5 carregando
                 Long livre = cmd(3017); if (livre != null) r.put("livre", livre); // bytes livres no cartão
                 Long card = cmd(3024);  if (card != null) r.put("cartao", card);  // 1 = cartão colocado
