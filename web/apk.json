@@ -1,16 +1,15 @@
 {
-  "code": 1058,
-  "name": "1.58",
-  "src": "8a34b48a55ccf6cebfc721f0309befa81c90330ef2e036f9d7dde80140ab465b",
+  "code": 1059,
+  "name": "1.59",
+  "src": "d44e0f518eeb7cf3526ceb3987c4a45598798b8998215889f31a06a6278c020d",
   "notes": {
-    "t": "Ao vivo: o app liga a transmissão no óculos",
+    "t": "Ao vivo: o app se apresenta ao óculos",
     "b": [
-      "Ao tocar em Ao vivo, o JJGlasses pede ao óculos iVUE para ligar o modo vídeo e o ao vivo.",
-      "Ao sair da tela, o app desliga o ao vivo no óculos.",
-      "Se der erro, a tela mostra o código e o que o óculos respondeu."
+      "Antes de pedir o ao vivo, o JJGlasses se apresenta ao óculos iVUE, como o app oficial faz.",
+      "A bateria e o espaço livre do iVUE também usam essa apresentação."
     ]
   },
-  "bytes": 3838780,
-  "sha256": "e73f50cecfce337c1eb1d6b3ee49109562b3c2af357bf271418d977489e115cf",
-  "atual": 1058
+  "bytes": 3839104,
+  "sha256": "201e400839761f42972a82400d3933b4dd450441afdfb7a19cf0fe09f71d0bf7",
+  "atual": 1059
 }
