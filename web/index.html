@@ -400,9 +400,13 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 .hero .big{font-size:54px;line-height:1;text-shadow:0 2px 8px rgba(0,0,0,.35)}
 .hero.foto{min-height:190px;justify-content:flex-end;background-size:cover!important;background-position:center!important;text-shadow:0 1px 6px rgba(0,0,0,.55)}
 .empty .capa{width:min(380px,100%);aspect-ratio:16/9;border-radius:20px;background:var(--line) center/cover no-repeat;box-shadow:0 6px 22px rgba(0,0,0,.18)}
-.capaprev{width:100%;aspect-ratio:16/9;border-radius:16px;background:var(--line) center/cover no-repeat;border:1px solid var(--line);display:flex;align-items:flex-end;padding:10px;color:#fff;font-weight:600;text-shadow:0 1px 6px rgba(0,0,0,.6)}
+.vorb.foto{background:var(--foto) center/cover no-repeat}
+.vorb.foto::before{display:none}
+.vorb.foto::after{background:radial-gradient(circle at 32% 24%,rgba(255,255,255,.28),transparent 32%),radial-gradient(circle at 50% 50%,transparent 62%,rgba(0,0,0,.28) 100%)}
+.capaorb{display:flex;flex-direction:column;align-items:center;gap:8px;padding:6px 0}
+.capaorb .vorb{width:132px;height:132px}
 .capathumbs{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px}
-.capathumbs button{flex:none;width:68px;height:46px;border-radius:10px;border:3px solid transparent;background:var(--line) center/cover no-repeat;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);padding:0;font-size:11px;color:var(--ink)}
+.capathumbs button{flex:none;width:52px;height:52px;border-radius:50%;border:3px solid transparent;background:var(--line) center/cover no-repeat;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);padding:0;font-size:11px;color:var(--ink)}
 .capathumbs button[aria-pressed="true"]{border-color:var(--accent)}
 .hero b{font-size:22px}
 .hero span{opacity:.92;line-height:1.45}
@@ -521,6 +525,14 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
       <div class="pills"><button class="pill" id="setTest">▶ Ouvir como ficou</button></div>
     </div>
     <div class="card">
+      <p class="label">Foto das bolinhas da IA</p>
+      <p class="sub">A bolinha da IA mostra uma paisagem. Deixe variada (cada voz com a sua), escolha uma, use uma foto da galeria, tire uma foto agora ou volte para as cores.</p>
+      <div class="capaorb"><span class="vorb" id="capaPrevOrb"></span><b id="capaNome"></b></div>
+      <div class="capathumbs" id="capaThumbs"></div>
+      <div class="pills"><button class="pill" id="capaGal">🖼️ Da galeria</button><button class="pill" id="capaCam">📷 Tirar foto agora</button></div>
+      <input type="file" id="capaIn" accept="image/*" hidden>
+    </div>
+    <div class="card">
       <p class="label">Língua da IA</p>
       <p class="sub">A língua em que a IA escreve e fala com você. Cada conversa também pode ter a sua, nos 3 pontinhos ao lado dela.</p>
       <select class="field" id="setAiLang" aria-label="Língua da IA"></select>
@@ -538,14 +550,6 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     <div class="card">
       <p class="label">Aparência</p>
       <div class="pills"><button class="pill" id="thLight">Claro</button><button class="pill" id="thDark">Escuro</button><button class="pill" id="thAuto">Automático</button></div>
-    </div>
-    <div class="card">
-      <p class="label">Foto de capa</p>
-      <p class="sub">Aparece nas telas de boas-vindas e na conversa vazia. Escolha uma paisagem, use uma foto sua ou volte para as cores.</p>
-      <div class="capaprev" id="capaPrev"><span id="capaNome"></span></div>
-      <div class="capathumbs" id="capaThumbs"></div>
-      <div class="pills"><button class="pill" id="capaGal">🖼️ Da galeria</button><button class="pill" id="capaCam">📷 Tirar foto agora</button></div>
-      <input type="file" id="capaIn" accept="image/*" hidden>
     </div>
     <div class="card">
       <p class="label">Conta</p>
@@ -1644,7 +1648,9 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 
   /* ---------- escolher voz: bolinhas que passam para o lado ---------- */
   var ORBC={ana:['#7FE3FF','#3D6BFF','#0E1C5C'],lia:['#FFD6F2','#B48CFF','#3B2A7A'],nina:['#FFE27A','#FF7A59','#7A1F3D'],bia:['#B9FFDF','#5CE0B8','#11605A'],clara:['#C9D2FF','#6C7BD9','#1D2350'],rita:['#FFB3C7','#FF4F87','#5C0F33'],bruno:['#9FB8C9','#3D5A73','#0D1A26'],davi:['#C7A27C','#6B4A2E','#1E130A'],leo:['#A8F0A0','#3FAF6B','#0F3B2A'],caio:['#9EEBFF','#22A6F2','#0B3159'],theo:['#FFC98F','#F28C38','#5A2A0C'],rui:['#D6DBE3','#7E8896','#1B2027']};
-  function paintOrb(el,id){if(!el)return;var c=(ORBC||{})[id]||['#7FE3FF','#3D6BFF','#0E1C5C'];el.style.setProperty('--o1',c[0]);el.style.setProperty('--o2',c[1]);el.style.setProperty('--o3',c[2])}
+  function paintOrb(el,id){if(!el)return;var c=(ORBC||{})[id]||['#7FE3FF','#3D6BFF','#0E1C5C'];el.style.setProperty('--o1',c[0]);el.style.setProperty('--o2',c[1]);el.style.setProperty('--o3',c[2]);
+    if(capaOn()){var vi=0;for(var k=0;k<VOICES.length;k++)if(VOICES[k].id===id)vi=k;el.style.setProperty('--foto','url('+capaUrl(vi%6+1)+')');el.classList.add('foto')}
+    else{el.classList.remove('foto');el.style.removeProperty('--foto')}}
   function introText(id){
     var v=VOICES.filter(function(x){return x.id===id})[0]||VOICES[0],p=v.label.split(' · '),n=p[0],k=(prefs.lang||'pt').slice(0,2);
     if(k==='en')return 'Hi! I\'m '+n+'. This is how I sound when I talk with you. If you like my voice, just choose me.';
@@ -2745,17 +2751,16 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     return ' style="background:linear-gradient(180deg,rgba(0,0,0,.12),rgba(0,0,0,.6)),url('+capaUrl(def)+')"';
   }
   function capaPaint(){
-    if(!$('capaPrev'))return;
-    var on=capaOn();
-    $('capaPrev').style.backgroundImage=on?'url('+capaUrl(1)+')':'linear-gradient(135deg,#2F62FF,#7C5CFF 60%,#22D3EE)';
-    $('capaNome').textContent=!on?'Cores':prefs.capa==='propria'?'Minha foto':/^c\d$/.test(prefs.capa||'')?CAPAS[+prefs.capa.slice(1)-1]:'Variada (uma paisagem em cada tela)';
+    if(!$('capaPrevOrb'))return;
+    var on=capaOn();paintOrb($('capaPrevOrb'),prefs.voice);
+    $('capaNome').textContent=!on?'Cores':prefs.capa==='propria'?'Minha foto':/^c\d$/.test(prefs.capa||'')?CAPAS[+prefs.capa.slice(1)-1]:'Variada (uma paisagem em cada voz)';
     var h='<button data-capa="" aria-pressed="'+(on&&!prefs.capa)+'" style="background-image:url(fotos/capa1.webp),url(fotos/capa3.webp);background-size:50% 100%,50% 100%;background-position:left,right;background-repeat:no-repeat" aria-label="Variada"></button>';
     for(var i=1;i<=6;i++)h+='<button data-capa="c'+i+'" aria-pressed="'+(prefs.capa==='c'+i)+'" style="background-image:url(fotos/capa'+i+'.webp)" aria-label="'+CAPAS[i-1]+'"></button>';
     if(capaOwn())h+='<button data-capa="propria" aria-pressed="'+(prefs.capa==='propria')+'" style="background-image:url('+capaUrl(1).replace(/^'|'$/g,'')+')" aria-label="Minha foto"></button>';
     h+='<button data-capa="cores" aria-pressed="'+(prefs.capa==='cores')+'" style="background:linear-gradient(135deg,#2F62FF,#7C5CFF 60%,#22D3EE)" aria-label="Cores"></button>';
     $('capaThumbs').innerHTML=h;
   }
-  function capaSet(v,msg){prefs.capa=v;persist();capaPaint();if(!chat()||!chat().msgs.length)renderChat();if(msg)toast(msg)}
+  function capaSet(v,msg){prefs.capa=v;persist();capaPaint();paintOrb($('setOrb'),prefs.voice);if(inCall)paintOrb($('orb'),prefs.voice);if(!chat()||!chat().msgs.length)renderChat();if(msg)toast(msg)}
   function capaOwnSave(dataUrl){try{localStorage.setItem('jj_capa',dataUrl)}catch(e){toast('Sem espaço para guardar a foto.');return}capaSet('propria','Foto de capa trocada')}
   var snapTo=null;
   function applyLook(){
