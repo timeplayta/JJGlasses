@@ -108,7 +108,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 .pmenu button:active{background:var(--bg)}
 .fchip{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);border-radius:10px;padding:6px 10px;margin-bottom:6px;font-size:13px}
 .m.ai .fchip{background:var(--bg)}
-.snap{position:fixed;inset:0;z-index:55;background:#000;display:flex;flex-direction:column}
+.snap{position:fixed;inset:0;z-index:80;background:#000;display:flex;flex-direction:column}
 .snap video{flex:1;min-height:0;width:100%;object-fit:cover}
 .snapbar{display:flex;align-items:center;justify-content:space-around;padding:18px 20px calc(24px + env(safe-area-inset-bottom,0px))}
 .shutter{width:76px;height:76px;border-radius:50%;border:5px solid #fff;background:rgba(255,255,255,.25)}
@@ -403,11 +403,17 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 .vorb.foto{background:var(--foto) center/cover no-repeat}
 .vorb.foto::before{display:none}
 .vorb.foto::after{background:radial-gradient(circle at 32% 24%,rgba(255,255,255,.28),transparent 32%),radial-gradient(circle at 50% 50%,transparent 62%,rgba(0,0,0,.28) 100%)}
+.vfq{position:fixed;inset:0;z-index:75;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center}.vfq[hidden]{display:none}
+.vfbox{background:var(--card);color:var(--ink);width:min(520px,100%);border-radius:22px 22px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:10px;max-height:92vh;overflow-y:auto}
+.vfrow{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}.vfrow:first-of-type{border-top:0}
+.vfrow .vorb{width:46px;height:46px;flex:none;box-shadow:none}.vfrow div{flex:1;min-width:0}.vfrow b{display:block}.vfrow small{color:var(--mute)}
 .capaorb{display:flex;flex-direction:column;align-items:center;gap:8px;padding:6px 0}
 .capaorb .vorb{width:132px;height:132px}
 .capathumbs{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px}
 .capathumbs button{flex:none;width:52px;height:52px;border-radius:50%;border:3px solid transparent;background:var(--line) center/cover no-repeat;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);padding:0;font-size:11px;color:var(--ink)}
 .capathumbs button[aria-pressed="true"]{border-color:var(--accent)}
+.vfbox .capathumbs{flex-wrap:wrap;overflow:visible;justify-content:center}
+.vfbox .capathumbs button{width:56px;height:56px}
 .hero b{font-size:22px}
 .hero span{opacity:.92;line-height:1.45}
 .feat{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
@@ -525,12 +531,9 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
       <div class="pills"><button class="pill" id="setTest">▶ Ouvir como ficou</button></div>
     </div>
     <div class="card">
-      <p class="label">Foto das bolinhas da IA</p>
-      <p class="sub">A bolinha da IA mostra uma paisagem. Deixe variada (cada voz com a sua), escolha uma, use uma foto da galeria, tire uma foto agora ou volte para as cores.</p>
-      <div class="capaorb"><span class="vorb" id="capaPrevOrb"></span><b id="capaNome"></b></div>
-      <div class="capathumbs" id="capaThumbs"></div>
-      <div class="pills"><button class="pill" id="capaGal">🖼️ Da galeria</button><button class="pill" id="capaCam">📷 Tirar foto agora</button></div>
-      <input type="file" id="capaIn" accept="image/*" hidden>
+      <p class="label">Foto de cada IA</p>
+      <p class="sub">Cada voz tem a sua paisagem, para você reconhecer qual é pela imagem. Toque em "Trocar foto" para escolher outra paisagem, uma foto da galeria, tirar uma agora ou voltar para as cores.</p>
+      <div id="vfList"></div>
     </div>
     <div class="card">
       <p class="label">Língua da IA</p>
@@ -724,11 +727,21 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 </div>
 
 <!-- escolher a voz deslizando as bolinhas -->
+<div class="vfq" id="vf" hidden>
+  <div class="vfbox" role="dialog" aria-label="Foto da IA">
+    <div class="between"><b id="vfTitle">Foto da IA</b><button class="icon" id="vfClose" aria-label="Fechar"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="capaorb"><span class="vorb" id="vfOrb"></span><b id="vfNome"></b></div>
+    <div class="capathumbs" id="vfThumbs"></div>
+    <div class="pills"><button class="pill" id="vfGal">🖼️ Da galeria</button><button class="pill" id="vfCam">📷 Tirar foto agora</button><button class="pill" id="vfPad">Voltar ao padrão</button></div>
+    <input type="file" id="vfIn" accept="image/*" hidden>
+  </div>
+</div>
 <div class="vp" id="vp" hidden>
   <div class="vptop"><button class="cround" id="vpBack" aria-label="Voltar"><svg class="i" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><b>Escolha uma voz</b></div>
   <div class="vpstage" id="vpStage"></div>
   <div class="vpname" id="vpName"></div>
   <div class="vpdesc" id="vpDesc"></div>
+  <button class="chip" id="vpFoto" style="align-self:center">🖼️ Trocar a foto desta IA</button>
   <div class="vpdots" id="vpDots"></div>
   <div class="vphint" id="vpHint">Arraste para o lado ou toque nas bolinhas dos lados</div>
   <button class="vpgo" id="vpGo">Escolher esta voz</button>
@@ -789,7 +802,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   ];
   var prefs=load('jj_prefs',{name:'',voice:'ana',theme:'auto',speak:false});
   // novas escolhas (valores padrão para quem já usava)
-  (function(){var d={lang:'',aiLang:'',me:'',ai:'',font:'padrao',pitch:0,rate:1,vol:100,onboarded:false,capa:''};for(var k in d)if(prefs[k]===undefined)prefs[k]=d[k]})();
+  (function(){var d={lang:'',aiLang:'',me:'',ai:'',font:'padrao',pitch:0,rate:1,vol:100,onboarded:false,vfoto:{}};for(var k in d)if(prefs[k]===undefined)prefs[k]=d[k]})();
   var session=load('jj_session',null); // {access, refresh, email, exp}
   var chats=load('jj_chats',[]);
   var cur=chats.length?chats[0].id:null;
@@ -916,7 +929,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     $('chatTitle').textContent=c?c.title:'JJGlasses';
     var oc=chatOculos(c);$('chatGl').textContent=oc.icone+' '+oc.nome;chatConnPaint();$('speakToggle').hidden=!ouveNoOculos(c);
     if(!c||!c.msgs.length){
-      col.innerHTML='<div class="empty">'+(capaOn()?'<div class="capa" aria-hidden="true" style="background-image:url('+capaUrl(2)+')"></div>':'<div class="mark" aria-hidden="true">JJ</div>')+'<h2>'+(prefs.name?'Oi, '+esc(prefs.name)+'!':'Oi! Como posso ajudar?')+'</h2><p>Escreva, fale pelo microfone, mande uma foto ou toque no botão de ligação para conversar por voz.</p>'+(c?'<button class="chip ocChip" data-ocpick="1">'+esc(oc.icone+' Óculos deste chat: '+oc.nome)+' · Trocar</button>':'')+'<div class="sugs">'+
+      col.innerHTML='<div class="empty">'+(capaOn()?'<div class="capa" aria-hidden="true" style="background-image:url('+capaUrl()+')"></div>':'<div class="mark" aria-hidden="true">JJ</div>')+'<h2>'+(prefs.name?'Oi, '+esc(prefs.name)+'!':'Oi! Como posso ajudar?')+'</h2><p>Escreva, fale pelo microfone, mande uma foto ou toque no botão de ligação para conversar por voz.</p>'+(c?'<button class="chip ocChip" data-ocpick="1">'+esc(oc.icone+' Óculos deste chat: '+oc.nome)+' · Trocar</button>':'')+'<div class="sugs">'+
         ['Como está o clima hoje?','Me dá uma receita rápida','Cria uma imagem de um óculos futurista'].map(function(s){return '<button class="chip" data-sug="'+esc(s)+'">'+esc(s)+'</button>'}).join('')+'</div></div>';
       return;
     }
@@ -1079,12 +1092,12 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     },function(){toast('Libere a câmera para tirar foto.')});
   }
   function closeSnap(){var was=!$('snap').hidden;if(snapStream){snapStream.getTracks().forEach(function(t){t.stop()});snapStream=null}$('snap').hidden=true;$('snapView').srcObject=null;if(was&&inCall&&callState==='ouvindo')setTimeout(hearTurn,200)}
-  $('snapClose').onclick=function(){if(snapTo){snapTo=null;$('sheet').hidden=false}closeSnap()};
+  $('snapClose').onclick=function(){var b=snapBack;snapTo=null;snapBack=null;closeSnap();if(b)b()};
   $('snapFlip').onclick=function(){snapFacing=snapFacing==='environment'?'user':'environment';closeSnap();openSnap()};
   $('snapShot').onclick=function(){
     var v=$('snapView');if(!v.videoWidth)return;
     var s=Math.min(1,1024/Math.max(v.videoWidth,v.videoHeight)),cv=document.createElement('canvas');cv.width=Math.round(v.videoWidth*s);cv.height=Math.round(v.videoHeight*s);
-    cv.getContext('2d').drawImage(v,0,0,cv.width,cv.height);var shot=cv.toDataURL('image/jpeg',.82);closeSnap();if(snapTo){var fn=snapTo;snapTo=null;fn(shot);$('sheet').hidden=false;return}if(inCall){callPhoto(shot);return}draft=shot;showDraft();$('msgIn').focus();
+    cv.getContext('2d').drawImage(v,0,0,cv.width,cv.height);var shot=cv.toDataURL('image/jpeg',.82);closeSnap();if(snapTo){var fn=snapTo,bk=snapBack;snapTo=null;snapBack=null;fn(shot);return}if(inCall){callPhoto(shot);return}draft=shot;showDraft();$('msgIn').focus();
   };
 
   /* ---------- onde a pessoa está (clima) ---------- */
@@ -1649,7 +1662,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   /* ---------- escolher voz: bolinhas que passam para o lado ---------- */
   var ORBC={ana:['#7FE3FF','#3D6BFF','#0E1C5C'],lia:['#FFD6F2','#B48CFF','#3B2A7A'],nina:['#FFE27A','#FF7A59','#7A1F3D'],bia:['#B9FFDF','#5CE0B8','#11605A'],clara:['#C9D2FF','#6C7BD9','#1D2350'],rita:['#FFB3C7','#FF4F87','#5C0F33'],bruno:['#9FB8C9','#3D5A73','#0D1A26'],davi:['#C7A27C','#6B4A2E','#1E130A'],leo:['#A8F0A0','#3FAF6B','#0F3B2A'],caio:['#9EEBFF','#22A6F2','#0B3159'],theo:['#FFC98F','#F28C38','#5A2A0C'],rui:['#D6DBE3','#7E8896','#1B2027']};
   function paintOrb(el,id){if(!el)return;var c=(ORBC||{})[id]||['#7FE3FF','#3D6BFF','#0E1C5C'];el.style.setProperty('--o1',c[0]);el.style.setProperty('--o2',c[1]);el.style.setProperty('--o3',c[2]);
-    if(capaOn()){var vi=0;for(var k=0;k<VOICES.length;k++)if(VOICES[k].id===id)vi=k;el.style.setProperty('--foto','url('+capaUrl(vi%6+1)+')');el.classList.add('foto')}
+    var u=vUrl(id);if(u){el.style.setProperty('--foto','url('+u+')');el.classList.add('foto')}
     else{el.classList.remove('foto');el.style.removeProperty('--foto')}}
   function introText(id){
     var v=VOICES.filter(function(x){return x.id===id})[0]||VOICES[0],p=v.label.split(' · '),n=p[0],k=(prefs.lang||'pt').slice(0,2);
@@ -2328,10 +2341,14 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   $('cpk').addEventListener('click',function(e){if(e.target===$('cpk'))closeColors()});
   $('cpkReset').onclick=function(){prefs[cwTarget]='';applyLook();persist();cwLoad();toast('Cor padrão de volta')};
   $('setColors').onclick=function(){$('sheet').hidden=true;openColors('me')};
-  $('capaThumbs').addEventListener('click',function(e){var b=e.target.closest('[data-capa]');if(!b)return;capaSet(b.getAttribute('data-capa'))});
-  $('capaGal').onclick=function(){$('capaIn').click()};
-  $('capaIn').onchange=function(){var f=this.files&&this.files[0];this.value='';if(!f)return;shrink(f,1000,function(d){capaOwnSave(d)})};
-  $('capaCam').onclick=function(){$('sheet').hidden=true;snapTo=capaOwnSave;openSnap()};
+  $('vfList').addEventListener('click',function(e){var b=e.target.closest('[data-vfopen]');if(b)vfOpen(b.getAttribute('data-vfopen'))});
+  $('vfThumbs').addEventListener('click',function(e){var b=e.target.closest('[data-vfset]');if(b&&vfId)vfSet(vfId,b.getAttribute('data-vfset'))});
+  $('vfClose').onclick=vfClose;$('vf').addEventListener('click',function(e){if(e.target===$('vf'))vfClose()});
+  $('vfPad').onclick=function(){if(vfId)vfSet(vfId,'','Voltou ao padrão')};
+  $('vfGal').onclick=function(){$('vfIn').click()};
+  $('vfIn').onchange=function(){var f=this.files&&this.files[0],id=vfId;this.value='';if(!f||!id)return;shrink(f,1000,function(d){vfOwnSave(id,d)})};
+  $('vfCam').onclick=function(){var id=vfId;vfClose();snapBack=function(){vfOpen(id)};snapTo=function(shot){vfOwnSave(id,shot)};openSnap()};
+  $('vpFoto').onclick=function(){vfOpen(VOICES[vpIdx].id)};
   // segurar o dedo ~0,5 s em cima de um balão abre as cores daquele balão (seu ou da IA)
   (function(){
     var timer=null,sx=0,sy=0,el=null;
@@ -2639,7 +2656,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   function paintAiLang(){var sel=$('setAiLang');sel.innerHTML='<option value="">Automático (a mesma língua que você usar)</option>'+LANGS.map(function(x){return '<option value="'+x[0]+'">'+esc(langLocal(x[0]))+'</option>'}).join('');sel.value=prefs.aiLang||''}
   function applyTheme(){var r=document.documentElement;if(prefs.theme==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',prefs.theme)}
   ['Light','Dark','Auto'].forEach(function(n){$('th'+n).onclick=function(){prefs.theme=n.toLowerCase();applyTheme();persist();paintSettings()}});
-  function paintSettings(){paintIvEscolha();ntPaint();capaPaint();
+  function paintSettings(){paintIvEscolha();ntPaint();vfListPaint();
     var cv=voice(),cp=cv.label.split(' · ');$('setVoiceName').textContent=cp[0];$('setVoiceDesc').textContent=cp[1]||'';paintOrb($('setOrb'),cv.id);
     ['Light','Dark','Auto'].forEach(function(n){$('th'+n).setAttribute('aria-pressed',prefs.theme===n.toLowerCase()?'true':'false')});
     $('nameIn').value=prefs.name||'';paintVoiceTune();paintAiLang();
@@ -2736,33 +2753,48 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   function inkFor(hex){if(!hex)return '';var c=hex.replace('#','');var r=parseInt(c.substr(0,2),16),g=parseInt(c.substr(2,2),16),b=parseInt(c.substr(4,2),16);return (r*299+g*587+b*114)/1000>150?'#141821':'#FFFFFF'}
   var fontLinks={};
   function loadFont(f){if(!f[3]||fontLinks[f[0]])return;var l=document.createElement('link');l.rel='stylesheet';l.href='https://fonts.googleapis.com/css2?family='+f[3]+'&display=swap';document.head.appendChild(l);fontLinks[f[0]]=1}
-  /* ---------- foto de capa (paisagens, galeria ou câmera) ---------- */
-  var CAPAS=['Vale e rio','Montanhas ao pôr do sol','Praia','Lago','Montanhas e floresta','Floresta'];
-  function capaOwn(){try{return localStorage.getItem('jj_capa')||''}catch(e){return ''}}
-  function capaOn(){return prefs.capa!=='cores'&&(prefs.capa!=='propria'||!!capaOwn())}
+  /* ---------- foto de cada IA (paisagens, galeria ou câmera) ---------- */
+  var CAPAS=['Vale e rio','Montanhas ao pôr do sol','Praia','Lago','Montanhas e floresta','Floresta','Campo ao entardecer','Floresta com neblina','Céu estrelado','Cachoeira','Mar ao anoitecer','Pico com nuvens'];
+  function vIdx(id){for(var k=0;k<VOICES.length;k++)if(VOICES[k].id===id)return k;return 0}
+  function vVal(id){return (prefs.vfoto&&prefs.vfoto[id])||''}            // '' = padrão da voz, 'c1'..'c12', 'propria' ou 'cores'
+  function vOwn(id){try{return localStorage.getItem('jj_capa_'+id)||''}catch(e){return ''}}
+  function vUrl(id){                                                     // endereço da foto desta IA (null = cores)
+    var v=vVal(id);if(v==='cores')return null;
+    if(v==='propria'&&vOwn(id))return "'"+vOwn(id)+"'";
+    var m=/^c(\d+)$/.exec(v),n=m&&+m[1]>=1&&+m[1]<=12?+m[1]:vIdx(id)+1;return "'fotos/capa"+n+".webp'";
+  }
+  function vName(id){var v=vVal(id),m=/^c(\d+)$/.exec(v);return v==='cores'?'Cores':v==='propria'&&vOwn(id)?'Minha foto':m?CAPAS[+m[1]-1]||'Paisagem':CAPAS[vIdx(id)]+' (padrão)'}
+  function capaOn(){return vUrl(prefs.voice)!==null}                     // os banners seguem a foto da IA atual
+  function capaUrl(){return vUrl(prefs.voice)}
   function capaCls(){return capaOn()?' foto':''}
-  // devolve o endereço da foto: a escolhida (1 a 6), a da pessoa, ou a "variada" (cada tela uma paisagem)
-  function capaUrl(def){
-    if(prefs.capa==='propria'&&capaOwn())return "'"+capaOwn()+"'";
-    var m=/^c(\d)$/.exec(prefs.capa||''),n=m?+m[1]:def;return "'fotos/capa"+n+".webp'";
-  }
-  function capaSt(grad,def){
+  function capaSt(grad){
     if(!capaOn())return grad?' style="background:'+grad+'"':'';
-    return ' style="background:linear-gradient(180deg,rgba(0,0,0,.12),rgba(0,0,0,.6)),url('+capaUrl(def)+')"';
+    return ' style="background:linear-gradient(180deg,rgba(0,0,0,.12),rgba(0,0,0,.6)),url('+capaUrl()+')"';
   }
-  function capaPaint(){
-    if(!$('capaPrevOrb'))return;
-    var on=capaOn();paintOrb($('capaPrevOrb'),prefs.voice);
-    $('capaNome').textContent=!on?'Cores':prefs.capa==='propria'?'Minha foto':/^c\d$/.test(prefs.capa||'')?CAPAS[+prefs.capa.slice(1)-1]:'Variada (uma paisagem em cada voz)';
-    var h='<button data-capa="" aria-pressed="'+(on&&!prefs.capa)+'" style="background-image:url(fotos/capa1.webp),url(fotos/capa3.webp);background-size:50% 100%,50% 100%;background-position:left,right;background-repeat:no-repeat" aria-label="Variada"></button>';
-    for(var i=1;i<=6;i++)h+='<button data-capa="c'+i+'" aria-pressed="'+(prefs.capa==='c'+i)+'" style="background-image:url(fotos/capa'+i+'.webp)" aria-label="'+CAPAS[i-1]+'"></button>';
-    if(capaOwn())h+='<button data-capa="propria" aria-pressed="'+(prefs.capa==='propria')+'" style="background-image:url('+capaUrl(1).replace(/^'|'$/g,'')+')" aria-label="Minha foto"></button>';
-    h+='<button data-capa="cores" aria-pressed="'+(prefs.capa==='cores')+'" style="background:linear-gradient(135deg,#2F62FF,#7C5CFF 60%,#22D3EE)" aria-label="Cores"></button>';
-    $('capaThumbs').innerHTML=h;
+  function vfRepaint(){
+    vfListPaint();paintOrb($('setOrb'),prefs.voice);if(inCall)paintOrb($('orb'),prefs.voice);
+    if(!$('vp').hidden)[].forEach.call($('vpStage').children,function(el){paintOrb(el,VOICES[+el.getAttribute('data-vi')].id)});
+    if(!chat()||!chat().msgs.length)renderChat();
   }
-  function capaSet(v,msg){prefs.capa=v;persist();capaPaint();paintOrb($('setOrb'),prefs.voice);if(inCall)paintOrb($('orb'),prefs.voice);if(!chat()||!chat().msgs.length)renderChat();if(msg)toast(msg)}
-  function capaOwnSave(dataUrl){try{localStorage.setItem('jj_capa',dataUrl)}catch(e){toast('Sem espaço para guardar a foto.');return}capaSet('propria','Foto de capa trocada')}
-  var snapTo=null;
+  function vfListPaint(){
+    var el=$('vfList');if(!el)return;
+    el.innerHTML=VOICES.map(function(v,i){var n=v.label.split(' · ')[0];
+      return '<div class="vfrow"><span class="vorb" data-vf="'+v.id+'"></span><div><b>'+esc(n)+(v.id===prefs.voice?' · atual':'')+'</b><small>'+esc(vName(v.id))+'</small></div><button class="chip" data-vfopen="'+v.id+'">Trocar foto</button></div>'}).join('');
+    [].forEach.call(el.querySelectorAll('.vorb'),function(o){paintOrb(o,o.getAttribute('data-vf'))});
+  }
+  var vfId=null;
+  function vfOpen(id){
+    vfId=id;var n=VOICES[vIdx(id)].label.split(' · ')[0];$('vfTitle').textContent='Foto d'+(VOICES[vIdx(id)].male?'o ':'a ')+n;
+    var h='',cur=vVal(id);
+    for(var i=1;i<=12;i++)h+='<button data-vfset="c'+i+'" aria-pressed="'+(cur==='c'+i)+'" style="background-image:url(fotos/capa'+i+'.webp)" aria-label="'+CAPAS[i-1]+'"></button>';
+    if(vOwn(id))h+='<button data-vfset="propria" aria-pressed="'+(cur==='propria')+'" style="background-image:url('+vOwn(id)+')" aria-label="Minha foto"></button>';
+    h+='<button data-vfset="cores" aria-pressed="'+(cur==='cores')+'" style="background:linear-gradient(135deg,#2F62FF,#7C5CFF 60%,#22D3EE)" aria-label="Cores"></button>';
+    $('vfThumbs').innerHTML=h;paintOrb($('vfOrb'),id);$('vfNome').textContent=vName(id);$('vf').hidden=false;
+  }
+  function vfClose(){$('vf').hidden=true;vfId=null}
+  function vfSet(id,v,msg){prefs.vfoto=prefs.vfoto||{};if(v)prefs.vfoto[id]=v;else delete prefs.vfoto[id];persist();vfRepaint();if(!$('vf').hidden&&vfId===id){paintOrb($('vfOrb'),id);$('vfNome').textContent=vName(id);vfOpen(id)}if(msg)toast(msg)}
+  function vfOwnSave(id,dataUrl){try{localStorage.setItem('jj_capa_'+id,dataUrl)}catch(e){toast('Sem espaço para guardar a foto.');return}vfSet(id,'propria','Foto trocada')}
+  var snapTo=null,snapBack=null;
   function applyLook(){
     var r=document.documentElement.style;
     if(prefs.me){r.setProperty('--me',prefs.me);r.setProperty('--me-ink',inkFor(prefs.me))}else{r.removeProperty('--me');r.removeProperty('--me-ink')}
