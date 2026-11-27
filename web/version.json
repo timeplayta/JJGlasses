@@ -1,12 +1,12 @@
 {
-  "v": 202611271733,
+  "v": 202611271745,
   "notes": {
-    "t": "Fotos de paisagem no lugar das cores",
+    "t": "Paisagens dentro das bolinhas da IA",
     "b": [
-      "As telas de boas-vindas e a conversa vazia agora têm fotos de paisagem.",
-      "Em Ajustes › Foto de capa você escolhe uma paisagem, usa uma foto da galeria, tira uma foto na hora ou volta para as cores."
+      "A bolinha da IA (na ligação, na escolha da voz e em Ajustes) agora mostra uma paisagem.",
+      "Em Ajustes, logo abaixo da Voz da IA, você escolhe: variada, uma das paisagens, foto da galeria, foto tirada na hora ou as cores de antes."
     ]
   },
-  "bytes": 264499,
-  "sha256": "9a81523954479b452d3bd003daf20ff9fbaebe85c167f344a1127be2995ed2b7"
+  "bytes": 264954,
+  "sha256": "5d01dbb8cc447f245918f0860f12b6c5a08891e072d0b6d6a79eee3b865237c7"
 }
