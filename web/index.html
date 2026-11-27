@@ -397,7 +397,13 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 .obbody h2{margin:0;font-size:26px;line-height:1.2;text-wrap:balance}
 .obbody p.lead{margin:0;color:var(--mute);line-height:1.5}
 .hero{border-radius:24px;padding:26px 20px;display:flex;flex-direction:column;gap:12px;color:#fff;background:linear-gradient(135deg,#2F62FF,#7C5CFF 60%,#22D3EE)}
-.hero .big{font-size:54px;line-height:1}
+.hero .big{font-size:54px;line-height:1;text-shadow:0 2px 8px rgba(0,0,0,.35)}
+.hero.foto{min-height:190px;justify-content:flex-end;background-size:cover!important;background-position:center!important;text-shadow:0 1px 6px rgba(0,0,0,.55)}
+.empty .capa{width:min(380px,100%);aspect-ratio:16/9;border-radius:20px;background:var(--line) center/cover no-repeat;box-shadow:0 6px 22px rgba(0,0,0,.18)}
+.capaprev{width:100%;aspect-ratio:16/9;border-radius:16px;background:var(--line) center/cover no-repeat;border:1px solid var(--line);display:flex;align-items:flex-end;padding:10px;color:#fff;font-weight:600;text-shadow:0 1px 6px rgba(0,0,0,.6)}
+.capathumbs{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px}
+.capathumbs button{flex:none;width:68px;height:46px;border-radius:10px;border:3px solid transparent;background:var(--line) center/cover no-repeat;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);padding:0;font-size:11px;color:var(--ink)}
+.capathumbs button[aria-pressed="true"]{border-color:var(--accent)}
 .hero b{font-size:22px}
 .hero span{opacity:.92;line-height:1.45}
 .feat{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
@@ -532,6 +538,14 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     <div class="card">
       <p class="label">Aparência</p>
       <div class="pills"><button class="pill" id="thLight">Claro</button><button class="pill" id="thDark">Escuro</button><button class="pill" id="thAuto">Automático</button></div>
+    </div>
+    <div class="card">
+      <p class="label">Foto de capa</p>
+      <p class="sub">Aparece nas telas de boas-vindas e na conversa vazia. Escolha uma paisagem, use uma foto sua ou volte para as cores.</p>
+      <div class="capaprev" id="capaPrev"><span id="capaNome"></span></div>
+      <div class="capathumbs" id="capaThumbs"></div>
+      <div class="pills"><button class="pill" id="capaGal">🖼️ Da galeria</button><button class="pill" id="capaCam">📷 Tirar foto agora</button></div>
+      <input type="file" id="capaIn" accept="image/*" hidden>
     </div>
     <div class="card">
       <p class="label">Conta</p>
@@ -771,7 +785,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   ];
   var prefs=load('jj_prefs',{name:'',voice:'ana',theme:'auto',speak:false});
   // novas escolhas (valores padrão para quem já usava)
-  (function(){var d={lang:'',aiLang:'',me:'',ai:'',font:'padrao',pitch:0,rate:1,vol:100,onboarded:false};for(var k in d)if(prefs[k]===undefined)prefs[k]=d[k]})();
+  (function(){var d={lang:'',aiLang:'',me:'',ai:'',font:'padrao',pitch:0,rate:1,vol:100,onboarded:false,capa:''};for(var k in d)if(prefs[k]===undefined)prefs[k]=d[k]})();
   var session=load('jj_session',null); // {access, refresh, email, exp}
   var chats=load('jj_chats',[]);
   var cur=chats.length?chats[0].id:null;
@@ -898,7 +912,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     $('chatTitle').textContent=c?c.title:'JJGlasses';
     var oc=chatOculos(c);$('chatGl').textContent=oc.icone+' '+oc.nome;chatConnPaint();$('speakToggle').hidden=!ouveNoOculos(c);
     if(!c||!c.msgs.length){
-      col.innerHTML='<div class="empty"><div class="mark" aria-hidden="true">JJ</div><h2>'+(prefs.name?'Oi, '+esc(prefs.name)+'!':'Oi! Como posso ajudar?')+'</h2><p>Escreva, fale pelo microfone, mande uma foto ou toque no botão de ligação para conversar por voz.</p>'+(c?'<button class="chip ocChip" data-ocpick="1">'+esc(oc.icone+' Óculos deste chat: '+oc.nome)+' · Trocar</button>':'')+'<div class="sugs">'+
+      col.innerHTML='<div class="empty">'+(capaOn()?'<div class="capa" aria-hidden="true" style="background-image:url('+capaUrl(2)+')"></div>':'<div class="mark" aria-hidden="true">JJ</div>')+'<h2>'+(prefs.name?'Oi, '+esc(prefs.name)+'!':'Oi! Como posso ajudar?')+'</h2><p>Escreva, fale pelo microfone, mande uma foto ou toque no botão de ligação para conversar por voz.</p>'+(c?'<button class="chip ocChip" data-ocpick="1">'+esc(oc.icone+' Óculos deste chat: '+oc.nome)+' · Trocar</button>':'')+'<div class="sugs">'+
         ['Como está o clima hoje?','Me dá uma receita rápida','Cria uma imagem de um óculos futurista'].map(function(s){return '<button class="chip" data-sug="'+esc(s)+'">'+esc(s)+'</button>'}).join('')+'</div></div>';
       return;
     }
@@ -1061,12 +1075,12 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     },function(){toast('Libere a câmera para tirar foto.')});
   }
   function closeSnap(){var was=!$('snap').hidden;if(snapStream){snapStream.getTracks().forEach(function(t){t.stop()});snapStream=null}$('snap').hidden=true;$('snapView').srcObject=null;if(was&&inCall&&callState==='ouvindo')setTimeout(hearTurn,200)}
-  $('snapClose').onclick=closeSnap;
+  $('snapClose').onclick=function(){if(snapTo){snapTo=null;$('sheet').hidden=false}closeSnap()};
   $('snapFlip').onclick=function(){snapFacing=snapFacing==='environment'?'user':'environment';closeSnap();openSnap()};
   $('snapShot').onclick=function(){
     var v=$('snapView');if(!v.videoWidth)return;
     var s=Math.min(1,1024/Math.max(v.videoWidth,v.videoHeight)),cv=document.createElement('canvas');cv.width=Math.round(v.videoWidth*s);cv.height=Math.round(v.videoHeight*s);
-    cv.getContext('2d').drawImage(v,0,0,cv.width,cv.height);var shot=cv.toDataURL('image/jpeg',.82);closeSnap();if(inCall){callPhoto(shot);return}draft=shot;showDraft();$('msgIn').focus();
+    cv.getContext('2d').drawImage(v,0,0,cv.width,cv.height);var shot=cv.toDataURL('image/jpeg',.82);closeSnap();if(snapTo){var fn=snapTo;snapTo=null;fn(shot);$('sheet').hidden=false;return}if(inCall){callPhoto(shot);return}draft=shot;showDraft();$('msgIn').focus();
   };
 
   /* ---------- onde a pessoa está (clima) ---------- */
@@ -2308,6 +2322,10 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   $('cpk').addEventListener('click',function(e){if(e.target===$('cpk'))closeColors()});
   $('cpkReset').onclick=function(){prefs[cwTarget]='';applyLook();persist();cwLoad();toast('Cor padrão de volta')};
   $('setColors').onclick=function(){$('sheet').hidden=true;openColors('me')};
+  $('capaThumbs').addEventListener('click',function(e){var b=e.target.closest('[data-capa]');if(!b)return;capaSet(b.getAttribute('data-capa'))});
+  $('capaGal').onclick=function(){$('capaIn').click()};
+  $('capaIn').onchange=function(){var f=this.files&&this.files[0];this.value='';if(!f)return;shrink(f,1000,function(d){capaOwnSave(d)})};
+  $('capaCam').onclick=function(){$('sheet').hidden=true;snapTo=capaOwnSave;openSnap()};
   // segurar o dedo ~0,5 s em cima de um balão abre as cores daquele balão (seu ou da IA)
   (function(){
     var timer=null,sx=0,sy=0,el=null;
@@ -2615,7 +2633,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   function paintAiLang(){var sel=$('setAiLang');sel.innerHTML='<option value="">Automático (a mesma língua que você usar)</option>'+LANGS.map(function(x){return '<option value="'+x[0]+'">'+esc(langLocal(x[0]))+'</option>'}).join('');sel.value=prefs.aiLang||''}
   function applyTheme(){var r=document.documentElement;if(prefs.theme==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',prefs.theme)}
   ['Light','Dark','Auto'].forEach(function(n){$('th'+n).onclick=function(){prefs.theme=n.toLowerCase();applyTheme();persist();paintSettings()}});
-  function paintSettings(){paintIvEscolha();ntPaint();
+  function paintSettings(){paintIvEscolha();ntPaint();capaPaint();
     var cv=voice(),cp=cv.label.split(' · ');$('setVoiceName').textContent=cp[0];$('setVoiceDesc').textContent=cp[1]||'';paintOrb($('setOrb'),cv.id);
     ['Light','Dark','Auto'].forEach(function(n){$('th'+n).setAttribute('aria-pressed',prefs.theme===n.toLowerCase()?'true':'false')});
     $('nameIn').value=prefs.name||'';paintVoiceTune();paintAiLang();
@@ -2712,6 +2730,34 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   function inkFor(hex){if(!hex)return '';var c=hex.replace('#','');var r=parseInt(c.substr(0,2),16),g=parseInt(c.substr(2,2),16),b=parseInt(c.substr(4,2),16);return (r*299+g*587+b*114)/1000>150?'#141821':'#FFFFFF'}
   var fontLinks={};
   function loadFont(f){if(!f[3]||fontLinks[f[0]])return;var l=document.createElement('link');l.rel='stylesheet';l.href='https://fonts.googleapis.com/css2?family='+f[3]+'&display=swap';document.head.appendChild(l);fontLinks[f[0]]=1}
+  /* ---------- foto de capa (paisagens, galeria ou câmera) ---------- */
+  var CAPAS=['Vale e rio','Montanhas ao pôr do sol','Praia','Lago','Montanhas e floresta','Floresta'];
+  function capaOwn(){try{return localStorage.getItem('jj_capa')||''}catch(e){return ''}}
+  function capaOn(){return prefs.capa!=='cores'&&(prefs.capa!=='propria'||!!capaOwn())}
+  function capaCls(){return capaOn()?' foto':''}
+  // devolve o endereço da foto: a escolhida (1 a 6), a da pessoa, ou a "variada" (cada tela uma paisagem)
+  function capaUrl(def){
+    if(prefs.capa==='propria'&&capaOwn())return "'"+capaOwn()+"'";
+    var m=/^c(\d)$/.exec(prefs.capa||''),n=m?+m[1]:def;return "'fotos/capa"+n+".webp'";
+  }
+  function capaSt(grad,def){
+    if(!capaOn())return grad?' style="background:'+grad+'"':'';
+    return ' style="background:linear-gradient(180deg,rgba(0,0,0,.12),rgba(0,0,0,.6)),url('+capaUrl(def)+')"';
+  }
+  function capaPaint(){
+    if(!$('capaPrev'))return;
+    var on=capaOn();
+    $('capaPrev').style.backgroundImage=on?'url('+capaUrl(1)+')':'linear-gradient(135deg,#2F62FF,#7C5CFF 60%,#22D3EE)';
+    $('capaNome').textContent=!on?'Cores':prefs.capa==='propria'?'Minha foto':/^c\d$/.test(prefs.capa||'')?CAPAS[+prefs.capa.slice(1)-1]:'Variada (uma paisagem em cada tela)';
+    var h='<button data-capa="" aria-pressed="'+(on&&!prefs.capa)+'" style="background-image:url(fotos/capa1.webp),url(fotos/capa3.webp);background-size:50% 100%,50% 100%;background-position:left,right;background-repeat:no-repeat" aria-label="Variada"></button>';
+    for(var i=1;i<=6;i++)h+='<button data-capa="c'+i+'" aria-pressed="'+(prefs.capa==='c'+i)+'" style="background-image:url(fotos/capa'+i+'.webp)" aria-label="'+CAPAS[i-1]+'"></button>';
+    if(capaOwn())h+='<button data-capa="propria" aria-pressed="'+(prefs.capa==='propria')+'" style="background-image:url('+capaUrl(1).replace(/^'|'$/g,'')+')" aria-label="Minha foto"></button>';
+    h+='<button data-capa="cores" aria-pressed="'+(prefs.capa==='cores')+'" style="background:linear-gradient(135deg,#2F62FF,#7C5CFF 60%,#22D3EE)" aria-label="Cores"></button>';
+    $('capaThumbs').innerHTML=h;
+  }
+  function capaSet(v,msg){prefs.capa=v;persist();capaPaint();if(!chat()||!chat().msgs.length)renderChat();if(msg)toast(msg)}
+  function capaOwnSave(dataUrl){try{localStorage.setItem('jj_capa',dataUrl)}catch(e){toast('Sem espaço para guardar a foto.');return}capaSet('propria','Foto de capa trocada')}
+  var snapTo=null;
   function applyLook(){
     var r=document.documentElement.style;
     if(prefs.me){r.setProperty('--me',prefs.me);r.setProperty('--me-ink',inkFor(prefs.me))}else{r.removeProperty('--me');r.removeProperty('--me-ink')}
@@ -2771,16 +2817,16 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     sampleFetch(id).then(function(url){off();if(mine!==sampleTok)return;var a=shiftPitch(new Audio(url),v);a.volume=vol;curAudio=a;return a.play()}).catch(fallback)}
   function markVoice(){document.querySelectorAll('#obBody [data-voice]').forEach(function(el){el.setAttribute('aria-pressed',String(el.getAttribute('data-voice')===prefs.voice))})}
   var STEP={
-    w1:function(t){return '<div class="hero"><div class="big">🕶️</div><b>'+esc(t.w1t)+(prefs.name?', '+esc(prefs.name):'')+'!</b><span>'+esc(t.w1b)+'</span></div>'},
+    w1:function(t){return '<div class="hero'+capaCls()+'"'+capaSt('',1)+'><div class="big">🕶️</div><b>'+esc(t.w1t)+(prefs.name?', '+esc(prefs.name):'')+'!</b><span>'+esc(t.w1b)+'</span></div>'},
     w2:function(t){return '<h2>'+esc(t.w2t)+'</h2><div class="feat">'+t.f.map(function(x){return '<div><em>'+x[0]+'</em><b>'+esc(x[1])+'</b><span>'+esc(x[2])+'</span></div>'}).join('')+'</div>'},
-    w3:function(t){return '<div class="hero" style="background:linear-gradient(135deg,#16A34A,#0EA5E9)"><div class="big">✨</div><b>'+esc(t.w3t)+'</b><span>'+esc(t.w3b)+'</span></div>'},
+    w3:function(t){return '<div class="hero'+capaCls()+'"'+capaSt('linear-gradient(135deg,#16A34A,#0EA5E9)',3)+'><div class="big">✨</div><b>'+esc(t.w3t)+'</b><span>'+esc(t.w3b)+'</span></div>'},
     lang:function(t){return '<h2>'+esc(t.lt)+'</h2><p class="lead">'+esc(t.lb)+'</p><div class="opts">'+LANGS.map(function(x){var loc=langLocal(x[0]);return '<button class="opt" data-lang="'+x[0]+'" aria-pressed="'+(prefs.lang===x[0])+'"><span>'+esc(loc)+(loc.toLowerCase()!==x[1].toLowerCase()?'<small>'+esc(x[1])+'</small>':'')+'</span></button>'}).join('')+'</div>'},
     theme:function(t){return '<h2>'+esc(t.tt)+'</h2><p class="lead">'+esc(t.tb)+'</p><div class="opts">'+[['light','☀️',t.light,''],['dark','🌙',t.dark,''],['auto','📱',t.auto,t.autob]].map(function(x){return '<button class="opt" data-obtheme="'+x[0]+'" aria-pressed="'+(prefs.theme===x[0])+'"><span style="font-size:22px">'+x[1]+'</span><span>'+esc(x[2])+(x[3]?'<small>'+esc(x[3])+'</small>':'')+'</span></button>'}).join('')+'</div>'},
     colors:function(t){var x=XT();return '<h2>'+esc(t.ct)+'</h2><p class="lead">'+esc(t.cb)+'</p><div class="mock"><div class="m me">'+esc(t.mme)+'</div><div class="m ai">'+esc(t.mai)+'</div></div><div class="seg"><button data-cwt="me" aria-pressed="'+(cwTarget==='me')+'">'+esc(t.cme)+'</button><button data-cwt="ai" aria-pressed="'+(cwTarget==='ai')+'">'+esc(t.cai)+'</button></div><div class="wheel" id="cwWheel"><canvas id="cwCan"></canvas><i id="cwKnob"></i></div>'+slider('cwVal',x.int,8,100,1,100,x.dark,x.light)+'<div class="swatches small" id="cwPre"></div>'},
     font:function(t){return '<h2>'+esc(t.ft)+'</h2><p class="lead">'+esc(t.fb)+'</p><div class="opts">'+FONTS.map(function(f){loadFont(f);return '<button class="opt" data-font="'+f[0]+'" aria-pressed="'+(prefs.font===f[0])+'" style="font-family:'+f[2].replace(/"/g,'&quot;')+'">'+esc(f[1])+'<small style="font-family:inherit">'+esc(t.mai)+'</small></button>'}).join('')+'</div>'},
     voice:function(t){return '<h2>'+esc(t.vt)+'</h2><p class="lead">'+esc(t.vb)+'</p>'+voiceList()},
     tune:function(t){return '<h2>'+esc(t.pt2)+'</h2><p class="lead">'+esc(t.pb)+'</p>'+slider('obPitch',t.pitch,-5,5,1,-(prefs.pitch||0),t.high,t.low)+slider('obRate',t.rate,0.8,1.25,0.05,prefs.rate,t.slow,t.fast)+slider('obVol',t.vol,20,100,5,prefs.vol,'20%','100%')+'<button class="btn main" id="obTest">▶ '+esc(t.test)+'</button><h3 class="subh">'+esc(XT().other)+'</h3><p class="lead">'+esc(t.vb)+'</p>'+voiceList()},
-    done:function(t){return '<div class="hero" style="background:linear-gradient(135deg,#7C5CFF,#DB2777)"><div class="big">🎉</div><b>'+esc(t.dt)+'</b><span>'+esc(t.db)+'</span></div><div class="mock"><div class="m me">'+esc(t.mme)+'</div><div class="m ai">'+esc(t.mai)+'</div></div>'}
+    done:function(t){return '<div class="hero'+capaCls()+'"'+capaSt('linear-gradient(135deg,#7C5CFF,#DB2777)',4)+'><div class="big">🎉</div><b>'+esc(t.dt)+'</b><span>'+esc(t.db)+'</span></div><div class="mock"><div class="m me">'+esc(t.mme)+'</div><div class="m ai">'+esc(t.mai)+'</div></div>'}
   };
   function sampleText(id){return introText(id)}
   function paintTune(){if(!$('obPitch'))return;var t=T();$('obPitchV').textContent=!prefs.pitch?'0':prefs.pitch>0?'+'+prefs.pitch:String(prefs.pitch);$('obRateV').textContent=Math.round(prefs.rate*100)+'%';$('obVolV').textContent=prefs.vol+'%'}
