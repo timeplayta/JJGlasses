@@ -1,0 +1,21 @@
+tamanho KEYSTORE_BASE64 (sem espacos): 3631 (esperado 3520)
+tamanho KEYSTORE_PASSWORD: 84 (esperado 24)
+base64 INVALIDO
+senha NAO confere
+total 3784
+drwxr-xr-x 3 runner runner    4096 Nov 27 21:13 .
+drwxr-xr-x 3 runner runner    4096 Nov 27 21:13 ..
+-rw-r--r-- 1 runner runner 3858148 Nov 27 21:13 app-release.apk
+drwxr-xr-x 4 runner runner    4096 Nov 27 21:13 baselineProfiles
+-rw-r--r-- 1 runner runner     709 Nov 27 21:13 output-metadata.json
+{
+  "v": 202611271812,
+  "notes": {
+    "t": "Nova entrada do app",
+    "b": [
+      "Ao abrir, o óculos se desenha na tela, as lentes mostram paisagens e o nome JJGlasses aparece. Toque para pular."
+    ]
+  },
+  "bytes": 273207,
+  "sha256": "e0b7e111e56e6de3011e5351da6813639bc6901a99cde57f7985c213e8018bff"
+}
