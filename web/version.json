@@ -1,12 +1,12 @@
 {
-  "v": 202611211658,
+  "v": 202611271733,
   "notes": {
-    "t": "Ao vivo do iVUE: o app abre a sessão como o app oficial",
+    "t": "Fotos de paisagem no lugar das cores",
     "b": [
-      "O JJGlasses agora abre a sessão com o óculos (como o app oficial faz) e a mantém viva a cada 5 segundos.",
-      "Com isso o ao vivo, a bateria e o espaço livre devem funcionar."
+      "As telas de boas-vindas e a conversa vazia agora têm fotos de paisagem.",
+      "Em Ajustes › Foto de capa você escolhe uma paisagem, usa uma foto da galeria, tira uma foto na hora ou volta para as cores."
     ]
   },
-  "bytes": 259764,
-  "sha256": "f1ae61048b6e0914a6590e780c309095da92192ef51c6d3eb734d11fe9c0cb61"
+  "bytes": 264499,
+  "sha256": "9a81523954479b452d3bd003daf20ff9fbaebe85c167f344a1127be2995ed2b7"
 }
